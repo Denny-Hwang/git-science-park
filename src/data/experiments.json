@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "eras": [
+    { "id": "01-ancient", "name": "고대 과학", "experiments": [] },
+    { "id": "02-scientific-revolution", "name": "과학 혁명", "experiments": [] },
+    { "id": "03-precision-era", "name": "정밀 과학의 시대", "experiments": [] },
+    { "id": "04-energy-field", "name": "에너지와 장", "experiments": [] },
+    { "id": "05-atomic", "name": "원자의 시대", "experiments": [] },
+    { "id": "06-quantum", "name": "양자 역학", "experiments": [] },
+    { "id": "07-relativity", "name": "상대성 이론", "experiments": [] },
+    { "id": "08-modern", "name": "현대 과학", "experiments": [] }
+  ]
+}
