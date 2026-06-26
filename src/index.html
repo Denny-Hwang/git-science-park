@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="과학사의 핵심 실험 53개를 조작·관찰·해석으로 직접 다루며 배우는 인터랙티브 학습 플랫폼." />
+  <title>과학사 인터랙티브 실험실 (Interactive Science History Lab)</title>
+  <style>
+    /* ===== 디자인 토큰 ===== */
+    :root {
+      --bg: #0e1320;
+      --bg-soft: #161d2e;
+      --bg-card: #1b2336;
+      --bg-card-hover: #222c44;
+      --border: #2b3550;
+      --border-soft: #232c43;
+      --text: #e7ecf5;
+      --text-muted: #9aa6bf;
+      --text-dim: #6b7894;
+      --accent: #5b9dff;
+      --accent-soft: rgba(91, 157, 255, 0.16);
+      --star: #ffcf5c;
+      --shadow: 0 6px 22px rgba(0, 0, 0, 0.38);
+      --radius: 14px;
+      --radius-sm: 9px;
+      --maxw: 1240px;
+
+      /* 카테고리 색 (experiments.json 과 동기화) */
+      --cat-01-ancient: #8B4513;
+      --cat-02-scientific-revolution: #2E4A62;
+      --cat-03-precision-era: #4A5568;
+      --cat-04-energy-field: #C53030;
+      --cat-05-atomic: #2B6CB0;
+      --cat-06-quantum: #6B46C1;
+      --cat-07-relativity: #1A365D;
+      --cat-08-modern: #234E52;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+        "Noto Sans KR", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(91, 157, 255, 0.10), transparent 60%),
+        radial-gradient(900px 500px at -10% 10%, rgba(107, 70, 193, 0.10), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+
+    /* ===== 헤더 ===== */
+    header.site {
+      padding: 56px 0 30px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .site-title {
+      margin: 0;
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #ffffff, #b9c6e6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .site-subtitle {
+      margin: 8px 0 0;
+      font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .site-intro {
+      margin: 16px auto 0;
+      max-width: 680px;
+      color: var(--text-muted);
+      font-size: 1.02rem;
+    }
+    .site-stats {
+      margin: 22px 0 4px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .stat-pill {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+    .stat-pill strong { color: var(--text); font-size: 1.05rem; font-weight: 700; }
+
+    /* ===== 필터 바 (sticky) ===== */
+    .filterbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(14, 19, 32, 0.86);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 14px 0;
+    }
+    .filterbar .wrap { display: flex; flex-direction: column; gap: 12px; }
+
+    .search-row { display: flex; gap: 10px; align-items: center; }
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      font-size: 0.98rem;
+      padding: 12px 18px 12px 44px;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239aa6bf' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 16px center;
+    }
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .filter-group { display: flex; flex-direction: column; gap: 7px; }
+    .filter-label {
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .chip {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1;
+      transition: background 0.16s, color 0.16s, border-color 0.16s, transform 0.16s;
+      white-space: nowrap;
+    }
+    .chip:hover { color: var(--text); border-color: var(--text-dim); transform: translateY(-1px); }
+    .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .chip .ic { font-size: 1rem; }
+    .chip[aria-pressed="true"] {
+      color: #fff;
+      border-color: transparent;
+      background: var(--chip-color, var(--accent));
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+    }
+    /* 난이도 칩 활성색 */
+    .chip.diff[aria-pressed="true"] { background: var(--star); color: #2a2200; }
+
+    .filter-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .counter { font-size: 0.85rem; color: var(--text-muted); }
+    .counter strong { color: var(--text); }
+    .btn-reset {
+      cursor: pointer;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: color 0.16s, border-color 0.16s;
+    }
+    .btn-reset:hover { color: var(--text); border-color: var(--text-dim); }
+    .btn-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ===== 메인 ===== */
+    main { padding: 30px 0 80px; }
+
+    .cat-section { margin-bottom: 46px; scroll-margin-top: 200px; }
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, var(--cat-accent-soft), transparent 75%);
+      border-left: 5px solid var(--cat-accent);
+      margin-bottom: 20px;
+    }
+    .cat-icon {
+      font-size: 1.9rem;
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--cat-accent-soft);
+      border: 1px solid var(--cat-accent);
+    }
+    .cat-titles { min-width: 0; flex: 1; }
+    .cat-name { margin: 0; font-size: 1.3rem; font-weight: 800; }
+    .cat-name .en { color: var(--text-dim); font-weight: 600; font-size: 0.9rem; margin-left: 8px; }
+    .cat-tagline { margin: 2px 0 0; color: var(--text-muted); font-size: 0.9rem; }
+    .cat-count {
+      flex: 0 0 auto;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 11px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    /* ===== 카드 ===== */
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s, background 0.18s;
+      outline: none;
+    }
+    .card .accent-band { height: 5px; background: var(--cat-accent); }
+    .card .card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+
+    .card-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.72rem;
+      color: var(--cat-accent-bright);
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+    .card-eyebrow .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--cat-accent); flex: 0 0 8px;
+    }
+    .card-title { margin: 0; font-size: 1.08rem; font-weight: 700; line-height: 1.35; }
+    .card-title-en { margin: 3px 0 0; font-size: 0.82rem; color: var(--text-dim); }
+
+    .card-meta {
+      margin: 11px 0 9px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .card-meta span { display: inline-flex; align-items: center; gap: 5px; }
+
+    .card-stars { color: var(--star); letter-spacing: 1px; font-size: 0.86rem; margin-bottom: 9px; }
+    .card-stars .off { color: var(--text-dim); opacity: 0.5; }
+    .card-stars .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+    .card-desc {
+      margin: 0 0 14px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 4px 10px;
+      letter-spacing: 0.3px;
+    }
+    .badge.ready { background: rgba(56, 185, 120, 0.16); color: #5fd49a; border: 1px solid rgba(56, 185, 120, 0.4); }
+    .badge.planned { background: rgba(154, 166, 191, 0.12); color: var(--text-muted); border: 1px solid var(--border); }
+    .badge.in-progress { background: rgba(255, 207, 92, 0.14); color: var(--star); border: 1px solid rgba(255, 207, 92, 0.4); }
+    .go-arrow { color: var(--cat-accent-bright); font-weight: 700; font-size: 0.9rem; }
+
+    /* 클릭 가능한 카드 */
+    .card.is-ready { cursor: pointer; }
+    .card.is-ready:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: var(--cat-accent);
+      background: var(--bg-card-hover);
+    }
+    .card.is-ready:focus-visible {
+      box-shadow: 0 0 0 3px var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    /* 비활성(준비중) 카드 */
+    .card.is-disabled { cursor: not-allowed; opacity: 0.62; }
+    .card.is-disabled .card-body { filter: grayscale(0.25); }
+    .card.is-disabled:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft); }
+    .card.is-disabled .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(14, 19, 32, 0.35);
+      pointer-events: none;
+    }
+    .card.is-disabled .overlay span {
+      background: rgba(20, 26, 40, 0.92);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== 상태 / 빈 결과 / 로딩 ===== */
+    .state {
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--text-muted);
+    }
+    .state .emoji { font-size: 2.6rem; display: block; margin-bottom: 12px; }
+    .state h2 { color: var(--text); font-weight: 700; margin: 0 0 8px; }
+    .state .hint {
+      margin: 14px auto 0;
+      max-width: 560px;
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      text-align: left;
+    }
+    .state code {
+      background: rgba(0,0,0,0.35);
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 0.85em;
+    }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== 푸터 ===== */
+    footer.site {
+      border-top: 1px solid var(--border-soft);
+      padding: 28px 0 44px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.84rem;
+    }
+    footer.site a { color: var(--accent); }
+    footer.site a:hover { text-decoration: underline; }
+
+    .hidden { display: none !important; }
+
+    /* ===== 반응형 ===== */
+    @media (max-width: 720px) {
+      header.site { padding: 38px 0 22px; }
+      .grid { grid-template-columns: 1fr; }
+      .cat-header { flex-wrap: wrap; }
+      .cat-count { order: 3; }
+      .search-input { font-size: 16px; } /* iOS 줌 방지 */
+    }
+    @media (min-width: 721px) and (max-width: 1024px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1320px) {
+      .grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    /* ===== 접근성: 모션 최소화 ===== */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <h1 class="site-title">과학사 인터랙티브 실험실</h1>
+      <p class="site-subtitle">Interactive Science History Lab</p>
+      <p class="site-intro">
+        고대의 측정에서 양자컴퓨터까지 &mdash; 과학사의 핵심 실험을
+        <strong>조작 &rarr; 관찰 &rarr; 해석</strong>으로 직접 다루며 배웁니다.
+      </p>
+      <div class="site-stats">
+        <span class="stat-pill"><strong id="stat-exp">53</strong> 개 실험</span>
+        <span class="stat-pill"><strong id="stat-cat">8</strong> 개 시대</span>
+        <span class="stat-pill"><strong>Zero</strong> Dependencies</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="filterbar" id="filterbar" role="search" aria-label="실험 필터">
+    <div class="wrap">
+      <div class="search-row">
+        <input
+          type="search"
+          id="search"
+          class="search-input"
+          placeholder="실험·과학자·키워드 검색 (예: 갈릴레오, 양자, 중력)"
+          autocomplete="off"
+          aria-label="실험 검색"
+        />
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label" id="lbl-cat">시대</span>
+        <div class="chips" id="cat-chips" role="group" aria-labelledby="lbl-cat"></div>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label" id="lbl-diff">난이도</span>
+        <div class="chips" id="diff-chips" role="group" aria-labelledby="lbl-diff"></div>
+      </div>
+
+      <div class="filter-footer">
+        <span class="counter" id="counter" aria-live="polite"></span>
+        <button type="button" class="btn-reset" id="btn-reset">필터 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <!-- 로딩 -->
+      <div class="state" id="loading">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>실험 데이터를 불러오는 중&hellip;</p>
+      </div>
+
+      <!-- 에러 -->
+      <div class="state hidden" id="error">
+        <span class="emoji" aria-hidden="true">&#9888;&#65039;</span>
+        <h2>데이터를 불러오지 못했습니다</h2>
+        <p id="error-msg">experiments.json 을 읽는 중 문제가 발생했습니다.</p>
+        <p class="hint">
+          파일을 <code>file://</code> 로 직접 열면 브라우저 보안 정책 때문에
+          <code>fetch</code> 가 차단됩니다. 프로젝트 <code>src/</code> 폴더에서
+          정적 서버를 실행한 뒤 <code>http://localhost</code> 로 접속하세요.<br />
+          예) <code>python3 -m http.server 8000</code> 또는 <code>npx serve</code>
+        </p>
+      </div>
+
+      <!-- 결과 없음 -->
+      <div class="state hidden" id="empty">
+        <span class="emoji" aria-hidden="true">&#128269;</span>
+        <h2>조건에 맞는 실험이 없습니다</h2>
+        <p>검색어나 필터를 조정해 보세요.</p>
+      </div>
+
+      <!-- 카테고리 섹션이 렌더링되는 영역 -->
+      <div id="sections"></div>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <p>
+        Git Science Park &middot; 과학사 인터랙티브 실험실 &middot;
+        <a href="https://github.com/Denny-Hwang/git-science-park" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </p>
+      <p>순수 정적 웹 &middot; HTML5 + CSS3 + Vanilla JS &middot; 외부 라이브러리 없음</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ===== 상태 =====
+      var DATA = { categories: [], experiments: [] };
+      var catById = {};
+      var state = { q: "", category: "all", difficulty: "all" };
+
+      // ===== DOM =====
+      var el = {
+        loading: document.getElementById("loading"),
+        error: document.getElementById("error"),
+        errorMsg: document.getElementById("error-msg"),
+        empty: document.getElementById("empty"),
+        sections: document.getElementById("sections"),
+        search: document.getElementById("search"),
+        catChips: document.getElementById("cat-chips"),
+        diffChips: document.getElementById("diff-chips"),
+        counter: document.getElementById("counter"),
+        reset: document.getElementById("btn-reset"),
+        statExp: document.getElementById("stat-exp"),
+        statCat: document.getElementById("stat-cat")
+      };
+
+      // ===== 유틸 =====
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function stars(n) {
+        n = Math.max(0, Math.min(5, Number(n) || 0));
+        var on = "";
+        var off = "";
+        var i;
+        for (i = 0; i < n; i++) { on += "★"; }
+        for (i = n; i < 5; i++) { off += "☆"; }
+        return (
+          '<span aria-hidden="true">' + on +
+          '<span class="off">' + off + "</span></span>" +
+          '<span class="sr">난이도 ' + n + " / 5</span>"
+        );
+      }
+
+      function debounce(fn, ms) {
+        var t;
+        return function () {
+          var ctx = this, args = arguments;
+          clearTimeout(t);
+          t = setTimeout(function () { fn.apply(ctx, args); }, ms);
+        };
+      }
+
+      function statusLabel(s) {
+        if (s === "ready") return "학습 가능";
+        if (s === "in-progress") return "제작 중";
+        return "준비중";
+      }
+
+      // ===== 필터 매칭 =====
+      function matches(exp) {
+        if (state.category !== "all" && exp.category !== state.category) return false;
+        if (state.difficulty !== "all" && Number(exp.difficulty) !== Number(state.difficulty)) return false;
+
+        var q = state.q.trim().toLowerCase();
+        if (!q) return true;
+
+        var hay = [
+          exp.title,
+          exp.titleEn,
+          exp.scientist,
+          exp.description,
+          (exp.keywords || []).join(" ")
+        ].join(" ").toLowerCase();
+
+        return hay.indexOf(q) !== -1;
+      }
+
+      // ===== 렌더링 =====
+      function cardHTML(exp) {
+        var cat = catById[exp.category] || {};
+        var ready = exp.status === "ready";
+        var st = exp.status || "planned";
+
+        var metaBits = [];
+        if (exp.year) metaBits.push('<span>📅 ' + esc(exp.year) + "</span>");
+        if (exp.scientist) metaBits.push('<span>👤 ' + esc(exp.scientist) + "</span>");
+
+        var href = "./experiments/" + exp.category + "/" + exp.slug + ".html";
+
+        var attrs;
+        if (ready) {
+          attrs =
+            'class="card is-ready" tabindex="0" role="link" ' +
+            'data-href="' + esc(href) + '" ' +
+            'aria-label="' + esc(exp.title) + " 실험 열기\"";
+        } else {
+          attrs =
+            'class="card is-disabled" tabindex="0" aria-disabled="true" ' +
+            'aria-label="' + esc(exp.title) + " (준비중)\"";
+        }
+
+        var overlay = ready ? "" : '<div class="overlay"><span>🔒 준비중</span></div>';
+        var foot = ready
+          ? '<span class="badge ready">' + statusLabel(st) + '</span><span class="go-arrow">열기 →</span>'
+          : '<span class="badge ' + esc(st) + '">' + statusLabel(st) + "</span>";
+
+        return (
+          '<article ' + attrs + ">" +
+            overlay +
+            '<div class="accent-band"></div>' +
+            '<div class="card-body">' +
+              '<div class="card-eyebrow"><span class="dot"></span>' +
+                esc(cat.icon || "") + " " + esc(cat.name || "") +
+              "</div>" +
+              '<h3 class="card-title">' + esc(exp.title) + "</h3>" +
+              '<p class="card-title-en">' + esc(exp.titleEn || "") + "</p>" +
+              '<div class="card-meta">' + metaBits.join("") + "</div>" +
+              '<div class="card-stars">' + stars(exp.difficulty) + "</div>" +
+              '<p class="card-desc">' + esc(exp.description || "") + "</p>" +
+              '<div class="card-foot">' + foot + "</div>" +
+            "</div>" +
+          "</article>"
+        );
+      }
+
+      function catVars(cat) {
+        var c = cat.color || "#5b9dff";
+        return (
+          "--cat-accent:" + c + ";" +
+          "--cat-accent-soft:" + hexToRGBA(c, 0.16) + ";" +
+          "--cat-accent-bright:" + lighten(c, 0.45) + ";"
+        );
+      }
+
+      function render() {
+        var visibleTotal = 0;
+        var html = "";
+
+        DATA.categories.forEach(function (cat) {
+          var items = DATA.experiments.filter(function (e) {
+            return e.category === cat.id && matches(e);
+          });
+          if (items.length === 0) return; // 빈 섹션 숨김
+
+          visibleTotal += items.length;
+
+          var cards = items.map(cardHTML).join("");
+
+          html +=
+            '<section class="cat-section" style="' + catVars(cat) + '" aria-label="' + esc(cat.name) + '">' +
+              '<div class="cat-header">' +
+                '<div class="cat-icon" aria-hidden="true">' + esc(cat.icon) + "</div>" +
+                '<div class="cat-titles">' +
+                  '<h2 class="cat-name">' + esc(cat.name) +
+                    '<span class="en">' + esc(cat.nameEn || "") + "</span></h2>" +
+                  '<p class="cat-tagline">' + esc(cat.description || "") + "</p>" +
+                "</div>" +
+                '<span class="cat-count">' + items.length + "개</span>" +
+              "</div>" +
+              '<div class="grid">' + cards + "</div>" +
+            "</section>";
+        });
+
+        el.sections.innerHTML = html;
+        el.empty.classList.toggle("hidden", visibleTotal !== 0);
+
+        updateCounter(visibleTotal);
+        bindCards();
+      }
+
+      function updateCounter(visible) {
+        var total = DATA.experiments.length;
+        var filtering =
+          state.q.trim() !== "" || state.category !== "all" || state.difficulty !== "all";
+        if (filtering) {
+          el.counter.innerHTML =
+            "전체 " + total + "개 중 <strong>" + visible + "</strong>개 표시";
+        } else {
+          el.counter.innerHTML = "총 <strong>" + total + "</strong>개 실험";
+        }
+      }
+
+      // 카드 클릭/키보드
+      function bindCards() {
+        var cards = el.sections.querySelectorAll(".card.is-ready");
+        Array.prototype.forEach.call(cards, function (card) {
+          var href = card.getAttribute("data-href");
+          card.addEventListener("click", function () { window.location.href = href; });
+          card.addEventListener("keydown", function (ev) {
+            if (ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar") {
+              ev.preventDefault();
+              window.location.href = href;
+            }
+          });
+        });
+      }
+
+      // ===== 칩(필터 버튼) 구성 =====
+      function buildChips() {
+        // 카테고리: 전체 + 8개
+        var catHTML =
+          '<button type="button" class="chip" data-type="cat" data-val="all" aria-pressed="true">전체</button>';
+        DATA.categories.forEach(function (cat) {
+          catHTML +=
+            '<button type="button" class="chip" data-type="cat" data-val="' + esc(cat.id) + '" ' +
+            'aria-pressed="false" style="--chip-color:' + esc(cat.color) + '">' +
+            '<span class="ic" aria-hidden="true">' + esc(cat.icon) + "</span>" +
+            esc(cat.name) + "</button>";
+        });
+        el.catChips.innerHTML = catHTML;
+
+        // 난이도: 전체 + 1~5
+        var diffHTML =
+          '<button type="button" class="chip diff" data-type="diff" data-val="all" aria-pressed="true">전체</button>';
+        for (var d = 1; d <= 5; d++) {
+          var s = "";
+          for (var i = 0; i < d; i++) { s += "★"; }
+          diffHTML +=
+            '<button type="button" class="chip diff" data-type="diff" data-val="' + d + '" ' +
+            'aria-pressed="false" aria-label="난이도 ' + d + '">' + s + "</button>";
+        }
+        el.diffChips.innerHTML = diffHTML;
+
+        // 이벤트 위임
+        el.catChips.addEventListener("click", onChip);
+        el.diffChips.addEventListener("click", onChip);
+      }
+
+      function onChip(ev) {
+        var btn = ev.target.closest(".chip");
+        if (!btn) return;
+        var type = btn.getAttribute("data-type");
+        var val = btn.getAttribute("data-val");
+        var group = type === "cat" ? el.catChips : el.diffChips;
+
+        Array.prototype.forEach.call(group.querySelectorAll(".chip"), function (c) {
+          c.setAttribute("aria-pressed", c === btn ? "true" : "false");
+        });
+
+        if (type === "cat") state.category = val;
+        else state.difficulty = val;
+
+        render();
+      }
+
+      // ===== 색 보조 함수 =====
+      function hexToRGBA(hex, a) {
+        var h = hex.replace("#", "");
+        if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        var r = parseInt(h.substring(0, 2), 16);
+        var g = parseInt(h.substring(2, 4), 16);
+        var b = parseInt(h.substring(4, 6), 16);
+        return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+      }
+      function lighten(hex, amt) {
+        var h = hex.replace("#", "");
+        if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        var r = parseInt(h.substring(0, 2), 16);
+        var g = parseInt(h.substring(2, 4), 16);
+        var b = parseInt(h.substring(4, 6), 16);
+        r = Math.round(r + (255 - r) * amt);
+        g = Math.round(g + (255 - g) * amt);
+        b = Math.round(b + (255 - b) * amt);
+        return "rgb(" + r + "," + g + "," + b + ")";
+      }
+
+      // ===== 이벤트 바인딩 =====
+      function bindControls() {
+        el.search.addEventListener(
+          "input",
+          debounce(function () {
+            state.q = el.search.value;
+            render();
+          }, 140)
+        );
+
+        el.reset.addEventListener("click", function () {
+          state.q = "";
+          state.category = "all";
+          state.difficulty = "all";
+          el.search.value = "";
+          Array.prototype.forEach.call(
+            document.querySelectorAll(".chip"),
+            function (c) {
+              c.setAttribute("aria-pressed", c.getAttribute("data-val") === "all" ? "true" : "false");
+            }
+          );
+          render();
+          el.search.focus();
+        });
+      }
+
+      // ===== 초기화 =====
+      function init() {
+        catById = {};
+        DATA.categories.forEach(function (c) { catById[c.id] = c; });
+
+        el.statExp.textContent = DATA.experiments.length;
+        el.statCat.textContent = DATA.categories.length;
+
+        el.loading.classList.add("hidden");
+        el.error.classList.add("hidden");
+
+        buildChips();
+        bindControls();
+        render();
+      }
+
+      function showError(detail) {
+        el.loading.classList.add("hidden");
+        el.error.classList.remove("hidden");
+        if (detail) el.errorMsg.textContent = detail;
+      }
+
+      // ===== 데이터 로드 =====
+      function load() {
+        fetch("./data/experiments.json", { cache: "no-cache" })
+          .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+            return res.json();
+          })
+          .then(function (json) {
+            if (!json || !Array.isArray(json.categories) || !Array.isArray(json.experiments)) {
+              throw new Error("데이터 형식이 올바르지 않습니다 (categories/experiments 누락).");
+            }
+            DATA = json;
+            init();
+          })
+          .catch(function (err) {
+            var msg = (err && err.message) ? err.message : String(err);
+            if (location.protocol === "file:") {
+              msg = "로컬 파일(file://)에서 직접 열어 fetch가 차단되었습니다.";
+            }
+            showError(msg);
+            // 콘솔에도 상세 기록
+            if (window.console && console.error) console.error("[데이터 로드 실패]", err);
+          });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", load);
+      } else {
+        load();
+      }
+    })();
+  </script>
+</body>
+</html>
