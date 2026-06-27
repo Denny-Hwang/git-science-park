@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아르키메데스의 부력 원리 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #b5703a;
+      --bg: #f7f5f2;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover, nav a:focus { color: var(--primary-light); text-decoration: underline; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem; white-space: nowrap;
+    }
+    header { max-width: 880px; margin: 0 auto; padding: 28px 20px 12px; }
+    header h1 { font-size: 1.8rem; color: var(--primary); line-height: 1.25; }
+    header .en { color: var(--text-muted); font-style: italic; margin-top: 2px; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover { color: var(--primary-light); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    .tab-btn:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    h2 { font-size: 1.25rem; color: var(--primary); margin: 8px 0 6px; }
+    h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    p { margin: 6px 0; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .field { margin-top: 14px; }
+    .controls .field:first-child { margin-top: 0; }
+    .controls .btn-row { margin-top: 16px; }
+    .btn {
+      padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fff7ed; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box .row { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+    .result-box .row > div { min-width: 150px; }
+    .result-box strong { color: var(--primary); }
+    .result-box .verdict { margin-top: 8px; font-size: 1.1rem; font-weight: 700; }
+    .result-box .float { color: #2563eb; }
+    .result-box .sink { color: #dc2626; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .hint-box ul { margin: 6px 0 0 20px; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.8;
+    }
+    .formula-box .small { font-size: 0.85rem; color: #c9c9c9; }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 12px; }
+    .quiz-box .q:first-of-type { margin-top: 6px; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; }
+    .quiz-box .feedback { margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline ul { list-style: none; margin-top: 8px; }
+    .timeline li { position: relative; padding-left: 18px; margin: 8px 0; }
+    .timeline li::before {
+      content: ""; position: absolute; left: 0; top: 0.55em;
+      width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
+    }
+    .timeline .yr { font-weight: 700; color: var(--primary); }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    ul.goals li { margin: 4px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg.diagram { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로 돌아가기</a>
+    <span class="cat-badge">🏛️ 고대 (Ancient)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>아르키메데스의 부력 원리</h1>
+    <div class="en">Archimedes' Principle of Buoyancy</div>
+    <div class="meta">기원전 250년경 · 아르키메데스 (Archimedes) · 난이도 ⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 콘텐츠 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" id="tab-interactive" aria-selected="true" aria-controls="interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" id="tab-learning" aria-selected="false" aria-controls="learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" id="tab-history" aria-selected="false" aria-controls="history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="420" role="img"
+        aria-label="수조에 담긴 유체와 직육면체 물체. 물체가 뜨면 잠긴 비율만큼 수면 아래로, 가라앉으면 바닥에 놓이며, 위로 향한 부력 화살표와 아래로 향한 중력 화살표를 크기에 비례해 표시한 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="field">
+          <label for="rho-obj">물체 밀도 ρ_물체: <span id="rho-obj-val">500</span> kg/m³</label>
+          <input type="range" id="rho-obj" min="100" max="3000" step="10" value="500"
+            aria-describedby="result" aria-valuetext="500 kg/m³">
+        </div>
+
+        <div class="field">
+          <label for="rho-fluid">유체 밀도 ρ_유체: <span id="rho-fluid-val">1000</span> kg/m³ <span id="fluid-name">(물)</span></label>
+          <input type="range" id="rho-fluid" min="800" max="1200" step="10" value="1000"
+            aria-describedby="result" aria-valuetext="1000 kg/m³">
+        </div>
+
+        <div class="field">
+          <label for="side">물체 한 변 길이 a: <span id="side-val">0.20</span> m (부피 <span id="vol-val">0.0080</span> m³)</label>
+          <input type="range" id="side" min="0.05" max="0.40" step="0.01" value="0.20"
+            aria-describedby="result" aria-valuetext="0.20미터">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="reset-btn">↺ 기본값으로 리셋 (나무토막, 물)</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="row">
+          <div>물체 무게 W: <strong id="weight-val">—</strong></div>
+          <div>부력 F_b: <strong id="buoy-val">—</strong></div>
+          <div>잠긴 비율: <strong id="ratio-val">—</strong></div>
+        </div>
+        <div class="verdict" id="verdict-val">—</div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트</strong>
+        <ul>
+          <li>물체가 뜰 때 <b>잠긴 부피의 비율 = ρ_물체 / ρ_유체</b> 가 정확히 같음을 확인하라.</li>
+          <li>평형 상태에서는 위로 향한 <b>부력 화살표</b>와 아래로 향한 <b>중력 화살표</b>의 길이가 같다.</li>
+          <li>유체 밀도를 높이면(예: 소금물 1025 kg/m³ 이상) 같은 물체라도 <b>덜 잠겨</b> 더 잘 뜬다.</li>
+          <li>ρ_물체 ≥ ρ_유체 가 되면 부력이 무게보다 작거나 같아 <b>가라앉아 바닥</b>에 닿는다.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>부력이 "물체가 밀어낸 유체의 무게"와 같음(아르키메데스 원리)을 이해한다.</li>
+        <li>F_b = ρ_유체 · g · V_잠김 공식을 적용해 부력을 계산한다.</li>
+        <li>뜨고 가라앉는 기준이 두 밀도의 비(ρ_물체 / ρ_유체)임을 파악한다.</li>
+        <li>같은 물체가 소금물에서 더 잘 뜨는 이유를 밀도로 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>물체를 유체에 넣으면, 물체가 차지한(밀어낸) 만큼의 유체가 밀려난다. 아르키메데스는
+        물체가 받는 <b>위로 향한 부력</b>이 바로 이 <b>밀려난 유체의 무게</b>와 정확히 같음을 알아냈다.</p>
+        <p>잠긴 부피 V_잠김에 해당하는 유체 무게가 부력이므로
+        <b>F_b = ρ_유체 · g · V_잠김</b> 이다. 한편 물체의 무게는
+        <b>W = ρ_물체 · g · V_물체</b> 이다.</p>
+        <p>물체가 수면에서 <b>평형으로 떠 있으면</b> 부력과 무게가 같다(F_b = W). 두 식을 같다고 놓으면
+        잠긴 부피의 비율이 두 밀도의 비와 같아진다:
+        <b>V_잠김 / V_물체 = ρ_물체 / ρ_유체</b>. 이 비가 1보다 작으면(ρ_물체 &lt; ρ_유체) 일부만
+        잠긴 채 뜨고, 1 이상이면(ρ_물체 ≥ ρ_유체) 완전히 잠겨 가라앉는다.</p>
+      </div>
+
+      <div class="formula-box">
+        F_b = ρ_유체 · g · V_잠김<br>
+        평형(뜸): V_잠김 / V_물체 = ρ_물체 / ρ_유체<br>
+        <span class="small">예: ρ_물체=500, ρ_유체=1000 ⇒ 잠긴 비율 = 0.5 (50%만 잠겨 뜸)</span>
+      </div>
+
+      <!-- SVG 다이어그램: 뜬 물체의 부력 vs 중력, 잠긴 부피 -->
+      <svg class="diagram" width="360" height="240" viewBox="0 0 360 240" role="img"
+        aria-label="유체에 절반 잠겨 떠 있는 직육면체. 수면 아래의 잠긴 부피, 위로 향한 부력 화살표와 아래로 향한 중력 화살표가 같은 길이로 그려진 다이어그램">
+        <!-- 수조 -->
+        <rect x="40" y="40" width="280" height="180" fill="none" stroke="#6b7280" stroke-width="2"/>
+        <!-- 유체 -->
+        <rect x="42" y="110" width="276" height="108" fill="#bfdbfe"/>
+        <!-- 수면 -->
+        <line x1="42" y1="110" x2="318" y2="110" stroke="#2563eb" stroke-width="2"/>
+        <text x="262" y="106" font-size="11" fill="#2563eb">수면</text>
+        <!-- 물체 (절반 잠김) -->
+        <rect x="150" y="70" width="80" height="80" fill="#c8a27a" stroke="#8B4513" stroke-width="2"/>
+        <text x="158" y="64" font-size="11" fill="#8B4513">물체</text>
+        <!-- 잠긴 부피 영역 강조 -->
+        <rect x="150" y="110" width="80" height="40" fill="none" stroke="#1d4ed8" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="234" y="135" font-size="10" fill="#1d4ed8">V_잠김</text>
+        <!-- 부력 화살표 (위로) -->
+        <line x1="190" y1="150" x2="190" y2="100" stroke="#2563eb" stroke-width="3"/>
+        <polygon points="190,90 185,104 195,104" fill="#2563eb"/>
+        <text x="198" y="118" font-size="11" fill="#2563eb">F_b (부력)</text>
+        <!-- 중력 화살표 (아래로) -->
+        <line x1="190" y1="70" x2="190" y2="118" stroke="#dc2626" stroke-width="3"/>
+        <polygon points="190,128 185,114 195,114" fill="#dc2626"/>
+        <text x="110" y="86" font-size="11" fill="#dc2626">W (중력)</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념</strong> — "무거운 물체는 가라앉고 가벼운 물체는 뜬다"고 흔히 생각한다.
+        하지만 거대한 강철 배는 수천 톤으로 매우 무겁지만 물에 뜬다. 뜨고 가라앉음을 결정하는 것은
+        <em>전체 무게가 아니라 평균 밀도</em>다. 배는 속이 비어 있어 평균 밀도가 물보다 작기 때문에 뜬다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+
+        <div class="q">
+          <p><b>Q1.</b> 물(밀도 1000 kg/m³)보다 밀도가 큰 물체를 물에 넣으면 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="wrong"> 일부만 잠겨 뜬다</label>
+          <label><input type="radio" name="q1" value="correct"> 가라앉는다</label>
+          <label><input type="radio" name="q1" value="wrong"> 수면 위로 완전히 떠오른다</label>
+          <div class="feedback" id="q1-feedback" aria-live="polite"></div>
+        </div>
+
+        <div class="q">
+          <p><b>Q2.</b> 밀도 600 kg/m³인 나무토막을 물(1000 kg/m³)에 띄우면 잠긴 부피의 비율은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 약 40%</label>
+          <label><input type="radio" name="q2" value="correct"> 약 60%</label>
+          <label><input type="radio" name="q2" value="wrong"> 약 100% (완전히 잠김)</label>
+          <div class="feedback" id="q2-feedback" aria-live="polite"></div>
+        </div>
+
+        <button type="button" class="btn" id="grade-btn" style="margin-top:12px;">채점하기</button>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아르키메데스 (Archimedes, 기원전 287~212)</h3>
+        <p>고대 그리스 시칠리아섬의 도시국가 시라쿠사(Syracuse) 출신의 수학자·물리학자·공학자로,
+        고대를 통틀어 가장 위대한 과학자 중 한 명으로 꼽힌다. 부력 원리(아르키메데스 원리)와 지레의
+        원리를 정립했고, 원주율 π의 정밀한 근삿값을 구했으며 무한소를 다루는 "소진법(method of
+        exhaustion)"으로 도형의 넓이와 부피를 계산했다. 전설에 따르면 그는 욕조에 들어갔을 때 물이
+        넘치는 것을 보고 부력의 원리를 깨달아 "유레카(εὕρηκα, 알아냈다)!"를 외치며 거리로 뛰쳐나갔다고
+        전해진다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경 · 연표</h3>
+        <ul>
+          <li><span class="yr">기원전 287년경</span> — 시라쿠사에서 출생. 알렉산드리아에서 수학을 공부한 것으로 전해짐.</li>
+          <li><span class="yr">기원전 250년경</span> — 히에론 2세 왕의 금관이 순금인지 의심받자, 부력의 원리를 이용해
+            왕관을 부수지 않고 밀도를 비교하는 방법을 고안(유레카 일화).</li>
+          <li><span class="yr">기원전 250년경</span> — 저서 『부유체에 관하여(On Floating Bodies)』에서 부력 원리를
+            기하학적으로 엄밀하게 증명.</li>
+          <li><span class="yr">기원전 212년</span> — 제2차 포에니 전쟁 중 로마군의 시라쿠사 함락 때 사망.
+            "내 원을 밟지 마라"는 말을 남겼다고 전해짐.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의</strong> — 아르키메데스의 부력 원리는 유체 정역학(hydrostatics)의 출발점이며,
+        2,200년이 지난 오늘날에도 선박 설계, 잠수함의 부상·잠수 제어, 열기구, 밀도계(비중계) 등에 그대로
+        쓰인다. 무엇보다 "물체가 밀어낸 유체의 무게"라는 정량적 관계를 기하학적 증명으로 확립함으로써,
+        자연 현상을 수학으로 엄밀하게 기술하는 과학적 방법의 본보기를 고대에 이미 보여 주었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const G = 9.81;                 // 중력 가속도 (m/s²)
+      const DEFAULTS = { rhoObj: 500, rhoFluid: 1000, side: 0.20 };
+
+      // ----- 상태 -----
+      const state = {
+        rhoObj: DEFAULTS.rhoObj,
+        rhoFluid: DEFAULTS.rhoFluid,
+        side: DEFAULTS.side
+      };
+
+      // ----- 요소 -----
+      const rhoObjSlider = document.getElementById('rho-obj');
+      const rhoFluidSlider = document.getElementById('rho-fluid');
+      const sideSlider = document.getElementById('side');
+      const rhoObjValEl = document.getElementById('rho-obj-val');
+      const rhoFluidValEl = document.getElementById('rho-fluid-val');
+      const fluidNameEl = document.getElementById('fluid-name');
+      const sideValEl = document.getElementById('side-val');
+      const volValEl = document.getElementById('vol-val');
+      const weightValEl = document.getElementById('weight-val');
+      const buoyValEl = document.getElementById('buoy-val');
+      const ratioValEl = document.getElementById('ratio-val');
+      const verdictValEl = document.getElementById('verdict-val');
+      const resetBtn = document.getElementById('reset-btn');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 계산 -----
+      function volume() {
+        return state.side * state.side * state.side; // m³
+      }
+      // 잠긴 부피의 비율 (0~1). 뜨면 ρ_obj/ρ_fluid, 가라앉으면 1(완전 잠김).
+      function submergedRatio() {
+        const r = state.rhoObj / state.rhoFluid;
+        return r < 1 ? r : 1;
+      }
+      function isFloating() {
+        return state.rhoObj < state.rhoFluid;
+      }
+      function weight() {
+        return state.rhoObj * G * volume(); // N
+      }
+      // 부력: 평형으로 뜨면 무게와 같고, 가라앉으면 완전히 잠긴(V_obj) 부피만큼.
+      function buoyancy() {
+        return state.rhoFluid * G * volume() * submergedRatio(); // N
+      }
+      function fluidLabel() {
+        if (state.rhoFluid >= 1025) return '(소금물)';
+        if (state.rhoFluid < 950) return '(가벼운 유체)';
+        return '(물)';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const W = weight();
+        const Fb = buoyancy();
+        const ratioPct = submergedRatio() * 100;
+        weightValEl.textContent = W.toFixed(1) + ' N';
+        buoyValEl.textContent = Fb.toFixed(1) + ' N';
+        ratioValEl.textContent = ratioPct.toFixed(0) + ' %';
+        if (isFloating()) {
+          verdictValEl.textContent = '판정: 뜸 🛟 (일부만 잠긴 채 평형)';
+          verdictValEl.className = 'verdict float';
+        } else {
+          verdictValEl.textContent = '판정: 가라앉음 ⬇ (완전히 잠겨 바닥으로)';
+          verdictValEl.className = 'verdict sink';
+        }
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 수조 영역
+        const tankX = 60, tankY = 50, tankW = W - 120, tankH = H - 110;
+        const surfaceY = tankY + tankH * 0.32; // 정지 수면 위치(상단에서 약간 아래)
+
+        // 물체 픽셀 크기: 한 변 0.05~0.40 m 를 60~150px 로 매핑
+        const objPx = 60 + (state.side - 0.05) / (0.40 - 0.05) * 90;
+        const objX = tankX + tankW / 2 - objPx / 2;
+
+        // 변위로 인한 수위 상승(시각화): 잠긴 단면이 수조 단면에서 차지하는 비율만큼 수면을 올린다.
+        const ratio = submergedRatio();
+        const floating = isFloating();
+        const submergedPx = objPx * ratio;               // 잠긴 부분 높이(px)
+        const riseFrac = Math.min((objPx * objPx) / (tankW * tankH) * (submergedPx / objPx) * 1.0, 0.06);
+        const adjSurfaceY = surfaceY - tankH * riseFrac; // 약간 상승한 수면
+
+        // 물체 세로 위치: 뜨면 잠긴 부분이 수면 아래로, 가라앉으면 바닥에 닿게.
+        let objY;
+        if (floating) {
+          objY = adjSurfaceY - (objPx - submergedPx); // 윗면이 수면 위로, 잠긴 부분만 아래
+        } else {
+          objY = (tankY + tankH) - objPx;             // 바닥에 안착
+        }
+
+        // 수조 벽
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(tankX, tankY, tankW, tankH);
+
+        // 유체 채우기(상승한 수면 기준)
+        const fluidTop = adjSurfaceY;
+        ctx.fillStyle = '#bfdbfe';
+        ctx.fillRect(tankX + 1, fluidTop, tankW - 2, (tankY + tankH) - fluidTop - 1);
+
+        // 물체 (유체보다 먼저 그려 잠긴 부분이 물색에 덮이도록: 물체 → 잠긴 부분 반투명 물 덮기)
+        ctx.fillStyle = '#c8a27a';
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 2;
+        ctx.fillRect(objX, objY, objPx, objPx);
+        ctx.strokeRect(objX, objY, objPx, objPx);
+
+        // 잠긴 부분을 반투명 물색으로 덮어 "물속" 느낌
+        const objSubmergedTop = Math.max(objY, fluidTop);
+        if (objSubmergedTop < objY + objPx) {
+          ctx.fillStyle = 'rgba(96, 165, 250, 0.45)';
+          ctx.fillRect(objX, objSubmergedTop, objPx, (objY + objPx) - objSubmergedTop);
+        }
+
+        // 수면 선(물체 양옆)
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(tankX + 1, fluidTop);
+        ctx.lineTo(objX, fluidTop);
+        ctx.moveTo(objX + objPx, fluidTop);
+        ctx.lineTo(tankX + tankW - 1, fluidTop);
+        ctx.stroke();
+
+        // 힘 화살표: 물체 중심을 기준으로 부력(위), 중력(아래). 길이는 힘에 비례.
+        const cx = objX + objPx / 2;
+        const cy = objY + objPx / 2;
+        const W_force = weight();
+        const Fb_force = buoyancy();
+        const maxForce = Math.max(W_force, Fb_force, 1);
+        const maxLen = 90;
+        const buoyLen = (Fb_force / maxForce) * maxLen;
+        const gravLen = (W_force / maxForce) * maxLen;
+
+        // 부력(위로, 파랑)
+        drawArrow(cx - 14, cy, cx - 14, cy - buoyLen, '#2563eb');
+        ctx.fillStyle = '#2563eb';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('F_b=' + Fb_force.toFixed(0) + 'N', cx - 20, cy - buoyLen - 4);
+
+        // 중력(아래로, 빨강)
+        drawArrow(cx + 14, cy, cx + 14, cy + gravLen, '#dc2626');
+        ctx.fillStyle = '#dc2626';
+        ctx.textAlign = 'left';
+        ctx.fillText('W=' + W_force.toFixed(0) + 'N', cx + 20, cy + gravLen + 14);
+
+        // 라벨/주석
+        ctx.fillStyle = '#1d4ed8';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('유체 ρ=' + state.rhoFluid + ' kg/m³', tankX + 6, tankY + tankH - 8);
+
+        ctx.fillStyle = '#8B4513';
+        ctx.textAlign = 'center';
+        ctx.fillText('물체 ρ=' + state.rhoObj + ' kg/m³', cx, objY - 8);
+
+        ctx.fillStyle = '#374151';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('잠긴 비율 ' + (ratio * 100).toFixed(0) + '%  ·  ' +
+          (floating ? '뜸' : '가라앉음'), W / 2, 28);
+
+        ctx.textAlign = 'left'; // 기본값 복구
+      }
+
+      // 화살표 그리기 헬퍼 (state를 읽지 않는 순수 보조 함수)
+      function drawArrow(x1, y1, x2, y2, color) {
+        const headLen = 9;
+        const ang = Math.atan2(y2 - y1, x2 - x1);
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - headLen * Math.cos(ang - Math.PI / 6), y2 - headLen * Math.sin(ang - Math.PI / 6));
+        ctx.lineTo(x2 - headLen * Math.cos(ang + Math.PI / 6), y2 - headLen * Math.sin(ang + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // ----- 슬라이더 라벨 갱신 헬퍼 -----
+      function syncLabels() {
+        rhoObjValEl.textContent = state.rhoObj;
+        rhoFluidValEl.textContent = state.rhoFluid;
+        fluidNameEl.textContent = fluidLabel();
+        sideValEl.textContent = state.side.toFixed(2);
+        volValEl.textContent = volume().toFixed(4);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      rhoObjSlider.addEventListener('input', () => {
+        state.rhoObj = Number(rhoObjSlider.value);
+        rhoObjSlider.setAttribute('aria-valuetext', state.rhoObj + ' kg/m³');
+        syncLabels();
+        updateResult();
+        draw();
+      });
+
+      rhoFluidSlider.addEventListener('input', () => {
+        state.rhoFluid = Number(rhoFluidSlider.value);
+        rhoFluidSlider.setAttribute('aria-valuetext', state.rhoFluid + ' kg/m³');
+        syncLabels();
+        updateResult();
+        draw();
+      });
+
+      sideSlider.addEventListener('input', () => {
+        state.side = Number(sideSlider.value);
+        sideSlider.setAttribute('aria-valuetext', state.side.toFixed(2) + '미터');
+        syncLabels();
+        updateResult();
+        draw();
+      });
+
+      // ----- 리셋 -----
+      resetBtn.addEventListener('click', () => {
+        state.rhoObj = DEFAULTS.rhoObj;
+        state.rhoFluid = DEFAULTS.rhoFluid;
+        state.side = DEFAULTS.side;
+        rhoObjSlider.value = String(DEFAULTS.rhoObj);
+        rhoFluidSlider.value = String(DEFAULTS.rhoFluid);
+        sideSlider.value = String(DEFAULTS.side);
+        rhoObjSlider.setAttribute('aria-valuetext', DEFAULTS.rhoObj + ' kg/m³');
+        rhoFluidSlider.setAttribute('aria-valuetext', DEFAULTS.rhoFluid + ' kg/m³');
+        sideSlider.setAttribute('aria-valuetext', DEFAULTS.side.toFixed(2) + '미터');
+        syncLabels();
+        updateResult();
+        draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      function gradeOne(name, feedbackId, okMsg, noMsg) {
+        const picked = document.querySelector('input[name="' + name + '"]:checked');
+        const out = document.getElementById(feedbackId);
+        if (!picked) {
+          out.textContent = '답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        if (picked.value === 'correct') {
+          out.textContent = '정답입니다! 🎉 ' + okMsg;
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = '다시 생각해 보세요. ' + noMsg;
+          out.style.color = '#dc2626';
+        }
+      }
+
+      document.getElementById('grade-btn').addEventListener('click', () => {
+        gradeOne('q1', 'q1-feedback',
+          'ρ_물체 ≥ ρ_유체 이면 부력이 무게를 받쳐주지 못해 가라앉습니다.',
+          '물보다 밀도가 크면 같은 부피일 때 더 무거워 부력만으로 뜰 수 없습니다.');
+        gradeOne('q2', 'q2-feedback',
+          '잠긴 비율 = ρ_물체/ρ_유체 = 600/1000 = 0.6, 즉 60%.',
+          '잠긴 비율 = ρ_물체 / ρ_유체 로 계산해 보세요.');
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

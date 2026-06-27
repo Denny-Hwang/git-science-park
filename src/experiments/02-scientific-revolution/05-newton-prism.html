@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뉴턴의 프리즘 분광 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0f1115; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf0f6; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .sub { display: block; font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>뉴턴의 프리즘 분광</h1>
+    <div class="en">Newton's Prism Experiment</div>
+    <div class="meta">1666년 · 아이작 뉴턴 (Isaac Newton) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" aria-label="백색광이 삼각 프리즘을 지나며 빨강에서 보라까지 무지개 스펙트럼으로 갈라지는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="incidence">입사각 θ₁: <span id="incidence-val">50</span>°</label>
+          <input type="range" id="incidence" min="20" max="70" step="1" value="50"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="apex">프리즘 꼭지각 A: <span id="apex-val">60</span>°</label>
+          <input type="range" id="apex" min="30" max="70" step="1" value="60"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="dispersion">분산 강도 (재질 B 계수): <span id="dispersion-val">1.0</span>×</label>
+          <input type="range" id="dispersion" min="0.3" max="2.5" step="0.1" value="1.0"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        분산각(빨강↔보라 편향 차이): <strong>—</strong>
+        <span class="sub" id="result-sub">빨강 편향 — · 보라 편향 —</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 백색광 한 줄기가 프리즘을 지나면 빨주노초파남보로 갈라진다.
+        백색광은 사실 여러 색(파장)의 빛이 합쳐진 것이며, 유리에서 파장마다 굴절률이 달라
+        <strong>보라(짧은 파장)가 빨강(긴 파장)보다 더 크게 꺾인다.</strong> 분산 강도를 높이면
+        색이 더 넓게 부채꼴로 펼쳐지고, 꼭지각을 키우면 전체 편향이 커진다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>백색광이 여러 파장의 빛이 합쳐진 것임을 이해한다.</li>
+        <li>스넬의 법칙으로 빛이 매질 경계에서 꺾이는 원리를 설명한다.</li>
+        <li>굴절률이 파장에 따라 달라지는 분산(dispersion) 때문에 색이 갈라짐을 안다.</li>
+        <li>보라(단파장)가 빨강(장파장)보다 더 많이 굴절되는 이유를 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>빛이 공기에서 유리로 들어갈 때 속도가 느려지며 경계면에서 꺾인다(굴절). 꺾이는 정도는
+        <strong>스넬의 법칙</strong> n₁ sinθ₁ = n₂ sinθ₂ 로 결정된다. 유리의 굴절률 n은 빛의 파장에
+        따라 달라지는데, 짧은 파장일수록 굴절률이 커서 더 크게 꺾인다. 이를 <strong>분산(색수차)</strong>
+        이라 한다.</p>
+        <p>백색광은 빨강부터 보라까지 모든 파장이 섞여 있다. 프리즘의 두 경사면을 지나며 각 파장이
+        조금씩 다른 각도로 굴절되어, 결국 빨주노초파남보의 연속 스펙트럼으로 부채처럼 펼쳐진다.
+        파장에 따른 굴절률은 <strong>코시(Cauchy) 근사</strong> n(λ) = A + B / λ² 로 잘 들어맞는다
+        (예: 일반 유리에서 보라 n ≈ 1.53, 빨강 n ≈ 1.51).</p>
+      </div>
+
+      <div class="formula-box">
+        스넬의 법칙: n₁ · sinθ₁ = n₂ · sinθ₂
+        <br>
+        코시 분산식: n(λ) = A + B / λ²
+        <br>
+        편향각: δ = θ₁ + θ₄ − A
+      </div>
+
+      <!-- SVG 다이어그램: 백색광 → 프리즘 → 무지개 스펙트럼 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+           aria-label="백색광이 삼각 프리즘을 지나 빨강에서 보라까지 무지개로 갈라지는 분산 다이어그램">
+        <!-- 백색광 입사 -->
+        <line x1="20" y1="110" x2="150" y2="120" stroke="#ffffff" stroke-width="3"/>
+        <line x1="20" y1="110" x2="150" y2="120" stroke="#9ca3af" stroke-width="1"/>
+        <text x="24" y="100" font-size="11" fill="#374151">백색광</text>
+        <!-- 프리즘(삼각형) -->
+        <polygon points="150,170 210,40 270,170" fill="rgba(120,160,200,0.25)"
+                 stroke="#2E4A62" stroke-width="2"/>
+        <text x="186" y="190" font-size="11" fill="#2E4A62">프리즘</text>
+        <!-- 분산된 스펙트럼 (빨강이 위, 보라가 아래로 더 꺾임) -->
+        <line x1="250" y1="120" x2="400" y2="86"  stroke="#ff2d2d" stroke-width="2.5"/>
+        <line x1="250" y1="120" x2="400" y2="100" stroke="#ff9a00" stroke-width="2.5"/>
+        <line x1="250" y1="120" x2="400" y2="112" stroke="#ffe000" stroke-width="2.5"/>
+        <line x1="250" y1="120" x2="400" y2="124" stroke="#36d33a" stroke-width="2.5"/>
+        <line x1="250" y1="120" x2="400" y2="136" stroke="#2d6bff" stroke-width="2.5"/>
+        <line x1="250" y1="120" x2="400" y2="148" stroke="#7a2dff" stroke-width="2.5"/>
+        <text x="356" y="80"  font-size="11" fill="#ff2d2d">빨강(적게 꺾임)</text>
+        <text x="356" y="164" font-size="11" fill="#7a2dff">보라(많이 꺾임)</text>
+        <!-- 꼭지각 표시 -->
+        <text x="200" y="58" font-size="11" fill="#2E4A62">A</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "프리즘(유리)이 백색광에 색을 입혀 만들어낸다"고 생각하기 쉽다.
+        실제로는 색은 처음부터 백색광 안에 모두 들어 있고, 프리즘은 파장별 굴절 차이로 그것들을
+        <em>분리해 보여줄 뿐</em>이다. 뉴턴은 갈라진 빛을 두 번째 프리즘으로 다시 합치면 흰빛이 되는
+        것을 보여 이를 증명했다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 프리즘에서 가장 많이 꺾이는(편향되는) 색은?</p>
+          <label><input type="radio" name="q1" value="wrong"> 빨강 (가장 긴 파장)</label>
+          <label><input type="radio" name="q1" value="wrong"> 초록 (중간 파장)</label>
+          <label><input type="radio" name="q1" value="correct"> 보라 (가장 짧은 파장)</label>
+        </div>
+        <div class="q">
+          <p>2. 백색광이 프리즘에서 여러 색으로 갈라지는 직접적인 원인은?</p>
+          <label><input type="radio" name="q2" value="correct"> 굴절률이 파장에 따라 달라지기 때문 (분산)</label>
+          <label><input type="radio" name="q2" value="wrong"> 유리가 색을 새로 만들어내기 때문</label>
+          <label><input type="radio" name="q2" value="wrong"> 빛이 프리즘 안에서 반사되기 때문</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아이작 뉴턴 (Isaac Newton, 1643~1727)</h3>
+        <p>영국의 물리학자·수학자·천문학자로, 만유인력과 운동 법칙을 정립한 고전역학의 완성자다.
+        1665~1666년 흑사병으로 케임브리지가 폐쇄되자 고향 울즈소프에 머물며 미적분, 만유인력,
+        그리고 빛과 색에 관한 핵심 발견을 쏟아냈다(이른바 "기적의 해"). 프리즘 실험으로 백색광이
+        여러 색의 합임을 밝혔고, 1704년 저서 「광학(Opticks)」으로 이를 집대성했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1637년 — 데카르트·스넬, 굴절의 법칙(스넬의 법칙)을 정식화</li>
+          <li>1665~1666년 — 뉴턴, 흑사병 피난기에 프리즘으로 빛의 분산을 실험("기적의 해")</li>
+          <li>1672년 — 「빛과 색의 새 이론」을 왕립학회에 발표, 백색광이 색의 합임을 주장</li>
+          <li>1704년 — 「광학(Opticks)」 출간, 분산·반사·간섭 관찰을 집대성</li>
+          <li>1814년 — 프라운호퍼가 태양 스펙트럼의 흡수선을 발견해 분광학의 길을 엶</li>
+          <li>1859년 — 키르히호프·분젠, 분광으로 원소를 식별하며 분광학을 확립</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 뉴턴은 색이 빛의 본질적 성질이며 백색광이 모든 색의 혼합임을
+        실험으로 증명해, 색을 유리나 물체가 "더하는" 것이라 본 당대 통념을 뒤집었다. 이 분산 실험은
+        훗날 분광학(spectroscopy)으로 이어져 별의 성분 분석, 양자역학의 스펙트럼선 연구 등 현대 과학의
+        강력한 도구가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (입사각°, 꼭지각°, 분산 배율) -----
+      const DEFAULTS = { incidence: 50, apex: 60, dispersion: 1.0 };
+      const state = {
+        incidence: DEFAULTS.incidence,
+        apex: DEFAULTS.apex,
+        dispersion: DEFAULTS.dispersion
+      };
+
+      // 스펙트럼 표본 파장(nm): 빨강 → 보라
+      const SAMPLES = [660, 610, 580, 530, 470, 410];
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 파장(nm) → RGB 근사 변환 -----
+      function wavelengthToRGB(wl) {
+        let r = 0, g = 0, b = 0;
+        if (wl >= 380 && wl < 440) { r = -(wl - 440) / (440 - 380); g = 0; b = 1; }
+        else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / (490 - 440); b = 1; }
+        else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / (510 - 490); }
+        else if (wl >= 510 && wl < 580) { r = (wl - 510) / (580 - 510); g = 1; b = 0; }
+        else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / (645 - 580); b = 0; }
+        else if (wl >= 645 && wl <= 750) { r = 1; g = 0; b = 0; }
+        let factor = 1;
+        if (wl >= 380 && wl < 420) factor = 0.3 + 0.7 * (wl - 380) / (420 - 380);
+        else if (wl >= 645 && wl <= 750) factor = 0.3 + 0.7 * (750 - wl) / (750 - 645);
+        const gamma = 0.8;
+        const adjust = (c) => c <= 0 ? 0 : Math.round(255 * Math.pow(c * factor, gamma));
+        return { r: adjust(r), g: adjust(g), b: adjust(b) };
+      }
+
+      // ----- 분산 모형: 코시 근사 n(λ) = A + B/λ² -----
+      // 기준: 보라(410nm) n≈1.53, 빨강(660nm) n≈1.51 (분산 배율 1.0 기준)
+      // B를 분산 배율로 조절해 색 분리 폭을 바꾼다.
+      function refractiveIndex(wl) {
+        const Acoef = 1.500;
+        const Bcoef = 4000 * state.dispersion; // nm² 단위, 배율로 분산 폭 조절
+        return Acoef + Bcoef / (wl * wl);
+      }
+
+      // ----- 프리즘 통과 편향각 계산 -----
+      // 두 면에서 스넬의 법칙을 순차 적용. 꼭지각 A, 입사각 θ1.
+      // 전반사 등 비물리 영역은 null 반환(렌더에서 제외).
+      function deviationAngle(wl) {
+        const A = state.apex * Math.PI / 180;
+        const th1 = state.incidence * Math.PI / 180;
+        const n = refractiveIndex(wl);
+        // 1면: 공기(1) → 유리(n)
+        const s2 = Math.sin(th1) / n;
+        if (Math.abs(s2) > 1) return null;
+        const th2 = Math.asin(s2);
+        // 내부 기하: 두 번째 면 입사각 th3 = A - th2
+        const th3 = A - th2;
+        // 2면: 유리(n) → 공기(1)
+        const s4 = n * Math.sin(th3);
+        if (Math.abs(s4) > 1) return null; // 전반사
+        const th4 = Math.asin(s4);
+        // 총 편향각 δ = θ1 + θ4 - A
+        const delta = th1 + th4 - A;
+        return delta; // rad
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0f1115';
+        ctx.fillRect(0, 0, W, H);
+
+        // --- 프리즘(정삼각 느낌의 이등변 삼각형) ---
+        // 꼭지각이 클수록 위쪽 꼭지점이 낮아져 폭이 넓게 보이도록 구성
+        const cx = W * 0.40;          // 프리즘 가로 중심
+        const baseY = H * 0.78;        // 밑변 y
+        const apexY = H * 0.30;        // 꼭지점 y
+        const halfBase = ((apexY - baseY) * Math.tan(state.apex * Math.PI / 180 / 2)) * -1;
+        const apexX = cx;
+        const leftX = cx - halfBase;
+        const rightX = cx + halfBase;
+        const apexPt = { x: apexX, y: apexY };
+        const leftPt = { x: leftX, y: baseY };
+        const rightPt = { x: rightX, y: baseY };
+
+        // 프리즘 채우기 (옅은 유리색 그라데이션)
+        const grad = ctx.createLinearGradient(leftX, apexY, rightX, baseY);
+        grad.addColorStop(0, 'rgba(150,190,225,0.18)');
+        grad.addColorStop(1, 'rgba(110,150,190,0.30)');
+        ctx.beginPath();
+        ctx.moveTo(apexPt.x, apexPt.y);
+        ctx.lineTo(leftPt.x, leftPt.y);
+        ctx.lineTo(rightPt.x, rightPt.y);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#7da6c8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // --- 입사점: 왼쪽 면 중앙 부근 ---
+        const entry = {
+          x: (apexPt.x + leftPt.x) / 2 + (leftPt.x - apexPt.x) * 0.05,
+          y: (apexPt.y + leftPt.y) / 2 + (leftPt.y - apexPt.y) * 0.05
+        };
+
+        // --- 입사 백색광 (왼쪽에서 entry로) ---
+        // 입사각을 시각적으로 반영: 왼쪽면 법선 기준 각도로 들어오는 광선
+        const inAngle = -0.25 - (state.incidence - 45) * 0.004; // 화면 표현용 기울기
+        const inLen = 220;
+        const startX = entry.x - inLen * Math.cos(inAngle);
+        const startY = entry.y - inLen * Math.sin(inAngle);
+        ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(entry.x, entry.y);
+        ctx.stroke();
+        // 백색광 라벨
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('백색광', startX + 6, startY - 8);
+
+        // --- 출사: 오른쪽 면 부근에서 색별로 갈라지는 스펙트럼 ---
+        // 물리 편향각을 화면 각도에 매핑. 기준(빨강)을 수평 근처로 두고
+        // 파장별 편향 차이를 부채꼴로 표현.
+        const exit = {
+          x: (apexPt.x + rightPt.x) / 2 + (rightPt.x - apexPt.x) * 0.05,
+          y: (apexPt.y + rightPt.y) / 2 + (rightPt.y - apexPt.y) * 0.05
+        };
+
+        // 프리즘 내부 백색광 경로 (entry → exit)
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(entry.x, entry.y);
+        ctx.lineTo(exit.x, exit.y);
+        ctx.stroke();
+
+        // 편향각 계산 (각 파장)
+        const devs = SAMPLES.map((wl) => ({ wl: wl, dev: deviationAngle(wl) }));
+        const valid = devs.filter((d) => d.dev !== null);
+
+        // 기준 편향(빨강 또는 유효 첫 표본)으로 정렬, 화면 부채 스케일
+        let baseDev = null;
+        for (let i = 0; i < devs.length; i++) {
+          if (devs[i].dev !== null) { baseDev = devs[i].dev; break; }
+        }
+
+        const rayLen = W - exit.x - 12;
+        valid.forEach((d) => {
+          // 화면 출사 각도: 아래로 향하는 기본 방향 + 편향차 확대
+          const relativeDev = (d.dev - baseDev); // rad, 보라일수록 큼
+          const screenAngle = 0.18 + relativeDev * 6.0; // 시각적으로 확대
+          const ex = exit.x + rayLen * Math.cos(screenAngle);
+          const ey = exit.y + rayLen * Math.sin(screenAngle);
+          const rgb = wavelengthToRGB(d.wl);
+          const col = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+          // 광선 (약간의 글로우)
+          ctx.strokeStyle = col;
+          ctx.globalAlpha = 0.35;
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(exit.x, exit.y);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(exit.x, exit.y);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
+        });
+
+        // 색 라벨 (맨 위 빨강, 맨 아래 보라)
+        if (valid.length >= 2) {
+          const first = valid[0];   // 빨강
+          const last = valid[valid.length - 1]; // 보라
+          const angFirst = 0.18 + (first.dev - baseDev) * 6.0;
+          const angLast = 0.18 + (last.dev - baseDev) * 6.0;
+          ctx.font = '12px sans-serif';
+          const rgbR = wavelengthToRGB(first.wl);
+          const rgbV = wavelengthToRGB(last.wl);
+          ctx.fillStyle = 'rgb(' + rgbR.r + ',' + rgbR.g + ',' + rgbR.b + ')';
+          ctx.fillText('빨강', exit.x + rayLen * Math.cos(angFirst) - 30, exit.y + rayLen * Math.sin(angFirst) - 4);
+          ctx.fillStyle = 'rgb(' + rgbV.r + ',' + rgbV.g + ',' + rgbV.b + ')';
+          ctx.fillText('보라', exit.x + rayLen * Math.cos(angLast) - 30, exit.y + rayLen * Math.sin(angLast) + 14);
+        }
+
+        // 꼭지각 라벨
+        ctx.fillStyle = '#a9c4dc';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('A = ' + state.apex + '°', apexPt.x - 16, apexPt.y - 8);
+
+        // 전반사 등으로 광선이 안 나올 때 안내
+        if (valid.length === 0) {
+          ctx.fillStyle = '#fca5a5';
+          ctx.font = '14px sans-serif';
+          ctx.fillText('전반사: 입사각/꼭지각을 줄이세요', exit.x - 40, exit.y + 40);
+        }
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const strong = document.querySelector('#result strong');
+        const sub = document.getElementById('result-sub');
+        const devRed = deviationAngle(SAMPLES[0]);                 // 660nm
+        const devViolet = deviationAngle(SAMPLES[SAMPLES.length - 1]); // 410nm
+        if (devRed === null || devViolet === null) {
+          strong.textContent = '전반사 발생';
+          sub.textContent = '입사각 또는 꼭지각이 커서 빛이 빠져나오지 못합니다.';
+          return;
+        }
+        const toDeg = (r) => r * 180 / Math.PI;
+        const disp = toDeg(devViolet - devRed);
+        strong.textContent = disp.toFixed(2) + '°';
+        sub.textContent =
+          '빨강 편향 ' + toDeg(devRed).toFixed(1) + '° · 보라 편향 ' + toDeg(devViolet).toFixed(1) +
+          '° (보라가 더 크게 꺾임)';
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const incSlider = document.getElementById('incidence');
+      const apexSlider = document.getElementById('apex');
+      const dispSlider = document.getElementById('dispersion');
+      const incVal = document.getElementById('incidence-val');
+      const apexVal = document.getElementById('apex-val');
+      const dispVal = document.getElementById('dispersion-val');
+
+      function syncLabels() {
+        incVal.textContent = state.incidence;
+        apexVal.textContent = state.apex;
+        dispVal.textContent = state.dispersion.toFixed(1);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      incSlider.addEventListener('input', () => {
+        state.incidence = Number(incSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      apexSlider.addEventListener('input', () => {
+        state.apex = Number(apexSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      dispSlider.addEventListener('input', () => {
+        state.dispersion = Number(dispSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.incidence = DEFAULTS.incidence;
+        state.apex = DEFAULTS.apex;
+        state.dispersion = DEFAULTS.dispersion;
+        incSlider.value = String(DEFAULTS.incidence);
+        apexSlider.value = String(DEFAULTS.apex);
+        dispSlider.value = String(DEFAULTS.dispersion);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 짧은 파장(보라)이 굴절률이 커서 가장 많이 꺾이고, 색은 분산으로 분리됩니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 굴절률은 짧은 파장(보라)에서 크고, 분산이 색을 갈라놓습니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

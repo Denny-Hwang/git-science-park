@@ -37,20 +37,22 @@
 
 ### Added
 
-- **파일럿 실험 3종 구현** (ROADMAP Phase 1) — 인터랙티브 시뮬레이션 + 3개 탭(🎮 인터랙티브 / 📚 원리 학습 / 📜 역사적 맥락) 완성:
+- **파일럿 실험 5종 구현** (ROADMAP Phase 1 — v0.1 목표 "허브 + 5개 실험" 달성) — 인터랙티브 시뮬레이션 + 3개 탭(🎮 인터랙티브 / 📚 원리 학습 / 📜 역사적 맥락) 완성:
   - `01-ancient/01-eratosthenes` — 에라토스테네스의 지구 둘레 측정 (그림자 각도·도시 거리 슬라이더로 둘레 계산, 실제값 대비 오차 표시).
+  - `01-ancient/02-archimedes-buoyancy` — 아르키메데스의 부력 원리 (물체/유체 밀도로 부력·잠긴 비율 계산, 뜸/가라앉음 시각화).
   - `02-scientific-revolution/02-galileo-freefall` — 갈릴레오의 자유낙하 (질량과 무관하게 동시 착지하는 낙하 애니메이션, 중력 프리셋/공기저항 토글).
+  - `02-scientific-revolution/05-newton-prism` — 뉴턴의 프리즘 분광 (입사각·꼭지각·분산으로 백색광이 무지개로 분해, 빨강/보라 분산각 표시).
   - `03-precision-era/05-young-double-slit` — 영의 이중 슬릿 (파장·슬릿 간격·스크린 거리로 간섭무늬와 무늬 간격 Δy 계산).
   - 각 페이지: Canvas 시뮬레이션, 실시간 결과(result-box), 공식·SVG 다이어그램·퀴즈, 연표·과학사적 의의 포함. Zero Dependencies 단일 HTML.
 
 ### Changed
 
-- `src/data/experiments.json`: 위 3개 실험의 `status`를 `planned` → `ready`로 전환.
-- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 50개는 "준비중" 비활성 유지).
+- `src/data/experiments.json`: 위 5개 실험(id 1·2·6·9·16)의 `status`를 `planned` → `ready`로 전환.
+- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 48개는 "준비중" 비활성 유지).
 
 ### 예정 (Planned)
 
-- 남은 50개 실험의 인터랙티브 페이지 단계적 구현 (ROADMAP 참조).
+- 남은 48개 실험의 인터랙티브 페이지 단계적 구현 (ROADMAP 참조).
 - Canvas 공통 유틸리티·레이아웃 셸(shell) 추출로 중복 축소.
 
 ---
