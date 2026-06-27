@@ -85,7 +85,7 @@
         "기하학",
         "측정"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 2,
@@ -180,7 +180,7 @@
         "피사의 탑",
         "등가속도"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 7,
@@ -370,7 +370,7 @@
         "회절",
         "간섭무늬"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 17,

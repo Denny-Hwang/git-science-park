@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>에라토스테네스의 지구 둘레 측정 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #b5703a;
+      --bg: #f7f5f2;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover, nav a:focus { color: var(--primary-light); text-decoration: underline; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem; white-space: nowrap;
+    }
+    header { max-width: 880px; margin: 0 auto; padding: 28px 20px 12px; }
+    header h1 { font-size: 1.8rem; color: var(--primary); line-height: 1.25; }
+    header .en { color: var(--text-muted); font-style: italic; margin-top: 2px; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover { color: var(--primary-light); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    .tab-btn:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    h2 { font-size: 1.25rem; color: var(--primary); margin: 8px 0 6px; }
+    h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    p { margin: 6px 0; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn-row { margin-top: 14px; }
+    .btn {
+      padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fff7ed; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .err-ok { color: #16a34a; font-weight: 700; }
+    .result-box .err-bad { color: #dc2626; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .hint-box ul { margin: 6px 0 0 20px; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.8;
+    }
+    .formula-box .small { font-size: 0.85rem; color: #c9c9c9; }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 12px; }
+    .quiz-box .q:first-of-type { margin-top: 6px; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; }
+    .quiz-box .feedback { margin-top: 8px; font-weight: 600; min-height: 1.2em; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline ul { list-style: none; margin-top: 8px; }
+    .timeline li { position: relative; padding-left: 18px; margin: 8px 0; }
+    .timeline li::before {
+      content: ""; position: absolute; left: 0; top: 0.55em;
+      width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
+    }
+    .timeline .yr { font-weight: 700; color: var(--primary); }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    ul.goals li { margin: 4px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg.diagram { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로 돌아가기</a>
+    <span class="cat-badge">🏛️ 고대 (Ancient)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>에라토스테네스의 지구 둘레 측정</h1>
+    <div class="en">Eratosthenes Measures the Earth</div>
+    <div class="meta">기원전 240년경 · 에라토스테네스 (Eratosthenes) · 난이도 ⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 콘텐츠 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" id="tab-interactive" aria-selected="true" aria-controls="interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" id="tab-learning" aria-selected="false" aria-controls="learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" id="tab-history" aria-selected="false" aria-controls="history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="420" role="img"
+        aria-label="지구 원 위에 시에네와 알렉산드리아 두 도시, 수직 막대(그노몬)와 그림자, 평행한 태양 광선, 두 도시 사이 중심각 세타를 표시한 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <label for="angle">알렉산드리아의 그림자 각도 θ: <span id="angle-val">7.2</span>°</label>
+        <input type="range" id="angle" min="1" max="20" step="0.1" value="7.2"
+          aria-describedby="result" aria-valuetext="7.2도">
+
+        <label for="dist" style="margin-top:14px;">두 도시 간 거리 d: <span id="dist-val">925</span> km</label>
+        <input type="range" id="dist" min="500" max="1500" step="5" value="925"
+          aria-describedby="result" aria-valuetext="925킬로미터">
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="reset-btn">↺ 역사값으로 리셋 (θ=7.2°, d=925 km)</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div>추정 지구 둘레: <strong id="circ-val">—</strong></div>
+        <div style="margin-top:4px;">실제 둘레(40,075 km) 대비 오차:
+          <span id="err-val" class="err-ok">—</span></div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트</strong>
+        <ul>
+          <li>같은 시각, 시에네에서는 해가 우물 바닥까지 곧장 비쳐 막대에 <b>그림자가 없다</b>(θ=0).</li>
+          <li>알렉산드리아 막대의 그림자가 만드는 각이 곧 두 도시 사이 <b>지구 중심각</b>과 같다.</li>
+          <li>θ를 <b>작게</b> 하면 360°에서 차지하는 비율이 줄어 추정 둘레는 <b>커진다</b>.</li>
+          <li>태양빛을 <b>평행</b>하다고 가정했기에, 지면 막대의 그림자 각도만으로 중심각을 알 수 있다.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>막대 그림자의 각도가 두 지점의 지구 중심각과 같음을 이해한다.</li>
+        <li>비례식 C = d × (360° / θ)로 전체 둘레를 추정하는 방법을 익힌다.</li>
+        <li>태양빛 평행 가정이 왜 필요한지 파악한다.</li>
+        <li>단순한 관측만으로 거대한 양을 추론하는 과학적 사고를 경험한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>하짓날 정오, 시에네(Syene)에서는 태양이 천정에 위치해 수직 막대에 그림자가 생기지 않는다.
+        같은 시각 북쪽의 알렉산드리아에서는 같은 모양의 막대가 각도 θ의 그림자를 만든다.</p>
+        <p>태양은 매우 멀어 광선이 <b>평행</b>하다고 볼 수 있다. 평행한 두 광선이 지구 표면의 서로 다른
+        두 지점에 닿을 때, 두 막대(지구 반지름 방향)가 이루는 <b>중심각</b>은 알렉산드리아 막대와
+        그 광선이 이루는 각, 즉 그림자 각도 θ와 <b>엇각으로 같다</b>. 따라서 직접 잴 수 없는 중심각을
+        지면의 그림자만으로 알아낼 수 있다.</p>
+        <p>이 중심각 θ가 한 바퀴(360°)에서 차지하는 비율은, 두 도시 사이 거리 d가 전체 둘레 C에서
+        차지하는 비율과 같다.</p>
+      </div>
+
+      <div class="formula-box">
+        θ / 360° = d / C<br>
+        ⇒ C = d × (360° / θ)<br>
+        <span class="small">θ = 7.2°, d = 925 km ⇒ C ≈ 46,250 km (실제 ≈ 40,075 km)</span>
+      </div>
+
+      <!-- SVG 다이어그램: 평행광, 두 도시, 엇각 -->
+      <svg class="diagram" width="360" height="240" viewBox="0 0 360 240" role="img"
+        aria-label="평행한 태양 광선이 시에네와 알렉산드리아에 닿고, 알렉산드리아 막대의 그림자 각도가 두 도시의 지구 중심각과 엇각으로 같음을 보여주는 다이어그램">
+        <!-- 지구 -->
+        <circle cx="180" cy="170" r="85" fill="#f0e6da" stroke="#8B4513" stroke-width="2"/>
+        <!-- 중심에서 두 도시로 향하는 반지름 (중심각 θ) -->
+        <line x1="180" y1="170" x2="150" y2="86" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="180" y1="170" x2="180" y2="85" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="170" y="150" font-size="12" fill="#8B4513">θ</text>
+        <!-- 막대(그노몬) -->
+        <line x1="150" y1="86" x2="142" y2="46" stroke="#d97706" stroke-width="3"/>
+        <line x1="180" y1="85" x2="180" y2="40" stroke="#d97706" stroke-width="3"/>
+        <!-- 평행한 태양 광선 -->
+        <line x1="120" y1="10" x2="150" y2="86" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 3"/>
+        <line x1="150" y1="10" x2="180" y2="85" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="86" y="100" font-size="11">알렉산드리아</text>
+        <text x="188" y="60" font-size="11">시에네</text>
+        <text x="210" y="22" font-size="11" fill="#f59e0b">평행한 태양빛 ☀</text>
+        <text x="118" y="72" font-size="11" fill="#d97706">θ</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념</strong> — "지구가 평평하다면 두 도시의 그림자 각도가 같을 것"이라 생각하기 쉽다.
+        오히려 두 도시의 그림자 각도가 <em>다르다</em>는 사실 자체가 지표면이 굽어 있다는, 즉 지구가
+        둥글다는 증거다. 평평한 땅에서는 평행광이 모든 수직 막대에 같은 각으로 닿는다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+
+        <div class="q">
+          <p><b>Q1.</b> 그림자 각도 θ를 더 <u>크게</u> 측정하면, 추정한 지구 둘레는 어떻게 되는가?
+          (C = d × 360°/θ)</p>
+          <label><input type="radio" name="q1" value="wrong"> 커진다</label>
+          <label><input type="radio" name="q1" value="correct"> 작아진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+          <div class="feedback" id="q1-feedback" aria-live="polite"></div>
+        </div>
+
+        <div class="q">
+          <p><b>Q2.</b> θ = 7.2°, 두 도시 거리 d = 925 km일 때, 추정 둘레에 가장 가까운 값은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 약 9,250 km</label>
+          <label><input type="radio" name="q2" value="correct"> 약 46,250 km</label>
+          <label><input type="radio" name="q2" value="wrong"> 약 92,500 km</label>
+          <div class="feedback" id="q2-feedback" aria-live="polite"></div>
+        </div>
+
+        <button type="button" class="btn" id="grade-btn" style="margin-top:12px;">채점하기</button>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 에라토스테네스 (Eratosthenes, 기원전 276~194)</h3>
+        <p>고대 그리스의 수학자·지리학자·천문학자로, 헬레니즘 학문의 중심지였던
+        알렉산드리아 도서관의 관장(사서장)을 지냈다. 지리학(geography)이라는 학문의 이름을
+        처음 체계화했고, 소수를 걸러내는 "에라토스테네스의 체(Sieve of Eratosthenes)"로도
+        유명하다. 천문·수학·문헌학·시 등 여러 분야에 두루 능해 "베타(β, 두 번째)"라는
+        별명으로 불릴 만큼 폭넓은 학자였다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경 · 연표</h3>
+        <ul>
+          <li><span class="yr">기원전 3세기</span> — 헬레니즘 시대, 알렉산드리아가 지중해 학문의 중심지로 부상.</li>
+          <li><span class="yr">기원전 245년경</span> — 에라토스테네스가 알렉산드리아 도서관 관장으로 부임.</li>
+          <li><span class="yr">기원전 240년경</span> — 하짓날 정오 시에네 우물에 그림자가 없다는 보고를 단서로,
+            알렉산드리아 막대의 그림자 각(약 7.2°)을 측정해 지구 둘레를 추정.</li>
+          <li><span class="yr">기원전 194년</span> — 에라토스테네스 사망. 그의 측정은 이후 측지학의 출발점으로 자리매김.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의</strong> — 직접 측정이 불가능한 거대한 양(지구 둘레)을, 단순한 기하학과
+        두 지점의 그림자 관측만으로 정량적으로 추론해낸 인류 최초의 지구과학 실험으로 평가된다.
+        스타디아(stadia)의 정확한 길이 해석에 따라 다르지만, 그의 추정치는 실제 적도 둘레
+        약 40,075 km와 비교해 오차가 약 2~16% 수준에 불과해, 당대 기술로는 놀라울 만큼 정확했다.
+        "관측 → 가정(평행광) → 기하 → 비례 추정"이라는 정량 과학의 전형을 2,200여 년 전에 보여준 셈이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // 실제 적도 둘레 (km) — 오차 비교 기준
+      const REAL_CIRCUMFERENCE = 40075;
+      const DEFAULTS = { angle: 7.2, dist: 925 };
+
+      // ----- 상태 -----
+      const state = { angle: DEFAULTS.angle, dist: DEFAULTS.dist };
+
+      // ----- 요소 -----
+      const angleSlider = document.getElementById('angle');
+      const distSlider = document.getElementById('dist');
+      const angleValEl = document.getElementById('angle-val');
+      const distValEl = document.getElementById('dist-val');
+      const circValEl = document.getElementById('circ-val');
+      const errValEl = document.getElementById('err-val');
+      const resetBtn = document.getElementById('reset-btn');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 둘레 계산 -----
+      function circumference() {
+        return (360 / state.angle) * state.dist;
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const C = circumference();
+        circValEl.textContent = Math.round(C).toLocaleString('ko-KR') + ' km';
+        const errPct = ((C - REAL_CIRCUMFERENCE) / REAL_CIRCUMFERENCE) * 100;
+        const sign = errPct >= 0 ? '+' : '−';
+        errValEl.textContent = sign + Math.abs(errPct).toFixed(1) + '%';
+        errValEl.className = Math.abs(errPct) <= 10 ? 'err-ok' : 'err-bad';
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const cx = W / 2;
+        const cy = H / 2 + 70;
+        const R = 130;
+
+        // 중심각 = 그림자 각도 θ (두 도시는 천정 기준 ±θ/2 위치)
+        const thetaRad = state.angle * Math.PI / 180;
+        const half = thetaRad / 2;
+        const topAng = -Math.PI / 2;            // 정상(천정 방향)
+        const aAng = topAng - half;             // 알렉산드리아 (왼쪽)
+        const sAng = topAng + half;             // 시에네 (오른쪽)
+
+        // 지구
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI * 2);
+        ctx.fillStyle = '#f0e6da';
+        ctx.fill();
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 중심점
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#8B4513';
+        ctx.fill();
+
+        // 두 도시 좌표
+        const a = { x: cx + R * Math.cos(aAng), y: cy + R * Math.sin(aAng) };
+        const s = { x: cx + R * Math.cos(sAng), y: cy + R * Math.sin(sAng) };
+
+        // 중심 → 도시 반지름 선
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 1.2;
+        [a, s].forEach((p) => {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+        });
+
+        // 중심각 호 + θ 라벨
+        ctx.beginPath();
+        ctx.arc(cx, cy, 34, aAng, sAng);
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.fillStyle = '#8B4513';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('θ=' + state.angle.toFixed(1) + '°', cx, cy - 44);
+
+        // 막대(그노몬) 길이 및 그림자/광선 방향
+        const gnomon = 46;          // 막대 길이(픽셀)
+        const rayLen = 60;          // 광선 표시 길이
+        // 태양은 정상(천정) 방향 위쪽에서 평행하게 내려온다고 가정 → 광선 방향 = 아래쪽 수직(화면상 +y)
+        const rayDir = { x: 0, y: 1 };
+
+        // 각 도시의 막대(반지름 바깥 방향)와 평행 광선, 그림자
+        [{ p: a, ang: aAng, name: '알렉산드리아' },
+         { p: s, ang: sAng, name: '시에네' }].forEach((city) => {
+          const nx = Math.cos(city.ang), ny = Math.sin(city.ang); // 바깥(수직) 방향
+          const tip = { x: city.p.x + gnomon * nx, y: city.p.y + gnomon * ny };
+
+          // 평행 태양 광선 (막대 끝을 향해 위에서 내려옴)
+          ctx.beginPath();
+          ctx.moveTo(tip.x - rayDir.x * rayLen, tip.y - rayDir.y * rayLen);
+          ctx.lineTo(tip.x, tip.y);
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 3]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // 막대(그노몬)
+          ctx.beginPath();
+          ctx.moveTo(city.p.x, city.p.y);
+          ctx.lineTo(tip.x, tip.y);
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          // 그림자: 막대 밑 지점에서, 광선이 지면에 닿는 점까지.
+          // 광선(연직 아래 방향)이 막대 끝을 지나 지면 직선(접선)과 만나는 그림자.
+          // 지면 접선 방향 = 막대 방향에 수직.
+          const tgx = -ny, tgy = nx; // 접선 방향
+          // 광선을 지면 방향으로 투영해 그림자 끝 계산 (시각적 근사)
+          // 그림자 길이는 tan(국소 태양 천정각)에 비례. 국소 천정각 = 도시의 위도차 = |도시각 - top|
+          const localZenith = Math.abs(city.ang - topAng); // 라디안
+          const shadowLen = gnomon * Math.tan(localZenith);
+          // 그림자가 천정의 반대쪽(북쪽=왼쪽 도시 기준 바깥)으로 뻗도록 부호 결정
+          const dir = (city.ang < topAng) ? -1 : 1; // 왼쪽 도시면 -, 오른쪽이면 +
+          const shEnd = { x: city.p.x + dir * tgx * shadowLen, y: city.p.y + dir * tgy * shadowLen };
+          if (shadowLen > 0.5) {
+            ctx.beginPath();
+            ctx.moveTo(city.p.x, city.p.y);
+            ctx.lineTo(shEnd.x, shEnd.y);
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            ctx.lineCap = 'butt';
+          }
+        });
+
+        // 도시 점
+        [{ p: a, name: '알렉산드리아', dx: -8, anchor: 'right' },
+         { p: s, name: '시에네', dx: 8, anchor: 'left' }].forEach((city) => {
+          ctx.beginPath();
+          ctx.arc(city.p.x, city.p.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#8B4513';
+          ctx.fill();
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = '12px sans-serif';
+          ctx.textAlign = city.anchor;
+          ctx.fillText(city.name, city.p.x + city.dx, city.p.y - 54);
+        });
+
+        // 시에네 안내(그림자 없음)
+        ctx.fillStyle = '#16a34a';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('그림자 거의 없음', s.x + 10, s.y - 38);
+
+        // 상단 태양 표시
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = '18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('☀ 평행한 태양빛', cx, 24);
+
+        // 결과 요약 (캔버스 하단)
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('C = d × 360°/θ = ' + Math.round(circumference()).toLocaleString('ko-KR') + ' km',
+          cx, H - 12);
+
+        ctx.textAlign = 'left'; // 기본값 복구
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      angleSlider.addEventListener('input', () => {
+        state.angle = Number(angleSlider.value);
+        angleValEl.textContent = state.angle.toFixed(1);
+        angleSlider.setAttribute('aria-valuetext', state.angle.toFixed(1) + '도');
+        updateResult();
+        draw();
+      });
+
+      distSlider.addEventListener('input', () => {
+        state.dist = Number(distSlider.value);
+        distValEl.textContent = state.dist;
+        distSlider.setAttribute('aria-valuetext', state.dist + '킬로미터');
+        updateResult();
+        draw();
+      });
+
+      // ----- 리셋 -----
+      resetBtn.addEventListener('click', () => {
+        state.angle = DEFAULTS.angle;
+        state.dist = DEFAULTS.dist;
+        angleSlider.value = String(DEFAULTS.angle);
+        distSlider.value = String(DEFAULTS.dist);
+        angleValEl.textContent = DEFAULTS.angle.toFixed(1);
+        distValEl.textContent = DEFAULTS.dist;
+        angleSlider.setAttribute('aria-valuetext', DEFAULTS.angle.toFixed(1) + '도');
+        distSlider.setAttribute('aria-valuetext', DEFAULTS.dist + '킬로미터');
+        updateResult();
+        draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      function gradeOne(name, feedbackId, okMsg, noMsg) {
+        const picked = document.querySelector('input[name="' + name + '"]:checked');
+        const out = document.getElementById(feedbackId);
+        if (!picked) {
+          out.textContent = '답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        if (picked.value === 'correct') {
+          out.textContent = '정답입니다! 🎉 ' + okMsg;
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = '다시 생각해 보세요. ' + noMsg;
+          out.style.color = '#dc2626';
+        }
+      }
+
+      document.getElementById('grade-btn').addEventListener('click', () => {
+        gradeOne('q1', 'q1-feedback',
+          'θ가 커지면 분모가 커져 C = d × 360°/θ 값은 작아집니다.',
+          'C = d × 360°/θ 에서 θ는 분모입니다.');
+        gradeOne('q2', 'q2-feedback',
+          '(360 / 7.2) × 925 ≈ 46,250 km.',
+          'C = d × 360°/θ = 925 × (360/7.2) 를 계산해 보세요.');
+      });
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

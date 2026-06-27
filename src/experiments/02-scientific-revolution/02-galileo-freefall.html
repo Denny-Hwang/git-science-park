@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>갈릴레오의 자유낙하 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #eef3f7; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>갈릴레오의 자유낙하</h1>
+    <div class="en">Galileo's Free Fall</div>
+    <div class="meta">1589년경 · 갈릴레오 갈릴레이 (Galileo Galilei) · 난이도 ⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="두 물체가 같은 높이에서 동시에 자유낙하하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="mass1">물체 1 (왼쪽) 질량: <span id="mass1-val">5.0</span> kg</label>
+          <input type="range" id="mass1" min="0.1" max="20" step="0.1" value="5.0"
+            aria-describedby="mass1-val">
+        </div>
+
+        <div class="control-row">
+          <label for="mass2">물체 2 (오른쪽) 질량: <span id="mass2-val">1.0</span> kg</label>
+          <input type="range" id="mass2" min="0.1" max="20" step="0.1" value="1.0"
+            aria-describedby="mass2-val">
+        </div>
+
+        <div class="control-row">
+          <label for="height">낙하 높이 h: <span id="height-val">56</span> m</label>
+          <input type="range" id="height" min="5" max="120" step="1" value="56"
+            aria-describedby="height-val">
+        </div>
+
+        <div class="control-row">
+          <label>중력가속도 g: <span id="g-val">9.80</span> m/s²</label>
+          <div class="btn-row" role="group" aria-label="중력가속도 프리셋">
+            <button type="button" class="btn preset active" data-g="9.8">🌍 지구 9.8</button>
+            <button type="button" class="btn preset" data-g="1.62">🌕 달 1.62</button>
+            <button type="button" class="btn preset" data-g="3.7">🔴 화성 3.7</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="airResistance">
+            <label for="airResistance">공기저항 켜기 (가벼운 물체가 더 늦게 착지)</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>이론 낙하시간 t: <strong id="r-time">—</strong></div>
+          <div>착지속도 v: <strong id="r-vel">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>경과 시간: <strong id="r-elapsed">0.00 s</strong></div>
+          <div>현재 속도: <strong id="r-curvel">0.00 m/s</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 공기저항을 끈 상태에서 두 물체의 질량을 크게 다르게 바꿔 보세요.
+        무게가 달라도 (공기저항 무시 시) 두 공은 <em>항상 동시에</em> 착지합니다. 가속도 g는 질량과 무관하기
+        때문입니다. 공기저항을 켜면 비로소 가벼운 공이 늦게 떨어집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>공기저항이 없으면 낙하 가속도가 질량과 무관함을 이해한다.</li>
+        <li>등가속도 운동의 위치·속도·시간 관계식을 익힌다.</li>
+        <li>낙하시간 t = √(2h/g) 와 착지속도 v = √(2gh) 를 유도·활용한다.</li>
+        <li>중력가속도 g가 천체마다 다름을 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>정지 상태에서 자유낙하하는 물체에는 일정한 중력가속도 <em>g</em>가 작용한다.
+        뉴턴 역학으로 보면 물체에 작용하는 중력은 <em>F = m·g</em>이고 가속도는 <em>a = F/m = g</em>이다.
+        즉 질량 <em>m</em>이 분자·분모에서 약분되어, 가속도는 질량에 전혀 의존하지 않는다.</p>
+        <p>따라서 공기저항이 없는 진공에서는 무거운 쇠공과 가벼운 깃털이 <strong>같은 가속도</strong>로 떨어지며,
+        같은 높이에서 동시에 놓으면 <strong>동시에</strong> 착지한다.</p>
+      </div>
+
+      <div class="formula-box">
+        y = ½ · g · t²<br>
+        t = √(2h / g)<br>
+        v = √(2 · g · h) = g · t
+      </div>
+
+      <!-- SVG 다이어그램: 두 물체의 등시 낙하 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="같은 높이에서 출발한 두 물체가 동일한 시간 간격마다 같은 위치에 있는 등시 낙하 다이어그램">
+        <line x1="40" y1="20" x2="40" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+        <line x1="320" y1="20" x2="320" y2="200" stroke="#9ca3af" stroke-width="1.5"/>
+        <line x1="20" y1="200" x2="340" y2="200" stroke="#6b7280" stroke-width="2"/>
+        <text x="150" y="216" font-size="11" fill="#6b7280">지면 (착지선)</text>
+        <!-- 위치: y = 1/2 g t^2, 동일 시간 간격 t=1,2,3,4 -> 비례 1,4,9,16 -->
+        <!-- 큰 공 (왼쪽) -->
+        <circle cx="40" cy="31"  r="9" fill="#2E4A62"/>
+        <circle cx="40" cy="56"  r="9" fill="#2E4A62" opacity="0.75"/>
+        <circle cx="40" cy="98"  r="9" fill="#2E4A62" opacity="0.55"/>
+        <circle cx="40" cy="190" r="9" fill="#2E4A62" opacity="0.35"/>
+        <!-- 작은 공 (오른쪽) - 같은 높이에 위치 (등시 낙하) -->
+        <circle cx="320" cy="31"  r="5" fill="#C53030"/>
+        <circle cx="320" cy="56"  r="5" fill="#C53030" opacity="0.75"/>
+        <circle cx="320" cy="98"  r="5" fill="#C53030" opacity="0.55"/>
+        <circle cx="320" cy="190" r="5" fill="#C53030" opacity="0.35"/>
+        <text x="55" y="35"  font-size="10" fill="#374151">t₀</text>
+        <text x="55" y="60"  font-size="10" fill="#374151">t₁</text>
+        <text x="55" y="102" font-size="10" fill="#374151">t₂</text>
+        <text x="55" y="194" font-size="10" fill="#374151">t₃</text>
+        <text x="120" y="14" font-size="11" fill="#2E4A62">무거운 공</text>
+        <text x="250" y="14" font-size="11" fill="#C53030">가벼운 공</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        같은 시각마다 두 공의 높이가 항상 같다. 낙하 거리는 시간의 제곱에 비례한다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "무거운 물체가 더 빨리 떨어진다"는 생각은 아리스토텔레스 이래
+        2,000년간 상식이었다. 실제로는 무거운 물체에 더 큰 힘이 작용하지만 그만큼 관성(질량)도 커서
+        가속도는 같다. 일상에서 깃털이 천천히 떨어지는 것은 무게 때문이 아니라 <em>공기저항</em> 때문이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>진공(공기저항 없음)에서 무거운 쇠공과 가벼운 깃털을 같은 높이에서 동시에 놓으면?</p>
+        <label><input type="radio" name="q1" value="wrong"> 쇠공이 먼저 떨어진다</label>
+        <label><input type="radio" name="q1" value="wrong"> 깃털이 먼저 떨어진다</label>
+        <label><input type="radio" name="q1" value="correct"> 둘이 동시에 떨어진다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>지구(g ≈ 9.8 m/s²)에서 높이 19.6 m를 자유낙하할 때 걸리는 시간 t에 가장 가까운 값은?
+        (t = √(2h/g))</p>
+        <label><input type="radio" name="q2" value="wrong"> 1.0 초</label>
+        <label><input type="radio" name="q2" value="correct"> 2.0 초</label>
+        <label><input type="radio" name="q2" value="wrong"> 4.0 초</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 갈릴레오 갈릴레이 (Galileo Galilei, 1564~1642)</h3>
+        <p>이탈리아 피사 출신의 물리학자·천문학자·수학자로 "근대 과학의 아버지"라 불린다.
+        관찰과 실험, 수학적 분석을 결합하는 과학적 방법을 정립했다. 망원경으로 목성의 위성과 달 표면을
+        관측했고, 운동학에서는 자유낙하와 경사면 실험으로 아리스토텔레스의 운동관을 무너뜨렸다.</p>
+        <p>피사의 사탑에서 서로 다른 무게의 공을 떨어뜨려 동시에 착지함을 보였다는 일화로 유명하지만,
+        이는 제자 비비아니가 전한 이야기로 실제 공개 실험 여부는 확실치 않다. 다만 갈릴레오가 사고실험과
+        경사면 실험을 통해 같은 결론에 도달한 것은 분명하다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>기원전 4세기 — 아리스토텔레스: "무거운 물체가 더 빨리 떨어진다"는 운동관 확립</li>
+          <li>1589년경 — 갈릴레오, 피사 대학 교수 시절 낙하 운동 연구 시작 (사탑 일화의 무대)</li>
+          <li>1604년경 — 경사면 실험으로 낙하 거리가 시간의 제곱에 비례함을 정량화</li>
+          <li>1638년 — 『새로운 두 과학(Discorsi)』 출간, 등가속도 운동 법칙 체계화</li>
+          <li>1971년 — 아폴로 15호 우주비행사가 달 표면(진공)에서 망치와 깃털을 동시에 낙하시켜 검증</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 2,000년간 의심받지 않던 아리스토텔레스의 권위를 관찰과 실험으로
+        반박한 사건이다. "모든 물체는 질량과 무관하게 같은 가속도로 떨어진다"는 결론은 훗날 뉴턴의 운동·중력
+        법칙으로, 그리고 관성질량과 중력질량의 동등성(등가원리)을 통해 아인슈타인의 일반상대성이론으로
+        이어졌다. 권위가 아닌 실험이 진리의 기준임을 보여준 과학혁명의 상징이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        mass1: 5.0,
+        mass2: 1.0,
+        height: 56,      // m
+        g: 9.8,          // m/s^2
+        airResistance: false,
+        running: false,
+        elapsed: 0,      // s (시뮬레이션 시각)
+        lastTs: null
+      };
+
+      // 시각화/물리 상수
+      const PX_TOP = 40;      // 캔버스 상단 출발선 y(px)
+      const PX_GROUND = 390;  // 지면 y(px)
+      const TIME_SCALE = 0.55; // 실제 초 대비 애니메이션 배속(느리게 보기 위해 <1)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const mass1Slider = document.getElementById('mass1');
+      const mass2Slider = document.getElementById('mass2');
+      const heightSlider = document.getElementById('height');
+      const airToggle = document.getElementById('airResistance');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      // 공기저항 OFF: 순수 자유낙하 y = 1/2 g t^2 (질량 무관, 동시 착지)
+      // 공기저항 ON: 단순 항력 모델. 가벼운 물체일수록 종단속도가 낮아 더 늦게 착지.
+      //   유효가속도 a_eff = g * (1 - 종단계수). 질량이 작을수록 항력 영향이 커지도록 설계.
+      function effectiveG(mass) {
+        if (!state.airResistance) return state.g;
+        // 질량이 클수록 1에 가깝고(거의 자유낙하), 작을수록 작아짐.
+        // factor in [0.35, ~0.98] 범위.
+        const factor = mass / (mass + 1.4);
+        return state.g * Math.max(0.3, factor);
+      }
+
+      // 이론 낙하시간(현재 결과 박스 표시용): 두 물체 중 더 무거운(빠른) 쪽이 아니라
+      // 공기저항 OFF면 동일하므로 g 기준. ON이면 각 물체별로 다름.
+      function fallTime(mass) {
+        const a = effectiveG(mass);
+        return Math.sqrt((2 * state.height) / a);
+      }
+      function impactVelocity(mass) {
+        const a = effectiveG(mass);
+        return Math.sqrt(2 * a * state.height);
+      }
+
+      // 현재 시각 t에서의 낙하 거리(m), 착지 시 clamp
+      function distanceAt(mass, t) {
+        const a = effectiveG(mass);
+        const tHit = Math.sqrt((2 * state.height) / a);
+        const tc = Math.min(t, tHit);
+        return 0.5 * a * tc * tc;
+      }
+      function velocityAt(mass, t) {
+        const a = effectiveG(mass);
+        const tHit = Math.sqrt((2 * state.height) / a);
+        const tc = Math.min(t, tHit);
+        return a * tc;
+      }
+      function hasLanded(mass, t) {
+        return t >= fallTime(mass);
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const x1 = W * 0.32;
+        const x2 = W * 0.68;
+        const pxRange = PX_GROUND - PX_TOP;
+
+        // 출발선 & 지면
+        ctx.strokeStyle = '#9ca3af';
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(40, PX_TOP); ctx.lineTo(W - 40, PX_TOP); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = '#5b6b78';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(20, PX_GROUND); ctx.lineTo(W - 20, PX_GROUND); ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 높이 라벨
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('출발 (h = ' + state.height + ' m)', 44, PX_TOP - 6);
+        ctx.fillText('지면', 24, PX_GROUND + 16);
+
+        // 두 물체 그리기
+        drawBall(x1, state.mass1, '#2E4A62', '물체 1', pxRange);
+        drawBall(x2, state.mass2, '#C53030', '물체 2', pxRange);
+
+        // 시각 표시
+        ctx.fillStyle = '#374151';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('t = ' + state.elapsed.toFixed(2) + ' s', W - 110, PX_TOP - 6);
+        if (state.airResistance) {
+          ctx.fillStyle = '#C53030';
+          ctx.fillText('공기저항 ON', W - 110, PX_TOP + 12);
+        }
+      }
+
+      function drawBall(x, mass, color, label, pxRange) {
+        const d = distanceAt(mass, state.elapsed);            // m
+        const frac = Math.min(1, d / state.height);           // 0~1
+        const y = PX_TOP + frac * pxRange;
+        const r = 6 + Math.min(22, Math.sqrt(mass) * 4);      // 질량 시각화(반지름)
+
+        // 그림자
+        ctx.beginPath();
+        ctx.ellipse(x, PX_GROUND + 4, r * 0.9, 3.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.fill();
+
+        // 공
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 라벨
+        ctx.fillStyle = '#374151';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label + ' (' + mass.toFixed(1) + ' kg)', x, PX_TOP - 20);
+        ctx.textAlign = 'left';
+
+        // 착지 표시
+        if (hasLanded(mass, state.elapsed)) {
+          ctx.fillStyle = color;
+          ctx.font = 'bold 12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('착지!', x, PX_GROUND - r - 6);
+          ctx.textAlign = 'left';
+        }
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const elTime = document.getElementById('r-time');
+        const elVel = document.getElementById('r-vel');
+
+        if (!state.airResistance) {
+          // 질량 무관, 동일
+          elTime.textContent = fallTime(state.mass1).toFixed(2) + ' s (질량 무관)';
+          elVel.textContent = impactVelocity(state.mass1).toFixed(2) + ' m/s';
+        } else {
+          // 물체별로 다름
+          elTime.textContent =
+            '물체1 ' + fallTime(state.mass1).toFixed(2) + ' s / 물체2 ' + fallTime(state.mass2).toFixed(2) + ' s';
+          elVel.textContent =
+            '물체1 ' + impactVelocity(state.mass1).toFixed(2) + ' / 물체2 ' + impactVelocity(state.mass2).toFixed(2) + ' m/s';
+        }
+        updateLiveReadout();
+      }
+
+      function updateLiveReadout() {
+        // 진행 중 경과시간/현재속도(더 빠른 쪽 = 무거운 쪽 기준이 아니라 평균적으로 무거운 물체1 기준 표시)
+        document.getElementById('r-elapsed').textContent = state.elapsed.toFixed(2) + ' s';
+        const v1 = velocityAt(state.mass1, state.elapsed);
+        document.getElementById('r-curvel').textContent = v1.toFixed(2) + ' m/s';
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      mass1Slider.addEventListener('input', () => {
+        state.mass1 = Number(mass1Slider.value);
+        document.getElementById('mass1-val').textContent = state.mass1.toFixed(1);
+        updateResult();
+        draw();
+      });
+      mass2Slider.addEventListener('input', () => {
+        state.mass2 = Number(mass2Slider.value);
+        document.getElementById('mass2-val').textContent = state.mass2.toFixed(1);
+        updateResult();
+        draw();
+      });
+      heightSlider.addEventListener('input', () => {
+        state.height = Number(heightSlider.value);
+        document.getElementById('height-val').textContent = state.height;
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+
+      airToggle.addEventListener('change', () => {
+        state.airResistance = airToggle.checked;
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+
+      // g 프리셋
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.g = Number(btn.dataset.g);
+          document.getElementById('g-val').textContent = state.g.toFixed(2);
+          resetSim(false);
+          updateResult();
+          draw();
+        });
+      });
+
+      // ----- 애니메이션 루프 -----
+      function maxFallTime() {
+        return Math.max(fallTime(state.mass1), fallTime(state.mass2));
+      }
+
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000; // 실제 경과초
+        state.lastTs = ts;
+
+        state.elapsed += dt * TIME_SCALE;
+
+        const tEnd = maxFallTime();
+        if (state.elapsed >= tEnd) {
+          state.elapsed = tEnd;
+          state.running = false;
+        }
+
+        updateLiveReadout();
+        draw();
+
+        if (state.running) {
+          requestAnimationFrame(loop);
+        }
+      }
+
+      function play() {
+        if (state.running) return;
+        // 이미 끝났으면 처음부터
+        if (state.elapsed >= maxFallTime()) state.elapsed = 0;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function pause() {
+        state.running = false;
+      }
+
+      function resetSim(redraw) {
+        state.running = false;
+        state.elapsed = 0;
+        state.lastTs = null;
+        if (redraw !== false) {
+          updateLiveReadout();
+          draw();
+        }
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '진공에서는 가속도가 질량과 무관하므로 함께 떨어집니다.',
+        '공기저항이 없으면 가속도는 질량과 무관합니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        't = √(2·19.6/9.8) = √4 = 2.0 초.',
+        't = √(2h/g) 에 h=19.6, g=9.8 을 대입해 보세요.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

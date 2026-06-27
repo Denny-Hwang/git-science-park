@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>영의 이중 슬릿 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #4A5568;
+      --primary-light: #647288;
+      --bg: #f5f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #111; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef1f6; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚗️ 18세기 (Precision Era)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>영의 이중 슬릿 실험</h1>
+    <div class="en">Young's Double-Slit Experiment</div>
+    <div class="meta">1801년 · 토머스 영 (Thomas Young) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" aria-label="이중 슬릿을 지난 빛이 스크린에 간섭무늬를 만드는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="lambda">파장 λ: <span id="lambda-val">550</span> nm</label>
+          <input type="range" id="lambda" min="380" max="750" step="1" value="550"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="dgap">슬릿 간격 d: <span id="dgap-val">0.25</span> mm</label>
+          <input type="range" id="dgap" min="0.10" max="1.00" step="0.01" value="0.25"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="dist">슬릿–스크린 거리 L: <span id="dist-val">1.5</span> m</label>
+          <input type="range" id="dist" min="0.5" max="3.0" step="0.1" value="1.5"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        무늬 간격 Δy: <strong>—</strong> &nbsp;(Δy = λ·L / d)
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 스크린에 밝고 어두운 줄(간섭무늬)이 번갈아 나타난다.
+        <strong>슬릿 간격 d를 키우면</strong> 무늬가 촘촘해지고(간격이 좁아지고),
+        <strong>파장 λ를 키우면</strong>(빨간색 쪽) 무늬가 넓어진다. 거리 L을 늘리면 무늬가 펼쳐진다.
+        빛의 색은 파장에 대응한다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>두 슬릿을 지난 빛이 겹치며 보강·상쇄 간섭을 일으킴을 이해한다.</li>
+        <li>무늬 간격 공식 Δy = λ·L / d 의 각 변수가 간섭무늬에 주는 영향을 설명한다.</li>
+        <li>세기 분포 I(x) ∝ cos²(π·d·x / (λ·L)) 가 밝고 어두운 줄을 만든다는 것을 안다.</li>
+        <li>이 실험이 빛의 파동성을 보여주는 증거임을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>단색광이 매우 가까운 두 슬릿을 지나면, 각 슬릿이 새로운 파원이 되어 빛이 퍼져 나간다(회절).
+        두 빛은 스크린의 한 점에서 만나며, 두 경로의 길이 차이(경로차)에 따라 위상이 맞으면 밝아지고(보강간섭),
+        반대이면 어두워진다(상쇄간섭). 그 결과 밝고 어두운 줄이 규칙적으로 반복되는 간섭무늬가 생긴다.</p>
+        <p>경로차가 파장의 정수배일 때 보강간섭이 일어난다: <strong>d·sinθ = m·λ</strong> (m = 0, ±1, ±2 …).
+        스크린이 충분히 멀면(L ≫ d) 이웃한 밝은 줄 사이의 간격은 일정해진다.</p>
+      </div>
+
+      <div class="formula-box">
+        Δy = λ · L / d
+        <br>
+        보강간섭: d · sinθ = m · λ
+        <br>
+        I(x) ∝ cos²( π · d · x / (λ · L) )
+      </div>
+
+      <!-- SVG 다이어그램: 광원 → 두 슬릿 → 스크린 간섭무늬 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+           aria-label="광원에서 나온 빛이 두 슬릿을 지나 스크린에 간섭무늬를 만드는 경로 다이어그램">
+        <!-- 광원 -->
+        <circle cx="30" cy="110" r="8" fill="#d97706"/>
+        <text x="14" y="135" font-size="11">광원</text>
+        <!-- 슬릿 벽 -->
+        <rect x="150" y="20" width="8" height="74" fill="#4A5568"/>
+        <rect x="150" y="100" width="8" height="20" fill="#4A5568"/>
+        <rect x="150" y="126" width="8" height="74" fill="#4A5568"/>
+        <text x="120" y="16" font-size="11">두 슬릿</text>
+        <!-- 슬릿 표시 -->
+        <circle cx="154" cy="97" r="3" fill="#facc15"/>
+        <circle cx="154" cy="123" r="3" fill="#facc15"/>
+        <!-- 입사광 -->
+        <line x1="38" y1="110" x2="150" y2="97" stroke="#d97706" stroke-width="1.5"/>
+        <line x1="38" y1="110" x2="150" y2="123" stroke="#d97706" stroke-width="1.5"/>
+        <!-- 두 슬릿에서 스크린의 한 점으로 가는 경로 -->
+        <line x1="154" y1="97" x2="380" y2="70" stroke="#647288" stroke-width="1.5"/>
+        <line x1="154" y1="123" x2="380" y2="70" stroke="#647288" stroke-width="1.5"/>
+        <!-- 스크린 + 간섭무늬 -->
+        <rect x="380" y="20" width="10" height="180" fill="#e5e7eb" stroke="#4A5568"/>
+        <rect x="380" y="34"  width="10" height="10" fill="#4A5568"/>
+        <rect x="380" y="64"  width="10" height="10" fill="#4A5568"/>
+        <rect x="380" y="94"  width="10" height="10" fill="#4A5568"/>
+        <rect x="380" y="124" width="10" height="10" fill="#4A5568"/>
+        <rect x="380" y="154" width="10" height="10" fill="#4A5568"/>
+        <text x="372" y="214" font-size="11">스크린</text>
+        <!-- 거리 L 표시 -->
+        <line x1="158" y1="208" x2="380" y2="208" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="255" y="206" font-size="11" fill="#6b7280">L</text>
+        <!-- 슬릿 간격 d 표시 -->
+        <text x="128" y="113" font-size="11" fill="#6b7280">d</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "슬릿이 두 개니까 스크린에 밝은 띠가 딱 두 줄 생긴다"고 생각하기 쉽다.
+        실제로는 빛이 파동이라 두 슬릿의 빛이 서로 간섭해 <em>여러 줄의 밝고 어두운 무늬</em>가 나타난다.
+        만약 빛이 단순한 입자라면 슬릿 모양의 밝은 점 두 개만 보여야 한다. 무늬의 존재 자체가 파동성의 증거다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 슬릿 간격 d를 넓히면 무늬 간격 Δy는 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="correct"> 좁아진다 (Δy ∝ 1/d)</label>
+          <label><input type="radio" name="q1" value="wrong"> 넓어진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 같은 장치에서 파란빛(짧은 λ) 대신 빨간빛(긴 λ)을 쓰면 무늬 간격 Δy는?</p>
+          <label><input type="radio" name="q2" value="wrong"> 좁아진다</label>
+          <label><input type="radio" name="q2" value="correct"> 넓어진다 (Δy ∝ λ)</label>
+          <label><input type="radio" name="q2" value="wrong"> 변하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 토머스 영 (Thomas Young, 1773~1829)</h3>
+        <p>영국의 의사·물리학자·언어학자로, 13세에 여러 고대어를 익힌 신동이었다.
+        의학과 생리광학(눈의 조절, 색각의 삼원색설)에 기여했고, 탄성과 관련된 "영률(Young's modulus)"에도 이름을 남겼다.
+        또한 로제타석 해독 연구로 이집트학 발전에도 공헌했다. 1801~1804년 빛의 간섭을 실험으로 보여
+        당시 지배적이던 뉴턴의 빛 입자설에 정면으로 도전했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1690년 — 하위헌스가 빛의 파동설을 제안 (뉴턴의 입자설과 대립)</li>
+          <li>1704년 — 뉴턴의 「광학(Opticks)」 출간, 입자설이 약 1세기간 주류로 자리잡음</li>
+          <li>1801년 — 토머스 영이 간섭 원리를 발표하고 이중 슬릿 간섭무늬를 제시</li>
+          <li>1818년 — 프레넬이 회절 이론을 수학적으로 정교화하여 파동설을 굳힘</li>
+          <li>1865년 — 맥스웰이 빛을 전자기파로 설명, 파동성이 이론적으로 확립</li>
+          <li>1909년~ — 단일 광자·전자로도 간섭무늬가 나타남이 확인되어 양자역학의 핵심 실험이 됨</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 이중 슬릿 실험은 빛이 파동임을 보여준 결정적 증거로,
+        한 세기 가까이 정설이던 뉴턴의 입자설을 흔들었다. 훗날 전자·원자 같은 입자도 같은 간섭무늬를
+        만든다는 사실이 밝혀지며, 이 실험은 파동–입자 이중성을 보여주는 양자역학의 상징이 되었다.
+        리처드 파인만은 이를 "양자역학의 모든 신비를 담은 유일한 현상"이라고 표현했다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (단위: λ nm, d mm, L m) -----
+      const DEFAULTS = { lambda: 550, d: 0.25, L: 1.5 };
+      const state = { lambda: DEFAULTS.lambda, d: DEFAULTS.d, L: DEFAULTS.L };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 파장(nm) → RGB 근사 변환 -----
+      // 가시광선 380~750nm를 대략적인 색으로 매핑한다.
+      function wavelengthToRGB(wl) {
+        let r = 0, g = 0, b = 0;
+        if (wl >= 380 && wl < 440) { r = -(wl - 440) / (440 - 380); g = 0; b = 1; }
+        else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / (490 - 440); b = 1; }
+        else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / (510 - 490); }
+        else if (wl >= 510 && wl < 580) { r = (wl - 510) / (580 - 510); g = 1; b = 0; }
+        else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / (645 - 580); b = 0; }
+        else if (wl >= 645 && wl <= 750) { r = 1; g = 0; b = 0; }
+        // 시각 가장자리에서 밝기 감쇠
+        let factor = 1;
+        if (wl >= 380 && wl < 420) factor = 0.3 + 0.7 * (wl - 380) / (420 - 380);
+        else if (wl >= 645 && wl <= 750) factor = 0.3 + 0.7 * (750 - wl) / (750 - 645);
+        const gamma = 0.8;
+        const adjust = (c) => c <= 0 ? 0 : Math.round(255 * Math.pow(c * factor, gamma));
+        return { r: adjust(r), g: adjust(g), b: adjust(b) };
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산: 무늬 간격 Δy (mm) -----
+      // Δy = λ·L / d.  λ[nm]→m (1e-9), d[mm]→m (1e-3), 결과 m→mm (1e3)
+      function fringeSpacingMM() {
+        const lambdaM = state.lambda * 1e-9;
+        const dM = state.d * 1e-3;
+        const dyM = (lambdaM * state.L) / dM; // m
+        return dyM * 1e3; // mm
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, W, H);
+
+        const rgb = wavelengthToRGB(state.lambda);
+        const colStr = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        const cy = H / 2;
+
+        // --- 광원 ---
+        const srcX = 36;
+        ctx.beginPath();
+        ctx.arc(srcX, cy, 9, 0, Math.PI * 2);
+        ctx.fillStyle = colStr;
+        ctx.fill();
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('광원', srcX - 12, cy + 28);
+
+        // --- 슬릿 벽 ---
+        const slitX = 200;
+        // 화면상 슬릿 분리(시각화용, 물리 스케일과 별개)
+        const slitSep = 26;
+        const slit1Y = cy - slitSep / 2;
+        const slit2Y = cy + slitSep / 2;
+        ctx.fillStyle = '#4A5568';
+        ctx.fillRect(slitX, 0, 8, slit1Y - 5);
+        ctx.fillRect(slitX, slit1Y + 5, 8, (slit2Y - 5) - (slit1Y + 5));
+        ctx.fillRect(slitX, slit2Y + 5, 8, H - (slit2Y + 5));
+
+        // 입사광(광원 → 두 슬릿)
+        ctx.strokeStyle = colStr;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.7;
+        [slit1Y, slit2Y].forEach((sy) => {
+          ctx.beginPath();
+          ctx.moveTo(srcX + 9, cy);
+          ctx.lineTo(slitX, sy);
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1;
+
+        // 슬릿 빛점
+        [slit1Y, slit2Y].forEach((sy) => {
+          ctx.beginPath();
+          ctx.arc(slitX + 4, sy, 3, 0, Math.PI * 2);
+          ctx.fillStyle = colStr;
+          ctx.fill();
+        });
+
+        // --- 스크린 위치 ---
+        const screenX = W - 40;
+
+        // 슬릿에서 퍼지는 빛(원호 느낌의 부채살)
+        ctx.strokeStyle = colStr;
+        ctx.globalAlpha = 0.12;
+        ctx.lineWidth = 1;
+        [slit1Y, slit2Y].forEach((sy) => {
+          for (let k = -3; k <= 3; k++) {
+            ctx.beginPath();
+            ctx.moveTo(slitX + 8, sy);
+            ctx.lineTo(screenX, cy + k * (H / 8));
+            ctx.stroke();
+          }
+        });
+        ctx.globalAlpha = 1;
+
+        // --- 스크린의 간섭무늬 (intensity ∝ cos²) ---
+        // 실제 물리 스케일: y_pixel ↔ y_meter. 화면 높이에 표시할 실제 폭을 잡는다.
+        const dyMM = fringeSpacingMM();
+        const dyM = dyMM * 1e-3;            // 한 무늬 간격(m)
+        // 화면에 약 9개 무늬가 보이도록 표시 스케일 결정
+        const visibleFringes = 9;
+        const halfRangeM = (visibleFringes * dyM) / 2; // 위/아래로 표시할 실제 범위
+        const pxPerM = (H / 2) / halfRangeM;            // m → pixel
+        const barX = screenX;
+        const barW = 28;
+
+        const lambdaM = state.lambda * 1e-9;
+        const dM = state.d * 1e-3;
+        const k = (Math.PI * dM) / (lambdaM * state.L); // I ∝ cos²(k·x)
+
+        for (let py = 0; py < H; py++) {
+          const yM = (py - cy) / pxPerM;      // 스크린 위치 x(=y) in m
+          const intensity = Math.pow(Math.cos(k * yM), 2); // 0~1
+          ctx.fillStyle = 'rgb(' +
+            Math.round(rgb.r * intensity) + ',' +
+            Math.round(rgb.g * intensity) + ',' +
+            Math.round(rgb.b * intensity) + ')';
+          ctx.fillRect(barX, py, barW, 1);
+        }
+        // 스크린 테두리
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, 0, barW, H);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('스크린', barX - 4, H - 8);
+
+        // --- 무늬 간격 Δy 시각 표시 (중앙 밝은 줄과 이웃 밝은 줄 사이) ---
+        const markX = barX - 14;
+        const yCenter = cy;                 // m=0, 밝은 줄
+        const yNext = cy - dyM * pxPerM;    // 이웃 밝은 줄(위쪽)
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 1.5;
+        // 두 밝은 줄 위치에 짧은 가이드
+        ctx.beginPath(); ctx.moveTo(markX - 8, yCenter); ctx.lineTo(barX, yCenter); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(markX - 8, yNext); ctx.lineTo(barX, yNext); ctx.stroke();
+        // Δy 양방향 화살표
+        ctx.beginPath(); ctx.moveTo(markX, yCenter); ctx.lineTo(markX, yNext); ctx.stroke();
+        const drawArrow = (x, y, dir) => {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x - 4, y + dir * 6);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + 4, y + dir * 6);
+          ctx.stroke();
+        };
+        drawArrow(markX, yCenter, -1);
+        drawArrow(markX, yNext, 1);
+        ctx.fillStyle = '#facc15';
+        ctx.save();
+        ctx.translate(markX - 16, (yCenter + yNext) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Δy', -8, 4);
+        ctx.restore();
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const dyMM = fringeSpacingMM();
+        document.querySelector('#result strong').textContent = dyMM.toFixed(2) + ' mm';
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const lambdaSlider = document.getElementById('lambda');
+      const dSlider = document.getElementById('dgap');
+      const lSlider = document.getElementById('dist');
+      const lambdaVal = document.getElementById('lambda-val');
+      const dVal = document.getElementById('dgap-val');
+      const lVal = document.getElementById('dist-val');
+
+      function syncLabels() {
+        lambdaVal.textContent = state.lambda;
+        dVal.textContent = state.d.toFixed(2);
+        lVal.textContent = state.L.toFixed(1);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      lambdaSlider.addEventListener('input', () => {
+        state.lambda = Number(lambdaSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      dSlider.addEventListener('input', () => {
+        state.d = Number(dSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      lSlider.addEventListener('input', () => {
+        state.L = Number(lSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.lambda = DEFAULTS.lambda;
+        state.d = DEFAULTS.d;
+        state.L = DEFAULTS.L;
+        lambdaSlider.value = String(DEFAULTS.lambda);
+        dSlider.value = String(DEFAULTS.d);
+        lSlider.value = String(DEFAULTS.L);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 Δy = λ·L / d 이므로 d가 커지면 좁아지고, λ가 커지면 넓어집니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. Δy = λ·L / d 관계를 다시 살펴보세요 (d에 반비례, λ에 비례).';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>
