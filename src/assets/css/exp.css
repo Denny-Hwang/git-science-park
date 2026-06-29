@@ -1,0 +1,127 @@
+/*
+ * exp.css — Git Science Park 실험 페이지 공통 셸(shell) 스타일
+ * ---------------------------------------------------------------
+ * 신규/리팩토링 실험 페이지가 공유하는 표준 스타일.
+ * 카테고리 테마는 페이지 :root 에서 --primary / --primary-light 만 덮어쓰면 된다.
+ * (기존 v1.0 실험들은 자기완결 인라인 스타일을 유지하며, 이 파일은 점진 적용 대상이다.)
+ * Zero-Dependency: 외부 폰트/CDN 없음. 로컬 <link> 참조만.
+ */
+
+:root {
+  --primary: #2b6cb0;
+  --primary-light: #4a8fd4;
+  --bg: #f7f5f2;
+  --card-bg: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+  --exp-border: #e5e7eb;
+  --exp-radius: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primary); }
+
+/* ===== nav ===== */
+nav.exp-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--exp-border);
+}
+nav.exp-nav a.back { color: var(--primary); text-decoration: none; font-weight: 600; }
+nav.exp-nav a.back:hover { color: var(--primary-light); }
+nav.exp-nav .cat-badge {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+/* ===== header ===== */
+header.exp-header { max-width: 880px; margin: 0 auto; padding: 28px 20px 12px; }
+header.exp-header h1 { font-size: 1.8rem; color: var(--primary); margin: 0; }
+header.exp-header .en { color: var(--text-muted); font-style: italic; }
+header.exp-header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+
+/* ===== tabs ===== */
+.tabs { max-width: 880px; margin: 16px auto 0; padding: 0 20px; display: flex; gap: 4px; border-bottom: 2px solid var(--exp-border); }
+.tab-btn {
+  padding: 10px 16px; border: none; background: none; cursor: pointer; font-family: inherit;
+  font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent; transform: translateY(2px);
+}
+.tab-btn:hover { color: var(--primary-light); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+.tab-btn:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px; }
+
+/* 핵심: 비활성 탭 패널 숨김 (없으면 탭 전환이 안 보임) */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.tab-content { max-width: 880px; margin: 0 auto; padding: 20px; }
+
+/* ===== interactive ===== */
+canvas { width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto; background: #fff; border: 1px solid var(--exp-border); border-radius: var(--exp-radius); }
+.controls { margin: 16px 0; padding: 16px; background: var(--card-bg); border: 1px solid var(--exp-border); border-radius: var(--exp-radius); }
+.controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+.controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+.btn, button.btn {
+  cursor: pointer; font-family: inherit; font-weight: 600;
+  padding: 8px 16px; border-radius: var(--exp-radius); border: 1px solid var(--primary);
+  background: var(--primary); color: #fff;
+}
+.btn.secondary { background: transparent; color: var(--primary); }
+.result-box { margin: 14px 0; padding: 14px 16px; background: rgba(127,127,127,0.06); border-left: 4px solid var(--primary); border-radius: var(--exp-radius); }
+.hint-box { margin: 12px 0; padding: 12px 16px; background: rgba(255,207,92,0.12); border-left: 4px solid #d6a93a; border-radius: var(--exp-radius); font-size: 0.95rem; }
+
+/* ===== learning ===== */
+.concept-box, .formula-box, .misconception, .quiz-box {
+  margin: 14px 0; padding: 14px 16px; border-radius: var(--exp-radius); border: 1px solid var(--exp-border);
+}
+.formula-box { background: rgba(127,127,127,0.05); font-family: "SF Mono", "Cascadia Code", Consolas, monospace; }
+.misconception { background: rgba(197,48,48,0.07); border-left: 4px solid #c53030; }
+.quiz-box { background: var(--card-bg); }
+.quiz-box .feedback { margin-top: 8px; font-weight: 600; }
+.quiz-box .feedback.correct { color: #2f855a; }
+.quiz-box .feedback.wrong { color: #c53030; }
+
+/* ===== history ===== */
+.scientist { margin: 14px 0; padding: 14px 16px; background: var(--card-bg); border: 1px solid var(--exp-border); border-radius: var(--exp-radius); }
+.timeline { margin: 14px 0; padding-left: 18px; border-left: 3px solid var(--primary); }
+.timeline li { margin-bottom: 8px; }
+.key-point { margin: 14px 0; padding: 14px 16px; background: rgba(43,108,176,0.06); border-left: 4px solid var(--primary); border-radius: var(--exp-radius); }
+
+/* ===== related experiments (실험 간 연결) ===== */
+.exp-related { max-width: 880px; margin: 28px auto 0; padding: 18px 20px; border-top: 1px solid var(--exp-border); }
+.exp-related .title { font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+.exp-related .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.exp-related a {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border: 1px solid var(--primary); border-radius: 999px;
+  color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: 600; background: var(--card-bg);
+}
+.exp-related a:hover { background: var(--primary); color: #fff; }
+.exp-related a:focus-visible { outline: 2px solid var(--primary-light); outline-offset: 2px; }
+
+footer.exp-footer { max-width: 880px; margin: 24px auto; padding: 16px 20px; color: var(--text-muted); font-size: 0.85rem; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+@media (max-width: 480px) {
+  .tabs { flex-wrap: wrap; }
+  .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+}

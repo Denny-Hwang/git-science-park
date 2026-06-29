@@ -341,4 +341,12 @@ trim_trailing_whitespace = true
 - 접근성·성능 체크리스트 통과 후 머지.
 - 린터 없이 `.editorconfig` + 코드 리뷰로 일관성 유지.
 
+## (v1.1+) Zero-Dependency 범위 명확화 & 공유 셸
+
+- **런타임 Zero-Dependency는 그대로다.** 배포되는 `src/`에는 외부 라이브러리·CDN·번들러가 없다. `deploy.yml`은 `./src`만 업로드하므로 아래 도구는 사이트에 포함되지 않는다.
+- **개발/CI 도구는 예외.** 저장소 루트의 `package.json`(devDependencies: `playwright`), `tests/qa.mjs`, `.github/workflows/qa.yml`은 **테스트 전용**이다. CI가 헤드리스 Chromium으로 53개 페이지의 탭·콘솔 에러·허브를 자동 점검한다(`npm test`). `node_modules/`는 커밋하지 않는다(`.gitignore`).
+- **공유 셸(선택).** 신규 실험은 `src/assets/css/exp.css` + `src/assets/js/exp.js`(`SciExp.*`)를 로컬 `<link>`/`<script>`로 참조해 중복을 줄일 수 있다. 기존 53개(v1.0)는 자기완결 인라인을 유지한다(EXPERIMENT-TEMPLATE.md §9 참조).
+
+---
+
 이 표준을 지키면, 10년 뒤에도 실험 파일 하나만 더블클릭하면 그대로 돌아간다. 그것이 Git Science Park가 추구하는 것이다.

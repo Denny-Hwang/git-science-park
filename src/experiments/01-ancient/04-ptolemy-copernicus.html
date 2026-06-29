@@ -600,7 +600,9 @@
         var dcx = CX + R_DEF * Math.cos(defAng);
         var dcy = CY + R_DEF * Math.sin(defAng);
         var epiAng = W_EARTH * t;
-        return { x: dcx + R_EPI * Math.cos(epiAng), y: dcy + R_EPI * Math.sin(epiAng) };
+        // 외행성 주전원: 행성→주전원중심 벡터는 지구의 태양 방향과 평행(부호 −).
+        // 이렇게 해야 천동설 겉보기 경도 = 지동설 겉보기 경도(= atan2(화성−지구))와 정확히 일치.
+        return { x: dcx - R_EPI * Math.cos(epiAng), y: dcy - R_EPI * Math.sin(epiAng) };
       }
 
       function drawGeoApparentTrail() {
@@ -762,5 +764,14 @@
       draw();
     })();
   </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="관련 실험" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./03-archimedes-lever.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">◀ 이전 · 아르키메데스의 지레 원리</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
 </body>
 </html>

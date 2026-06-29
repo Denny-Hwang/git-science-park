@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://denny-hwang.github.io/git-science-park/sitemap.xml

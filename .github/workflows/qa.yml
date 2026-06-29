@@ -1,0 +1,39 @@
+name: QA (experiment pages)
+
+# 모든 실험 페이지를 헤드리스 Chromium으로 검증 (탭 전환 · 콘솔 에러 0 · 허브 ready 수).
+# 배포(deploy.yml)와 독립적인 품질 게이트.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install test tooling
+        run: npm install
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Serve src/
+        run: |
+          python3 -m http.server 8000 --directory src &
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:8000/index.html >/dev/null && break
+            sleep 0.5
+          done
+
+      - name: Run QA
+        run: npm test

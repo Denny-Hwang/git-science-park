@@ -37,6 +37,31 @@
 
 ---
 
+## [1.1.0] - 2026-06-29
+
+v1.1 — 시뮬레이션 정확성 검수, 공유 셸, 실험 간 연결, 허브 UX, 메타/SEO, QA 자동화. (실험 53개는 그대로, 품질·연결·도구를 강화.)
+
+### Fixed (53개 헤드리스 전수 검수 후 발견·수정)
+- `03-precision-era/04-volta`: 납–구리(Pb–Cu) 셀당 전압 0.78 V → **0.47 V**(표준 전극전위).
+- `06-quantum/05-stern-gerlach`: 공식 박스 차원 오류 `μ_z = ±ħ/2` → **`μ_z = ±μ_B (S_z = ±ħ/2)`**.
+- `07-relativity/03-spacetime-curvature`: 슈바르츠실트 해 연도 1919 → **1916**(연표 순서 정정).
+- `05-atomic/07-rutherford`: 최근접 거리식의 `b*b*0` 버그 → 충돌 파라미터 `b`에 단조 증가하도록 수정.
+- `03-precision-era/02-cavendish`: 비현실적 58° 표시 → 과장 스케일 축소 + 라벨 명확화(실제는 수 mrad).
+- `01-ancient/04-ptolemy-copernicus`: 주전원 부호(+→−) 수정 → 천동설 겉보기 경도가 지동설과 정확히 일치(배지·캔버스 일관).
+- `04-energy-field/04-faraday`: 자석 극(N/S) SVG↔Canvas 표기 불일치 통일.
+
+### Added
+- **공유 셸**: `src/assets/css/exp.css` + `src/assets/js/exp.js`(`SciExp.initTabs/grade/mountRelated`). 신규 페이지 점진 적용(EXPERIMENT-TEMPLATE.md §9).
+- **실험 간 연결**: 53개 모든 실험 페이지 하단에 `🔗 이어서 탐험하기`(이전/다음 + 키워드 기반 관련 실험 + 전체 보기). 자기완결 인라인, 163개 링크 전부 유효.
+- **허브 UX**(`src/index.html`): URL 해시 상태(공유/북마크), 즐겨찾기(localStorage ⭐ + "즐겨찾기만" 필터), 키보드 단축키(`/` 검색 포커스, `Esc` 검색 비우기).
+- **메타/SEO**: `favicon.svg`, OG/Twitter 태그, `sitemap.xml`(54 URL), `robots.txt`.
+- **QA 자동화**: `tests/qa.mjs` + `.github/workflows/qa.yml` — 헤드리스 Chromium으로 53개 페이지 + 허브 자동 검증(`npm test`).
+
+### Changed
+- `experiments.json` `version` → 1.1.0. `EXPERIMENT-TEMPLATE.md`·`CODING-STANDARDS.md`에 공유 셸·CI 도구 방침 명시(런타임 Zero-Dependency는 유지; 도구는 `src/` 밖이라 미배포).
+
+---
+
 ## [1.0.0] - 2026-06-29
 
 **v1.0 — 53개 실험 전부 구현 완료.** 8개 카테고리(고대 ~ 현대 물리학)의 핵심 과학사 실험 53종이 모두 인터랙티브 페이지(🎮 인터랙티브 / 📚 원리 학습 / 📜 역사적 맥락 3탭, Canvas 시뮬레이션, 공식·SVG·퀴즈)로 완성되어 허브에서 활성화되었습니다. 전 페이지를 헤드리스 Chromium으로 자동 검증했습니다.
@@ -138,6 +163,7 @@
   - `CHANGELOG.md` — 본 변경 이력 문서.
   - `LICENSE` — MIT License.
 
-[Unreleased]: https://github.com/Denny-Hwang/git-science-park/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Denny-Hwang/git-science-park/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Denny-Hwang/git-science-park/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Denny-Hwang/git-science-park/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/Denny-Hwang/git-science-park/releases/tag/v0.0.1

@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="과학사의 핵심 실험 53개를 조작·관찰·해석으로 직접 다루며 배우는 인터랙티브 학습 플랫폼." />
   <title>과학사 인터랙티브 실험실 (Interactive Science History Lab)</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="canonical" href="https://denny-hwang.github.io/git-science-park/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="과학사 인터랙티브 실험실 — Interactive Science History Lab" />
+  <meta property="og:description" content="과학사의 핵심 실험 53개를 직접 조작하며 배우는 인터랙티브 학습 플랫폼." />
+  <meta property="og:url" content="https://denny-hwang.github.io/git-science-park/" />
+  <meta name="twitter:card" content="summary" />
   <style>
     /* ===== 디자인 토큰 ===== */
     :root {
@@ -320,6 +327,18 @@
 
     /* 클릭 가능한 카드 */
     .card.is-ready { cursor: pointer; }
+    .card { position: relative; }
+    .fav-btn {
+      position: absolute; top: 10px; right: 10px; z-index: 4;
+      width: 30px; height: 30px; border-radius: 999px;
+      border: 1px solid var(--border); background: rgba(14, 19, 32, 0.72);
+      color: var(--star); font-size: 1rem; line-height: 1; cursor: pointer;
+      display: grid; place-items: center; padding: 0;
+    }
+    .fav-btn[aria-pressed="true"] { border-color: var(--star); }
+    .fav-btn:hover { background: var(--bg-card-hover); transform: scale(1.08); }
+    .fav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .fav-toggle[aria-pressed="true"] { color: #2a2200; background: var(--star); border-color: transparent; }
     .card.is-ready:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow);
@@ -525,7 +544,16 @@
       // ===== 상태 =====
       var DATA = { categories: [], experiments: [] };
       var catById = {};
-      var state = { q: "", category: "all", difficulty: "all" };
+      var state = { q: "", category: "all", difficulty: "all", favOnly: false };
+
+      // ===== 즐겨찾기 (localStorage) =====
+      var FAV = (function () {
+        try { return new Set(JSON.parse(localStorage.getItem("gsp:favs") || "[]")); }
+        catch (e) { return new Set(); }
+      })();
+      function saveFavs() {
+        try { localStorage.setItem("gsp:favs", JSON.stringify([].slice.call(FAV))); } catch (e) {}
+      }
 
       // ===== DOM =====
       var el = {
@@ -584,6 +612,7 @@
 
       // ===== 필터 매칭 =====
       function matches(exp) {
+        if (state.favOnly && !FAV.has(exp.id)) return false;
         if (state.category !== "all" && exp.category !== state.category) return false;
         if (state.difficulty !== "all" && Number(exp.difficulty) !== Number(state.difficulty)) return false;
 
@@ -634,6 +663,9 @@
           '<article ' + attrs + ">" +
             overlay +
             '<div class="accent-band"></div>' +
+            '<button type="button" class="fav-btn" data-fav="' + exp.id + '" aria-pressed="' +
+              (FAV.has(exp.id) ? "true" : "false") + '" title="즐겨찾기" aria-label="즐겨찾기 토글">' +
+              (FAV.has(exp.id) ? "★" : "☆") + "</button>" +
             '<div class="card-body">' +
               '<div class="card-eyebrow"><span class="dot"></span>' +
                 esc(cat.icon || "") + " " + esc(cat.name || "") +
@@ -692,6 +724,7 @@
 
         updateCounter(visibleTotal);
         bindCards();
+        writeHash();
       }
 
       function updateCounter(visible) {
@@ -804,7 +837,9 @@
           state.q = "";
           state.category = "all";
           state.difficulty = "all";
+          state.favOnly = false;
           el.search.value = "";
+          if (el.favToggle) el.favToggle.setAttribute("aria-pressed", "false");
           Array.prototype.forEach.call(
             document.querySelectorAll(".chip"),
             function (c) {
@@ -814,6 +849,75 @@
           render();
           el.search.focus();
         });
+      }
+
+      // ===== URL 해시 상태 (공유/북마크 가능) =====
+      function writeHash() {
+        var p = [];
+        if (state.category !== "all") p.push("cat=" + encodeURIComponent(state.category));
+        if (state.difficulty !== "all") p.push("diff=" + encodeURIComponent(state.difficulty));
+        if (state.q.trim()) p.push("q=" + encodeURIComponent(state.q.trim()));
+        if (state.favOnly) p.push("fav=1");
+        var h = p.join("&");
+        if (h) { if (("#" + h) !== location.hash) history.replaceState(null, "", "#" + h); }
+        else if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      }
+      function readHash() {
+        var o = {};
+        location.hash.replace(/^#/, "").split("&").forEach(function (kv) {
+          if (!kv) return;
+          var i = kv.indexOf("=");
+          o[i < 0 ? kv : kv.slice(0, i)] = i < 0 ? "" : decodeURIComponent(kv.slice(i + 1));
+        });
+        state.category = o.cat || "all";
+        state.difficulty = o.diff || "all";
+        state.q = o.q || "";
+        state.favOnly = o.fav === "1";
+        syncUI();
+      }
+      // state → 컨트롤 UI 반영
+      function syncUI() {
+        el.search.value = state.q;
+        Array.prototype.forEach.call(el.catChips.querySelectorAll(".chip"), function (c) {
+          c.setAttribute("aria-pressed", c.getAttribute("data-val") === state.category ? "true" : "false");
+        });
+        Array.prototype.forEach.call(el.diffChips.querySelectorAll(".chip"), function (c) {
+          c.setAttribute("aria-pressed", c.getAttribute("data-val") === String(state.difficulty) ? "true" : "false");
+        });
+        if (el.favToggle) el.favToggle.setAttribute("aria-pressed", state.favOnly ? "true" : "false");
+      }
+      // ===== 즐겨찾기 토글 (카드의 ★ 버튼) =====
+      function onFavClick(ev) {
+        var b = ev.target.closest(".fav-btn");
+        if (!b) return;
+        ev.stopPropagation(); ev.preventDefault();   // 카드 이동 방지(캡처 단계)
+        var id = Number(b.getAttribute("data-fav"));
+        if (FAV.has(id)) FAV.delete(id); else FAV.add(id);
+        saveFavs();
+        render();
+      }
+      function buildFavToggle() {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn-reset fav-toggle";
+        b.setAttribute("aria-pressed", "false");
+        b.textContent = "⭐ 즐겨찾기만";
+        b.addEventListener("click", function () {
+          state.favOnly = !state.favOnly;
+          b.setAttribute("aria-pressed", state.favOnly ? "true" : "false");
+          render();
+        });
+        el.favToggle = b;
+        if (el.reset && el.reset.parentNode) el.reset.parentNode.insertBefore(b, el.reset);
+      }
+      // ===== 키보드 단축키 ('/' 검색 포커스, Esc 검색 비우기) =====
+      function onKey(ev) {
+        var tag = (ev.target.tagName || "").toLowerCase();
+        var typing = tag === "input" || tag === "textarea";
+        if (ev.key === "/" && !typing) { ev.preventDefault(); el.search.focus(); el.search.select(); }
+        else if (ev.key === "Escape" && ev.target === el.search && el.search.value) {
+          state.q = ""; el.search.value = ""; render();
+        }
       }
 
       // ===== 초기화 =====
@@ -829,6 +933,11 @@
 
         buildChips();
         bindControls();
+        buildFavToggle();
+        el.sections.addEventListener("click", onFavClick, true); // 캡처: 카드 클릭보다 먼저
+        document.addEventListener("keydown", onKey);
+        window.addEventListener("hashchange", function () { readHash(); render(); });
+        readHash();   // URL 해시로 초기 상태 복원
         render();
       }
 

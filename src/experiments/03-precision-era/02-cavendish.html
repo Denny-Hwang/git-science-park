@@ -159,7 +159,7 @@
       <div class="result-box" id="result" aria-live="polite">
         <div class="row">
           <span>인력 F: <strong id="r-force">—</strong></span>
-          <span>비틀림 편향각: <strong id="r-angle">—</strong></span>
+          <span>비틀림 편향(과장 표시): <strong id="r-angle">—</strong></span>
         </div>
         <div class="row" style="margin-top:4px;">
           <span>산출된 G: <strong id="r-g">—</strong></span>
@@ -315,7 +315,7 @@
       // 비틀림 저울 보정 상수: F[N] → 표시용 편향각[도] (시각화·읽기용 임의 스케일).
       // 실제 캐번디시 장치에서 인력이 수십 nN일 때 비틀림이 수 mrad 수준임을 반영해
       // 화면에서 잘 보이도록 잡은 데모용 비례계수.
-      const ANGLE_PER_NEWTON = 4.0e8; // deg per N
+      const ANGLE_PER_NEWTON = 2.0e7; // deg per N (과장 표시용 스케일; 실제 비틀림은 수 mrad)
 
       // ----- (1) 탭 전환 -----
       const tabBtns = document.querySelectorAll('.tab-btn');
@@ -459,7 +459,7 @@
         // 비틀림 각 주석
         ctx.fillStyle = '#facc15';
         ctx.font = '13px sans-serif';
-        ctx.fillText('비틀림 편향각 θ = ' + defDeg.toFixed(3) + '°', 14, 24);
+        ctx.fillText('비틀림 편향(과장) ≈ ' + defDeg.toFixed(2) + '°', 14, 24);
         ctx.fillStyle = '#9ca3af';
         ctx.font = '12px sans-serif';
         ctx.fillText('(위에서 본 비틀림 저울 · 빨간 화살표 = 만유인력 F)', 14, H - 12);
@@ -553,5 +553,15 @@
       requestDraw();
     })();
   </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="관련 실험" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./01-boyle.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">◀ 이전 · 보일의 법칙</a>
+      <a href="./03-coulomb.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">다음 · 쿨롱의 법칙 ▶</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
 </body>
 </html>

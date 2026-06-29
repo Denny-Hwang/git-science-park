@@ -1,0 +1,6 @@
+# 테스트/CI 도구 산출물 (배포 대상 아님)
+node_modules/
+package-lock.json
+playwright-report/
+test-results/
+.DS_Store

@@ -1,0 +1,13 @@
+{
+  "name": "git-science-park",
+  "version": "1.1.0",
+  "private": true,
+  "description": "CI/test tooling for Git Science Park. The site itself (src/) ships ZERO runtime dependencies; this manifest only declares dev/test tools and is never deployed.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/qa.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

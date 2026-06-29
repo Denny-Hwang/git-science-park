@@ -554,3 +554,21 @@ function gradeQuiz() {
 - [ ] `file://`로 직접 열어 슬라이더·탭·퀴즈가 모두 동작함을 확인했다.
 - [ ] `src/data/experiments.json`에 메타데이터를 등록했다(`status` 초기값 `planned`, `difficulty` 1~5).
 - [ ] `src/index.html` 허브에서 링크(`./experiments/{category}/{slug}.html`)가 노출된다(현재는 `planned`이므로 "준비중" 비활성 표시).
+
+---
+
+## 9. (v1.1+) 공유 셸 — 선택적 적용
+
+신규 실험은 공통 스타일/스크립트를 인라인으로 복붙하는 대신, 공유 셸을 `<link>`/`<script>`로 불러와 중복을 줄일 수 있다.
+
+- `src/assets/css/exp.css` — nav/header/탭/result-box/quiz/timeline/`exp-related` 등 표준 스타일. `:root`에서 `--primary`/`--primary-light`만 카테고리 색으로 덮어쓴다.
+- `src/assets/js/exp.js` — `SciExp.initTabs()`(탭 전환), `SciExp.grade(...)`(퀴즈 채점), `SciExp.mountRelated()`(관련 실험 칩).
+
+```html
+<link rel="stylesheet" href="../../assets/css/exp.css" />
+...
+<script src="../../assets/js/exp.js"></script>
+<script> SciExp.initTabs(); SciExp.mountRelated(); </script>
+```
+
+> **방침(Option A):** v1.0의 기존 53개 실험은 "자기완결 단일 HTML"을 유지한다. 공유 셸은 **신규/리팩토링 페이지에 점진 적용**하며, 어느 방식이든 외부 CDN·런타임 의존성은 두지 않는다(로컬 자산만). 모든 페이지에는 `🔗 이어서 탐험하기`(관련 실험) 블록이 들어간다 — 기존 53개는 자기완결 인라인 블록, 신규 페이지는 `mountRelated()`로 생성 가능.
