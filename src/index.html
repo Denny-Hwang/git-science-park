@@ -446,19 +446,24 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="./assets/css/classroom.css" />
 </head>
 <body>
+  <div class="topbar" role="toolbar" aria-label="언어·교실 모드">
+    <span id="lang-mount" class="lang-mount"></span>
+    <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+  </div>
   <header class="site">
     <div class="wrap">
-      <h1 class="site-title">과학사 인터랙티브 실험실</h1>
-      <p class="site-subtitle">Interactive Science History Lab</p>
-      <p class="site-intro">
+      <h1 class="site-title" data-i18n="site.title">과학사 인터랙티브 실험실</h1>
+      <p class="site-subtitle" data-i18n="site.subtitle">Interactive Science History Lab</p>
+      <p class="site-intro" data-i18n="site.intro">
         고대의 측정에서 양자컴퓨터까지 &mdash; 과학사의 핵심 실험을
         <strong>조작 &rarr; 관찰 &rarr; 해석</strong>으로 직접 다루며 배웁니다.
       </p>
       <div class="site-stats">
-        <span class="stat-pill"><strong id="stat-exp">53</strong> 개 실험</span>
-        <span class="stat-pill"><strong id="stat-cat">8</strong> 개 시대</span>
+        <span class="stat-pill"><strong id="stat-exp">53</strong> <span data-i18n="stats.experiments">개 실험</span></span>
+        <span class="stat-pill"><strong id="stat-cat">8</strong> <span data-i18n="stats.categories">개 시대</span></span>
         <span class="stat-pill"><strong>Zero</strong> Dependencies</span>
       </div>
     </div>
@@ -474,22 +479,24 @@
           placeholder="실험·과학자·키워드 검색 (예: 갈릴레오, 양자, 중력)"
           autocomplete="off"
           aria-label="실험 검색"
+          data-i18n-ph="filter.search"
+          data-i18n-aria="filter.search"
         />
       </div>
 
       <div class="filter-group">
-        <span class="filter-label" id="lbl-cat">시대</span>
+        <span class="filter-label" id="lbl-cat" data-i18n="filter.category">시대</span>
         <div class="chips" id="cat-chips" role="group" aria-labelledby="lbl-cat"></div>
       </div>
 
       <div class="filter-group">
-        <span class="filter-label" id="lbl-diff">난이도</span>
+        <span class="filter-label" id="lbl-diff" data-i18n="filter.difficulty">난이도</span>
         <div class="chips" id="diff-chips" role="group" aria-labelledby="lbl-diff"></div>
       </div>
 
       <div class="filter-footer">
         <span class="counter" id="counter" aria-live="polite"></span>
-        <button type="button" class="btn-reset" id="btn-reset">필터 초기화</button>
+        <button type="button" class="btn-reset" id="btn-reset" data-i18n="filter.reset">필터 초기화</button>
       </div>
     </div>
   </div>
@@ -537,6 +544,9 @@
     </div>
   </footer>
 
+  <script>window.I18N_BASE = "./assets/i18n/";</script>
+  <script src="./assets/js/i18n.js"></script>
+  <script src="./assets/js/classroom.js"></script>
   <script>
     (function () {
       "use strict";
@@ -604,10 +614,18 @@
         };
       }
 
+      // i18n 헬퍼: 번역이 없으면(키 그대로 반환되면) 폴백을 쓴다.
+      function L(key, fallback, vars) {
+        var v = window.I18n ? window.I18n.t(key, vars) : null;
+        return (v && v !== key) ? v : fallback;
+      }
+      function catName(cat) { return L("cat." + cat.id + ".name", cat.name || ""); }
+      function catTagline(cat) { return L("cat." + cat.id + ".tagline", cat.description || ""); }
+
       function statusLabel(s) {
-        if (s === "ready") return "학습 가능";
-        if (s === "in-progress") return "제작 중";
-        return "준비중";
+        if (s === "ready") return L("status.ready", "학습 가능");
+        if (s === "in-progress") return L("status.in-progress", "제작 중");
+        return L("status.planned", "준비중");
       }
 
       // ===== 필터 매칭 =====
@@ -654,9 +672,9 @@
             'aria-label="' + esc(exp.title) + " (준비중)\"";
         }
 
-        var overlay = ready ? "" : '<div class="overlay"><span>🔒 준비중</span></div>';
+        var overlay = ready ? "" : '<div class="overlay"><span>' + esc(L("card.preparing", "🔒 준비중")) + '</span></div>';
         var foot = ready
-          ? '<span class="badge ready">' + statusLabel(st) + '</span><span class="go-arrow">열기 →</span>'
+          ? '<span class="badge ready">' + statusLabel(st) + '</span><span class="go-arrow">' + esc(L("card.open", "열기 →")) + '</span>'
           : '<span class="badge ' + esc(st) + '">' + statusLabel(st) + "</span>";
 
         return (
@@ -668,7 +686,7 @@
               (FAV.has(exp.id) ? "★" : "☆") + "</button>" +
             '<div class="card-body">' +
               '<div class="card-eyebrow"><span class="dot"></span>' +
-                esc(cat.icon || "") + " " + esc(cat.name || "") +
+                esc(cat.icon || "") + " " + esc(catName(cat)) +
               "</div>" +
               '<h3 class="card-title">' + esc(exp.title) + "</h3>" +
               '<p class="card-title-en">' + esc(exp.titleEn || "") + "</p>" +
@@ -704,16 +722,20 @@
 
           var cards = items.map(cardHTML).join("");
 
+          var cName = catName(cat);
+          // 번역명이 영문 보조명과 같으면(영어 로케일) 중복 표기를 생략
+          var enSub = (cat.nameEn && cat.nameEn !== cName)
+            ? '<span class="en">' + esc(cat.nameEn) + "</span>" : "";
+
           html +=
-            '<section class="cat-section" style="' + catVars(cat) + '" aria-label="' + esc(cat.name) + '">' +
+            '<section class="cat-section" style="' + catVars(cat) + '" aria-label="' + esc(cName) + '">' +
               '<div class="cat-header">' +
                 '<div class="cat-icon" aria-hidden="true">' + esc(cat.icon) + "</div>" +
                 '<div class="cat-titles">' +
-                  '<h2 class="cat-name">' + esc(cat.name) +
-                    '<span class="en">' + esc(cat.nameEn || "") + "</span></h2>" +
-                  '<p class="cat-tagline">' + esc(cat.description || "") + "</p>" +
+                  '<h2 class="cat-name">' + esc(cName) + enSub + "</h2>" +
+                  '<p class="cat-tagline">' + esc(catTagline(cat)) + "</p>" +
                 "</div>" +
-                '<span class="cat-count">' + items.length + "개</span>" +
+                '<span class="cat-count" aria-hidden="true">' + items.length + "</span>" +
               "</div>" +
               '<div class="grid">' + cards + "</div>" +
             "</section>";
@@ -732,10 +754,9 @@
         var filtering =
           state.q.trim() !== "" || state.category !== "all" || state.difficulty !== "all";
         if (filtering) {
-          el.counter.innerHTML =
-            "전체 " + total + "개 중 <strong>" + visible + "</strong>개 표시";
+          el.counter.textContent = L("counter.filtered", "전체 " + total + "개 중 " + visible + "개 표시", { total: total, n: visible });
         } else {
-          el.counter.innerHTML = "총 <strong>" + total + "</strong>개 실험";
+          el.counter.textContent = L("counter.total", "총 " + total + "개 실험", { n: total });
         }
       }
 
@@ -757,26 +778,27 @@
       // ===== 칩(필터 버튼) 구성 =====
       function buildChips() {
         // 카테고리: 전체 + 8개
+        var allLabel = L("filter.all", "전체");
         var catHTML =
-          '<button type="button" class="chip" data-type="cat" data-val="all" aria-pressed="true">전체</button>';
+          '<button type="button" class="chip" data-type="cat" data-val="all" aria-pressed="true">' + esc(allLabel) + '</button>';
         DATA.categories.forEach(function (cat) {
           catHTML +=
             '<button type="button" class="chip" data-type="cat" data-val="' + esc(cat.id) + '" ' +
             'aria-pressed="false" style="--chip-color:' + esc(cat.color) + '">' +
             '<span class="ic" aria-hidden="true">' + esc(cat.icon) + "</span>" +
-            esc(cat.name) + "</button>";
+            esc(catName(cat)) + "</button>";
         });
         el.catChips.innerHTML = catHTML;
 
         // 난이도: 전체 + 1~5
         var diffHTML =
-          '<button type="button" class="chip diff" data-type="diff" data-val="all" aria-pressed="true">전체</button>';
+          '<button type="button" class="chip diff" data-type="diff" data-val="all" aria-pressed="true">' + esc(allLabel) + '</button>';
         for (var d = 1; d <= 5; d++) {
           var s = "";
           for (var i = 0; i < d; i++) { s += "★"; }
           diffHTML +=
             '<button type="button" class="chip diff" data-type="diff" data-val="' + d + '" ' +
-            'aria-pressed="false" aria-label="난이도 ' + d + '">' + s + "</button>";
+            'aria-pressed="false" aria-label="' + esc(L("difficultyAria", "난이도 " + d, { n: d })) + '">' + s + "</button>";
         }
         el.diffChips.innerHTML = diffHTML;
 
@@ -901,7 +923,7 @@
         b.type = "button";
         b.className = "btn-reset fav-toggle";
         b.setAttribute("aria-pressed", "false");
-        b.textContent = "⭐ 즐겨찾기만";
+        b.textContent = L("filter.favoritesOnly", "⭐ 즐겨찾기만");
         b.addEventListener("click", function () {
           state.favOnly = !state.favOnly;
           b.setAttribute("aria-pressed", state.favOnly ? "true" : "false");
@@ -972,10 +994,31 @@
           });
       }
 
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", load);
-      } else {
+      // ===== 부트: i18n 로케일을 먼저 적용한 뒤 스위처·교실 모드·데이터 로드 =====
+      function boot() {
+        if (window.I18n && window.I18n.mountSwitcher) {
+          window.I18n.mountSwitcher(document.getElementById("lang-mount"));
+        }
+        if (window.Classroom && window.Classroom.initHub) {
+          window.Classroom.initHub({
+            data: function () { return DATA; },
+            catById: function () { return catById; }
+          });
+        }
         load();
+      }
+      function start() {
+        if (window.I18n && window.I18n.load) {
+          window.I18n.load().then(boot, boot);
+        } else {
+          boot();
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start);
+      } else {
+        start();
       }
     })();
   </script>

@@ -1,0 +1,270 @@
+/*
+ * classroom.css — Git Science Park v2.0 공유 UI 크롬 (Zero-Dependency)
+ * ------------------------------------------------------------------
+ * 상단 언어/교실 모드 바, 언어 드롭다운, 교실 모드(발표·워크시트·플레이리스트·교사 가이드).
+ * 허브(다크 테마)와 실험 페이지(라이트 테마) 양쪽에서 동작하도록
+ * 색은 가능한 한 currentColor / 중립 반투명 / 테마 변수 폴백 체인을 쓴다.
+ */
+
+/* ===== 상단 바 (언어 + 교실 모드) ===== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: rgba(127, 127, 127, 0.10);
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+[dir="rtl"] .topbar { justify-content: flex-start; }
+
+.lang-switcher,
+.topbar-btn {
+  font: inherit;
+  color: inherit;
+  background: rgba(127, 127, 127, 0.12);
+  border: 1px solid rgba(127, 127, 127, 0.38);
+  border-radius: 8px;
+  padding: 5px 10px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.lang-switcher { padding-inline-end: 22px; }
+.topbar-btn:hover,
+.lang-switcher:hover { border-color: currentColor; }
+.topbar-btn:focus-visible,
+.lang-switcher:focus-visible {
+  outline: 3px solid var(--accent, var(--primary, #5b9dff));
+  outline-offset: 2px;
+}
+.topbar-btn[aria-pressed="true"] {
+  background: var(--accent, var(--primary, #5b9dff));
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ===== 교실 액션 바 (실험 페이지) ===== */
+.gsp-cbar {
+  position: sticky;
+  top: 38px;
+  z-index: 55;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(127, 127, 127, 0.08);
+  border-bottom: 1px solid rgba(127, 127, 127, 0.16);
+}
+.gsp-cbar[hidden] { display: none; }
+.gsp-cbar button {
+  font: inherit;
+  color: inherit;
+  background: rgba(127, 127, 127, 0.12);
+  border: 1px solid rgba(127, 127, 127, 0.38);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.gsp-cbar button:hover { border-color: currentColor; }
+.gsp-cbar button[aria-pressed="true"] {
+  background: var(--accent, var(--primary, #5b9dff));
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ===== 발표 / 집중 모드 ===== */
+body.gsp-present nav,
+body.gsp-present footer,
+body.gsp-present .exp-related,
+body.gsp-present .topbar,
+body.gsp-present .gsp-cbar { display: none !important; }
+body.gsp-present main,
+body.gsp-present .tabs,
+body.gsp-present header { max-width: 1100px; }
+.gsp-present-exit {
+  position: fixed;
+  top: 14px;
+  inset-inline-end: 14px;
+  z-index: 9999;
+  font: inherit;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: rgba(127, 127, 127, 0.18);
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ===== 모달 / 패널 공통 ===== */
+.gsp-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5vh 16px;
+  background: rgba(0, 0, 0, 0.55);
+  overflow: auto;
+}
+.gsp-dialog {
+  width: 100%;
+  max-width: 760px;
+  background: var(--bg-card, var(--card-bg, #ffffff));
+  color: var(--text, #1a1a1a);
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.gsp-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+}
+.gsp-dialog__title { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.gsp-dialog__close {
+  margin-inline-start: auto;
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.gsp-dialog__close:hover { background: rgba(127, 127, 127, 0.15); }
+.gsp-dialog__body { padding: 18px 20px; }
+.gsp-section + .gsp-section { margin-top: 22px; }
+.gsp-section__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--accent, var(--primary, #5b9dff));
+}
+.gsp-muted { color: var(--text-muted, #6b7280); font-size: 0.9rem; }
+
+/* ===== 플레이리스트 ===== */
+.gsp-course-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.gsp-course-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(127, 127, 127, 0.22);
+  border-radius: 10px;
+}
+.gsp-course-item .idx {
+  flex: none;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--accent-soft, rgba(91, 157, 255, 0.16));
+  color: var(--accent, var(--primary, #5b9dff));
+  font-weight: 700; font-size: 0.85rem;
+}
+.gsp-course-item .ci-title { flex: 1; min-width: 0; }
+.gsp-course-item .ci-title b { display: block; font-size: 0.95rem; }
+.gsp-course-item .ci-title small { color: var(--text-muted, #6b7280); }
+.gsp-iconbtn {
+  font: inherit; cursor: pointer;
+  background: transparent; color: inherit;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 8px; padding: 4px 8px;
+}
+.gsp-iconbtn:hover { border-color: currentColor; }
+.gsp-btn {
+  font: inherit; cursor: pointer;
+  border: 0; border-radius: 10px;
+  padding: 10px 16px; font-weight: 700;
+  background: var(--accent, var(--primary, #5b9dff)); color: #fff;
+}
+.gsp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.gsp-btn--ghost {
+  background: transparent; color: inherit;
+  border: 1px solid rgba(127, 127, 127, 0.4);
+}
+.gsp-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ===== 교사 가이드 표 ===== */
+.gsp-guide-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.gsp-guide-table th, .gsp-guide-table td {
+  text-align: start; padding: 8px 10px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.16);
+  vertical-align: top;
+}
+.gsp-guide-table th { color: var(--text-muted, #6b7280); font-weight: 600; }
+.gsp-guide-table .add-btn { white-space: nowrap; }
+
+/* 실험 페이지 교사 가이드 슬라이드 패널 */
+.gsp-guide-panel {
+  position: fixed;
+  top: 0; inset-inline-end: 0;
+  z-index: 210;
+  width: min(380px, 92vw);
+  height: 100%;
+  overflow: auto;
+  padding: 20px;
+  background: var(--bg-card, var(--card-bg, #ffffff));
+  color: var(--text, #1a1a1a);
+  border-inline-start: 1px solid rgba(127, 127, 127, 0.25);
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.3);
+}
+.gsp-guide-panel h3 { margin: 0 0 10px; color: var(--accent, var(--primary, #5b9dff)); }
+.gsp-guide-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; font-size: 0.9rem; }
+.gsp-guide-meta span {
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(127, 127, 127, 0.12);
+}
+.gsp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.gsp-chips span {
+  padding: 4px 10px; border-radius: 999px; font-size: 0.82rem;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+}
+
+/* ===== 워크시트 ===== */
+.gsp-ws-toolbar {
+  position: sticky; top: 0;
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 10px 0 14px;
+}
+.gsp-ws-sheet {
+  background: #ffffff; color: #111;
+  border-radius: 12px;
+  padding: 28px 30px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+.gsp-ws-sheet h2 { font-size: 1.3rem; margin: 0 0 4px; }
+.gsp-ws-sheet .ws-sub { color: #555; margin: 0 0 16px; font-size: 0.92rem; }
+.gsp-ws-fields { display: flex; gap: 18px; margin: 14px 0 20px; font-size: 0.9rem; }
+.gsp-ws-fields .fld { flex: 1; border-bottom: 1px solid #999; padding-bottom: 4px; }
+.gsp-ws-block { margin: 16px 0; }
+.gsp-ws-block h3 { font-size: 1rem; margin: 0 0 6px; color: #1a1a1a; }
+.gsp-ws-lines { border: 1px solid #ccc; border-radius: 8px; min-height: 88px;
+  background-image: repeating-linear-gradient(transparent, transparent 27px, #e3e3e3 28px); }
+
+@media print {
+  body.gsp-printing * { visibility: hidden !important; }
+  body.gsp-printing .gsp-ws-sheet,
+  body.gsp-printing .gsp-ws-sheet * { visibility: visible !important; }
+  body.gsp-printing .gsp-ws-sheet {
+    position: absolute; left: 0; top: 0; width: 100%;
+    box-shadow: none; border-radius: 0; padding: 0;
+  }
+  body.gsp-printing .gsp-ws-toolbar { display: none !important; }
+}
+
+/* 모션 최소화 선호 존중 */
+@media (prefers-reduced-motion: reduce) {
+  .gsp-scrim, .gsp-guide-panel, .gsp-dialog { animation: none !important; transition: none !important; }
+}

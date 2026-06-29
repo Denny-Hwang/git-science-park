@@ -111,11 +111,20 @@
       .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
     }
   </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
 </head>
 <body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
   <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
   <nav>
-    <a href="../../index.html">&larr; 허브로 돌아가기</a>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로 돌아가기</a>
     <span class="cat-badge">🏛️ 고대 (Ancient)</span>
   </nav>
 
@@ -128,9 +137,9 @@
 
   <!-- TABS -->
   <div class="tabs" role="tablist" aria-label="실험 콘텐츠 탭">
-    <button class="tab-btn active" data-tab="interactive" role="tab" id="tab-interactive" aria-selected="true" aria-controls="interactive">🎮 인터랙티브</button>
-    <button class="tab-btn" data-tab="learning" role="tab" id="tab-learning" aria-selected="false" aria-controls="learning">📚 원리 학습</button>
-    <button class="tab-btn" data-tab="history" role="tab" id="tab-history" aria-selected="false" aria-controls="history">📜 역사적 맥락</button>
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" id="tab-interactive" aria-selected="true" aria-controls="interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" id="tab-learning" aria-selected="false" aria-controls="learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" id="tab-history" aria-selected="false" aria-controls="history">📜 역사적 맥락</button>
   </div>
 
   <main>
@@ -544,14 +553,34 @@
     })();
   </script>
 <!-- exp-related:start (auto-generated) -->
-  <nav class="exp-related" aria-label="관련 실험" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
-    <div style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;">
-      <a href="../../index.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
-      <a href="./02-archimedes-buoyancy.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">다음 · 아르키메데스의 부력 원리 ▶</a>
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./02-archimedes-buoyancy.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 아르키메데스의 부력 원리</a>
       <a href="../06-quantum/05-stern-gerlach.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 슈테른-게를라흐 실험</a>
     </div>
   </nav>
 <!-- exp-related:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 1, "slug": "01-eratosthenes", "category": "01-ancient", "title": "에라토스테네스의 지구 둘레 측정", "titleEn": "Eratosthenes Measures the Earth", "year": "기원전 240년경", "scientist": "에라토스테네스", "difficulty": 1, "description": "두 도시의 그림자 각도 차이로 지구의 둘레를 계산한다.", "keywords": ["지구 둘레", "그림자", "각도", "기하학", "측정"], "catName": "고대", "catIcon": "🏛️"};
+(function(){
+  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){
+      window.I18n.load().then(function(){
+        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
+        boot();
+      }, boot);
+    } else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
 </body>
 </html>
