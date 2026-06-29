@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우주배경복사 발견 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f3f5f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #05060a; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .swatch {
+      display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+      vertical-align: middle; margin-left: 4px; border: 1px solid #cbd5e0;
+    }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf0f8; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>우주배경복사 발견</h1>
+    <div class="en">Discovery of the CMB</div>
+    <div class="meta">1965년 · 펜지어스 (Arno Penzias), 윌슨 (Robert Wilson) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" aria-label="왼쪽은 거의 균일한 하늘 전역 온도 지도, 오른쪽은 우주배경복사의 흑체 스펙트럼 곡선과 마이크로파 봉우리를 보여주는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="temp">CMB 온도 T: <span id="temp-val">2.725</span> K
+            <span class="swatch" id="temp-swatch" aria-hidden="true"></span>
+          </label>
+          <input type="range" id="temp" min="2.725" max="60" step="0.025" value="2.725"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 현재 우주로 리셋 (2.725 K)</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        봉우리 파장 λ<sub>max</sub>: <strong>—</strong> &nbsp; · &nbsp; 온도: <strong id="tempout">—</strong>
+        &nbsp; · &nbsp; 스펙트럼 영역: <strong id="band">—</strong> &nbsp; · &nbsp; 적색편이 z: <strong id="zout">—</strong>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 왼쪽 하늘 지도는 어느 방향을 봐도 거의 똑같은 온도이고(거의 완벽히 균일),
+        자세히 보면 10만 분의 1 수준의 <strong>미세한 얼룩(비등방성)</strong>이 있다 — 이것이 은하의 씨앗이다.
+        온도 T를 높이면(과거의 더 뜨거운 우주) 오른쪽 흑체 봉우리가 <strong>짧은 파장으로 이동</strong>하고,
+        현재(2.725 K)에서는 봉우리가 <strong>약 1 mm 마이크로파</strong> 영역에 온다.
+        펜지어스·윌슨은 안테나에서 사라지지 않는 이 '잡음'을 처음엔 비둘기 배설물 탓으로 오인했지만,
+        실은 <strong>빅뱅의 잔광</strong>이었고 자연에서 알려진 가장 완벽에 가까운 흑체복사다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>우주배경복사(CMB)가 빅뱅 약 38만 년 후 재결합 시점에 빠져나온 빛임을 이해한다.</li>
+        <li>우주 팽창으로 빛이 식어(적색편이) 현재 약 2.725 K의 흑체복사가 되었음을 설명한다.</li>
+        <li>CMB 봉우리가 마이크로파 영역(약 1 mm)에 있고, 빈의 변위 법칙으로 정해짐을 안다.</li>
+        <li>거의 완벽히 균일하되 10⁻⁵ 수준의 미세 비등방성이 은하의 씨앗임을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>빅뱅 직후 우주는 뜨겁고 빽빽한 플라스마여서 빛이 전자에 끊임없이 부딪혀 멀리 가지 못했다.
+        탄생 약 <strong>38만 년 후(재결합, recombination)</strong> 우주가 충분히 식어 전자와 양성자가 결합해
+        중성 수소가 되자, 빛이 비로소 자유롭게 직진하게 되었다 — 우주가 '투명'해진 것이다.
+        이때 빠져나온 빛이 지금도 하늘 전역에서 사방으로 도착한다.</p>
+        <p>그 빛은 우주가 팽창하는 동안 함께 늘어나(파장이 길어지는 <strong>우주론적 적색편이</strong>) 식었다.
+        재결합 당시 약 3000 K의 가시광이던 빛은 우주가 약 1100배 커지는 동안 식어 현재
+        <strong>약 2.725 K</strong>의 흑체복사가 되었고, 그래서 봉우리가 <strong>마이크로파</strong>(약 1 mm)에 놓인다.
+        CMB는 자연에서 알려진 가장 완벽에 가까운 흑체이며, 방향에 따른 온도 차이는 겨우
+        <strong>10만 분의 1(10⁻⁵)</strong> 수준이다. 이 미세한 얼룩이 중력으로 자라 은하와 은하단이 되었다.</p>
+      </div>
+
+      <div class="formula-box">
+        빈의 변위 법칙: λ<sub>max</sub> · T = 2.898×10⁻³ m·K
+        <br>
+        현재 T ≈ 2.725 K → λ<sub>max</sub> ≈ 1.06 mm (마이크로파)
+        <br>
+        팽창·냉각: T(z) = T₀ · (1 + z) &nbsp;(z = 적색편이)
+      </div>
+
+      <!-- SVG 다이어그램: 재결합으로 빛이 빠져나와 팽창하며 식는 과정 -->
+      <svg width="440" height="220" viewBox="0 0 440 220" role="img"
+           aria-label="빅뱅 후 불투명한 플라스마가 38만 년 뒤 재결합으로 투명해지며 빛이 빠져나오고, 우주가 팽창하면서 빛이 식어 현재 2.725켈빈 마이크로파가 되는 과정">
+        <!-- 시간 축 -->
+        <line x1="30" y1="180" x2="410" y2="180" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="220" y="206" font-size="11" fill="#6b7280" text-anchor="middle">시간 / 우주 팽창 →</text>
+        <!-- 불투명 플라스마 (뜨거움) -->
+        <rect x="40" y="60" width="70" height="100" rx="6" fill="#dc2626" opacity="0.85"/>
+        <text x="75" y="46" font-size="11" fill="#dc2626" text-anchor="middle">뜨거운 플라스마</text>
+        <text x="75" y="120" font-size="10" fill="#fff" text-anchor="middle">불투명</text>
+        <!-- 재결합 경계 -->
+        <line x1="150" y1="40" x2="150" y2="180" stroke="#eab308" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="150" y="34" font-size="10" fill="#a16207" text-anchor="middle">재결합 (38만 년)</text>
+        <!-- 빠져나오는 빛(광선) -->
+        <line x1="155" y1="110" x2="240" y2="80" stroke="#f59e0b" stroke-width="2"/>
+        <line x1="155" y1="110" x2="245" y2="110" stroke="#f59e0b" stroke-width="2"/>
+        <line x1="155" y1="110" x2="240" y2="140" stroke="#f59e0b" stroke-width="2"/>
+        <text x="205" y="74" font-size="10" fill="#a16207">빛이 직진(투명)</text>
+        <!-- 식어가는 빛: 파장이 길어지고 색이 식음 -->
+        <rect x="300" y="80" width="90" height="60" rx="6" fill="#2563eb" opacity="0.8"/>
+        <text x="345" y="66" font-size="11" fill="#2563eb" text-anchor="middle">현재 우주</text>
+        <text x="345" y="115" font-size="10" fill="#fff" text-anchor="middle">2.725 K</text>
+        <text x="345" y="132" font-size="9" fill="#dbeafe" text-anchor="middle">마이크로파</text>
+        <!-- 늘어나는 파동 -->
+        <path d="M250 160 q 8 -10 16 0 q 8 10 16 0" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+        <path d="M295 160 q 14 -10 28 0 q 14 10 28 0" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="270" y="200" font-size="9" fill="#6b7280" text-anchor="middle">파장 늘어남(적색편이)</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "우주배경복사는 별이나 은하에서 나온 빛이 모인 것"이라 생각하기 쉽다.
+        실제로는 별이 생기기 훨씬 전, <em>재결합 시점에 우주 전체에서 동시에</em> 빠져나온 빛이다.
+        또 "CMB는 우주의 한 방향(빅뱅이 일어난 곳)에서 온다"는 오해도 흔한데,
+        빅뱅은 특정 지점이 아니라 <em>공간 전체</em>에서 일어났으므로 CMB는 <em>하늘 모든 방향</em>에서 균일하게 온다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 우주배경복사는 무엇의 증거인가?</p>
+          <label><input type="radio" name="q1" value="correct"> 뜨겁고 밀집했던 초기 우주(빅뱅)와 그 후의 팽창·냉각</label>
+          <label><input type="radio" name="q1" value="wrong"> 우리 은하 중심의 거대한 별</label>
+          <label><input type="radio" name="q1" value="wrong"> 태양에서 오는 마이크로파 잡음</label>
+        </div>
+        <div class="q">
+          <p>2. 현재 CMB의 봉우리(λ<sub>max</sub>)는 어느 영역에 있는가?</p>
+          <label><input type="radio" name="q2" value="wrong"> 가시광선 (눈에 보이는 빛)</label>
+          <label><input type="radio" name="q2" value="correct"> 마이크로파 (약 1 mm)</label>
+          <label><input type="radio" name="q2" value="wrong"> 감마선 (가장 짧은 파장)</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아노 펜지어스 &amp; 로버트 윌슨 (Arno Penzias &amp; Robert Wilson)</h3>
+        <p>미국 벨 연구소(Bell Labs)의 전파천문학자들이다. 1964~1965년, 위성통신용으로 만든
+        고감도 혼 안테나에서 어느 방향을 향하든, 계절이 바뀌어도 사라지지 않는 약 3.5 K의
+        설명할 수 없는 마이크로파 '잡음'을 발견했다. 안테나에 둥지를 튼 비둘기와 그 배설물까지
+        치워봤지만 잡음은 남았다. 마침 프린스턴의 디키(Robert Dicke) 연구팀이 빅뱅의 잔광을
+        찾고 있었고, 두 팀이 연결되며 그 '잡음'이 곧 <strong>우주배경복사</strong>임이 밝혀졌다.
+        펜지어스와 윌슨은 이 발견으로 1978년 노벨 물리학상을 받았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1948년 — 가모프·앨퍼·허먼이 빅뱅 이론에서 식어버린 잔광 복사(약 5 K)를 예측</li>
+          <li>1964년 — 펜지어스·윌슨이 벨 연구소 혼 안테나에서 정체불명의 마이크로파 잡음 관측</li>
+          <li>1965년 — 잡음이 우주배경복사임을 규명, 두 편의 논문으로 동시 발표</li>
+          <li>1978년 — 펜지어스·윌슨 노벨 물리학상 수상</li>
+          <li>1989~1992년 — COBE 위성이 완벽한 흑체 스펙트럼과 미세 비등방성(10⁻⁵)을 확인</li>
+          <li>2001~2013년 — WMAP·플랑크 위성이 정밀 지도로 우주 나이·구성을 측정</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 우주배경복사의 발견은 정상우주론 대신 <strong>빅뱅 우주론</strong>을
+        결정적으로 뒷받침한 관측 증거였다. 예측된 잔광이 실제로, 그것도 거의 완벽한 흑체로 하늘 전역에서
+        관측되면서 우주에 시작이 있었음이 확립되었다. 이후 미세한 온도 얼룩(비등방성) 지도는 우주의 나이,
+        물질·암흑물질·암흑에너지 비율을 정밀하게 알려주는 '우주의 화석'이 되어 현대 정밀 우주론의 토대가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 (SI) -----
+      const H = 6.62607015e-34;    // 플랑크 상수 J·s
+      const C = 2.99792458e8;      // 광속 m/s
+      const KB = 1.380649e-23;     // 볼츠만 상수 J/K
+      const WIEN = 2.897771955e-3; // 빈의 변위 상수 m·K
+      const T0 = 2.725;            // 현재 CMB 온도 K
+
+      // ----- 상태 -----
+      const DEFAULTS = { T: T0 };
+      const state = { T: DEFAULTS.T };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 플랑크 분광복사휘도 B(λ,T) (상대값) -----
+      function planck(lambdaM, T) {
+        const a = (2 * H * C * C) / Math.pow(lambdaM, 5);
+        const x = (H * C) / (lambdaM * KB * T);
+        const denom = Math.expm1(x); // e^x - 1 (수치 안정)
+        return a / denom;
+      }
+
+      // ----- λ_max (mm) = 빈의 변위 법칙 -----
+      function lambdaMaxMm(T) {
+        return (WIEN / T) * 1e3; // m → mm
+      }
+
+      // ----- 스펙트럼 영역 이름 (λ in mm) -----
+      function bandName(mm) {
+        if (mm >= 1) return '마이크로파';
+        if (mm >= 0.1) return '마이크로파 / 원적외선 경계';
+        if (mm >= 0.001) return '적외선 (IR)';
+        return '가시광선/그 이상';
+      }
+
+      // ----- 온도 → 적색편이 z (현재 대비 과거) -----
+      function redshift(T) {
+        return T / T0 - 1; // T = T0(1+z)
+      }
+
+      // ----- 온도에 따른 지도 평균색 (식을수록 어두운 파랑, 뜨거울수록 주황) -----
+      function mapColor(T) {
+        // T0(2.725K)=짙은 파랑 → 60K=따뜻한 주황 으로 부드럽게 보간
+        const f = Math.min(1, Math.max(0, (T - T0) / (60 - T0)));
+        const cold = { r: 20, g: 40, b: 110 };
+        const hot = { r: 220, g: 120, b: 40 };
+        return {
+          r: Math.round(cold.r + (hot.r - cold.r) * f),
+          g: Math.round(cold.g + (hot.g - cold.g) * f),
+          b: Math.round(cold.b + (hot.b - cold.b) * f)
+        };
+      }
+
+      // ----- 의사난수 (시드 고정: 지도 얼룩이 매번 같은 패턴) -----
+      function rng(seed) {
+        let s = seed >>> 0;
+        return function () {
+          s = (s * 1664525 + 1013904223) >>> 0;
+          return s / 4294967296;
+        };
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 그래프 표시 파장 범위 (mm)
+      const WL_MIN = 0.1, WL_MAX = 6.0;
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#05060a';
+        ctx.fillRect(0, 0, W, H);
+
+        const gap = 16;
+        const leftW = Math.round(W * 0.42);
+        const rightX = leftW + gap;
+        const rightW = W - rightX;
+
+        drawSkyMap(0, 0, leftW, H);
+        drawSpectrum(rightX, 0, rightW, H);
+      }
+
+      // ===== (왼쪽) 하늘 전역 온도 지도: 거의 균일 + 미세 얼룩 =====
+      function drawSkyMap(ox, oy, w, h) {
+        const base = mapColor(state.T);
+        const pad = 14;
+        const x0 = ox + pad, y0 = oy + 30;
+        const mw = w - pad * 2, mh = h - 30 - pad;
+
+        // 타원형 하늘 지도(몰바이데식 느낌)
+        const cx = x0 + mw / 2, cy = y0 + mh / 2;
+        const rx = mw / 2, ry = mh / 2;
+
+        // 클리핑: 타원 안에만 그린다
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.clip();
+
+        // 균일한 바탕색
+        ctx.fillStyle = 'rgb(' + base.r + ',' + base.g + ',' + base.b + ')';
+        ctx.fillRect(x0, y0, mw, mh);
+
+        // 미세 얼룩(비등방성): ±진폭의 흔들림. 시드 고정으로 항상 같은 패턴
+        const rand = rng(12345);
+        const cell = 6;
+        for (let yy = y0; yy < y0 + mh; yy += cell) {
+          for (let xx = x0; xx < x0 + mw; xx += cell) {
+            const d = (rand() - 0.5) * 2; // -1..1
+            const amp = 36; // 화면상 과장된 진폭(실제 10^-5)
+            const r = Math.max(0, Math.min(255, base.r + d * amp));
+            const g = Math.max(0, Math.min(255, base.g + d * amp));
+            const b = Math.max(0, Math.min(255, base.b + d * amp * 1.4));
+            ctx.fillStyle = 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+            ctx.fillRect(xx, yy, cell, cell);
+          }
+        }
+        ctx.restore();
+
+        // 타원 외곽선
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // 제목
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('하늘 전역 온도 지도', cx, oy + 18);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px sans-serif';
+        ctx.fillText('거의 균일 + 미세 얼룩(≈10⁻⁵)', cx, y0 + mh + 14);
+        ctx.textAlign = 'left';
+      }
+
+      // ===== (오른쪽) 흑체 스펙트럼 곡선 + 봉우리 표시 =====
+      function drawSpectrum(ox, oy, w, h) {
+        const padL = 44, padR = 14, padT = 30, padB = 40;
+        const plotW = w - padL - padR;
+        const plotH = h - padT - padB;
+        const x0 = ox + padL, y0 = oy + h - padB;
+
+        const xOf = (mm) => x0 + ((mm - WL_MIN) / (WL_MAX - WL_MIN)) * plotW;
+
+        // 세로 스케일: 현재 곡선 봉우리에 맞춰 동적 정규화
+        let peak = 0;
+        for (let mm = WL_MIN; mm <= WL_MAX; mm += 0.02) {
+          const v = planck(mm * 1e-3, state.T);
+          if (v > peak) peak = v;
+        }
+        const yMax = peak * 1.15;
+        const yOf = (val) => y0 - Math.min(val / yMax, 1.05) * plotH;
+
+        // 마이크로파 영역 강조 배경(λ ≳ 1 mm)
+        const mwX = xOf(Math.max(WL_MIN, 1.0));
+        ctx.fillStyle = 'rgba(45, 84, 148, 0.18)';
+        ctx.fillRect(mwX, padT + oy, (x0 + plotW) - mwX, plotH);
+        ctx.fillStyle = '#7da4dd';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('마이크로파', mwX + 4, padT + oy + 12);
+
+        // 축
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0, padT + oy); ctx.lineTo(x0, y0); ctx.lineTo(x0 + plotW, y0);
+        ctx.stroke();
+
+        // 파장 눈금 (mm)
+        ctx.fillStyle = '#9aa6b2';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        [1, 2, 3, 4, 5, 6].forEach((mm) => {
+          if (mm < WL_MIN || mm > WL_MAX) return;
+          const px = xOf(mm);
+          ctx.beginPath();
+          ctx.moveTo(px, y0); ctx.lineTo(px, y0 + 4);
+          ctx.strokeStyle = '#64748b'; ctx.stroke();
+          ctx.fillText(mm, px, y0 + 16);
+        });
+        ctx.fillText('파장 λ (mm)', x0 + plotW / 2, oy + h - 6);
+        ctx.save();
+        ctx.translate(ox + 14, padT + oy + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('세기 B(λ,T)', 0, 0);
+        ctx.restore();
+
+        // 제목
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('흑체 스펙트럼', ox + w / 2, oy + 18);
+
+        // 플랑크 곡선 (채움 + 외곽선)
+        const col = mapColor(state.T);
+        const colStr = 'rgb(' + col.r + ',' + col.g + ',' + col.b + ')';
+        ctx.beginPath();
+        ctx.moveTo(xOf(WL_MIN), y0);
+        for (let mm = WL_MIN; mm <= WL_MAX; mm += 0.02) {
+          ctx.lineTo(xOf(mm), yOf(planck(mm * 1e-3, state.T)));
+        }
+        ctx.lineTo(xOf(WL_MAX), y0);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(' + col.r + ',' + col.g + ',' + col.b + ',0.22)';
+        ctx.fill();
+
+        ctx.beginPath();
+        let st = false;
+        for (let mm = WL_MIN; mm <= WL_MAX; mm += 0.02) {
+          const py = yOf(planck(mm * 1e-3, state.T));
+          if (!st) { ctx.moveTo(xOf(mm), py); st = true; } else ctx.lineTo(xOf(mm), py);
+        }
+        ctx.strokeStyle = colStr;
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+
+        // 봉우리 λ_max 표시
+        const lmMm = lambdaMaxMm(state.T);
+        if (lmMm >= WL_MIN && lmMm <= WL_MAX) {
+          const px = xOf(lmMm);
+          const py = yOf(planck(lmMm * 1e-3, state.T));
+          ctx.strokeStyle = '#facc15';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, y0); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#facc15'; ctx.fill();
+          ctx.fillStyle = '#fde68a';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('λmax ≈ ' + lmMm.toFixed(2) + ' mm', px, py - 8);
+        }
+
+        // 온도 표시
+        ctx.fillStyle = '#e2e8f0';
+        ctx.textAlign = 'right';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('T = ' + state.T.toFixed(3) + ' K', x0 + plotW, padT + oy + 10);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const lmMm = lambdaMaxMm(state.T);
+        document.querySelector('#result strong').textContent = lmMm.toFixed(2) + ' mm';
+        document.getElementById('tempout').textContent = state.T.toFixed(3) + ' K';
+        document.getElementById('band').textContent = bandName(lmMm);
+        document.getElementById('zout').textContent = redshift(state.T).toFixed(1);
+        const c = mapColor(state.T);
+        document.getElementById('temp-swatch').style.background = 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+      }
+
+      // ----- 슬라이더 -----
+      const tempSlider = document.getElementById('temp');
+      const tempValEl = document.getElementById('temp-val');
+
+      function syncLabels() {
+        tempValEl.textContent = state.T.toFixed(3);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      tempSlider.addEventListener('input', () => {
+        state.T = Number(tempSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.T = DEFAULTS.T;
+        tempSlider.value = String(DEFAULTS.T);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 CMB는 뜨겁고 밀집했던 초기 우주(빅뱅)와 그 후 팽창·냉각의 증거이며, 현재 봉우리는 약 1 mm 마이크로파 영역에 있습니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. CMB가 빅뱅의 잔광이라는 점과, 식어서(2.725 K) 봉우리가 마이크로파에 온다는 점을 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>슈뢰딩거 방정식 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f6f4fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f1ecfb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .row { display: flex; flex-wrap: wrap; gap: 6px 24px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .legend { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; }
+    .legend .psi { color: #8b63e0; font-weight: 700; }
+    .legend .prob { color: #f59e0b; font-weight: 700; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>슈뢰딩거 방정식</h1>
+    <div class="en">Schrödinger Equation</div>
+    <div class="meta">1926년 · 에르빈 슈뢰딩거 (Erwin Schrödinger) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" aria-label="1차원 무한 퍼텐셜 우물 안의 파동함수 ψ와 확률밀도 |ψ|²을 보여주는 시뮬레이션"></canvas>
+      <div class="legend">
+        <span class="psi">━ ψ_n(x) (파동함수, 부호 있음)</span> &nbsp;&nbsp;
+        <span class="prob">▦ |ψ_n(x)|² (확률밀도)</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="qn">양자수 n: <span id="qn-val">1</span></label>
+          <input type="range" id="qn" min="1" max="6" step="1" value="1" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="width">우물 너비 L: <span id="width-val">1.0</span> nm</label>
+          <input type="range" id="width" min="0.4" max="2.0" step="0.05" value="1.0" aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="row">
+          <span>양자수 n: <strong id="res-n">1</strong></span>
+          <span>마디 수: <strong id="res-nodes">0</strong> 개</span>
+          <span>에너지 E<sub>n</sub>: <strong id="res-energy">—</strong> (상대값, E₁=1)</span>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 우물의 양 끝에서 파동함수 ψ는 항상 0이다(경계조건).
+        이 조건 때문에 우물 안에 꼭 맞는 정상파만 허용되어, <strong>특정 파장·에너지만 가능</strong>해진다(양자화).
+        n을 키우면 우물 안의 <strong>마디(node, ψ=0인 내부 지점)가 n−1개로 늘고</strong> 에너지는 n²에 비례해 커진다.
+        주황색 면적 |ψ|²은 그 위치에서 입자를 발견할 <strong>확률밀도</strong>다. 우물 너비 L을 좁히면 에너지가 급격히 커진다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>양자 상태가 파동함수 ψ로 기술되고, |ψ|²이 입자를 발견할 확률밀도임을 이해한다.</li>
+        <li>무한 퍼텐셜 우물의 경계조건(양 끝 ψ=0)이 허용되는 파장을 제한함을 설명한다.</li>
+        <li>에너지가 불연속적으로 양자화되며 E<sub>n</sub> ∝ n²임을 안다.</li>
+        <li>양자수 n과 마디 수(n−1)의 관계, L이 에너지에 주는 영향을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>슈뢰딩거 방정식은 입자의 양자 상태를 <strong>파동함수 ψ</strong>로 기술한다. ψ 자체는 직접 관측되지 않지만,
+        그 절댓값의 제곱 <strong>|ψ(x)|²</strong>은 위치 x에서 입자를 발견할 <strong>확률밀도</strong>를 준다(보른 해석).</p>
+        <p>벽이 무한히 높은 1차원 우물(폭 L)에 갇힌 입자는 우물 밖으로 나갈 수 없으므로 양 끝에서 ψ=0 이어야 한다.
+        이 <strong>경계조건</strong>을 만족하는 해는 우물 안에 꼭 맞는 정상파뿐이며, 그 결과 허용되는 파장과 에너지가
+        불연속적인 값들로 <strong>양자화</strong>된다. 양자수 n이 커질수록 우물 안의 마디(ψ=0인 내부 지점)가 n−1개로 늘고,
+        에너지는 n²에 비례해 커진다.</p>
+      </div>
+
+      <div class="formula-box">
+        ψ<sub>n</sub>(x) = √(2/L) · sin(nπx / L)
+        <br>
+        E<sub>n</sub> = n² · h² / (8 m L²)&nbsp;&nbsp;(n = 1, 2, 3 …)
+        <br>
+        확률밀도: |ψ<sub>n</sub>(x)|²&nbsp;&nbsp;|&nbsp;&nbsp;마디 수 = n − 1
+      </div>
+
+      <!-- SVG 다이어그램: 무한 우물과 처음 세 에너지 준위의 파동함수 -->
+      <svg width="420" height="240" viewBox="0 0 420 240" role="img"
+           aria-label="무한 퍼텐셜 우물과 n=1,2,3 파동함수의 정상파 모양 다이어그램">
+        <!-- 우물 벽 (무한 퍼텐셜) -->
+        <line x1="70" y1="20" x2="70" y2="220" stroke="#6B46C1" stroke-width="3"/>
+        <line x1="350" y1="20" x2="350" y2="220" stroke="#6B46C1" stroke-width="3"/>
+        <line x1="70" y1="220" x2="350" y2="220" stroke="#6B46C1" stroke-width="3"/>
+        <text x="44" y="18" font-size="11" fill="#6B46C1">V=∞</text>
+        <text x="356" y="18" font-size="11" fill="#6B46C1">V=∞</text>
+        <text x="200" y="236" font-size="11" fill="#6b7280">우물 너비 L (양 끝 ψ=0)</text>
+        <!-- n=1: 반파장 하나 -->
+        <path d="M70,180 Q210,120 350,180" fill="none" stroke="#8b63e0" stroke-width="2"/>
+        <text x="356" y="180" font-size="11" fill="#8b63e0">n=1</text>
+        <!-- n=2: 마디 1개 (중앙) -->
+        <path d="M70,120 Q140,80 210,120 Q280,160 350,120" fill="none" stroke="#a07ce8" stroke-width="2"/>
+        <text x="356" y="120" font-size="11" fill="#a07ce8">n=2</text>
+        <circle cx="210" cy="120" r="3" fill="#f59e0b"/>
+        <!-- n=3: 마디 2개 -->
+        <path d="M70,60 Q116,30 163,60 Q210,90 257,60 Q304,30 350,60" fill="none" stroke="#b794ed" stroke-width="2"/>
+        <text x="356" y="60" font-size="11" fill="#b794ed">n=3</text>
+        <circle cx="163" cy="60" r="3" fill="#f59e0b"/>
+        <circle cx="257" cy="60" r="3" fill="#f59e0b"/>
+        <text x="380" y="232" font-size="10" fill="#f59e0b">● 마디</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "파동함수 ψ가 곧 입자가 퍼져 있는 실체"라고 생각하기 쉽다.
+        ψ 자체는 측정되지 않으며, 의미를 갖는 것은 <em>|ψ|²(확률밀도)</em>이다.
+        또한 "에너지는 아무 값이나 가질 수 있다"는 생각도 오개념이다. 우물에 갇힌 입자의 에너지는
+        E<sub>n</sub> ∝ n² 의 <em>불연속적인 값</em>들만 가질 수 있다(양자화). 가장 낮은 에너지 E₁조차 0이 아니다(영점 에너지).
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 무한 우물에서 양자수 n이 커지면 에너지 E<sub>n</sub>은?</p>
+          <label><input type="radio" name="q1" value="wrong"> n에 정비례해 커진다</label>
+          <label><input type="radio" name="q1" value="correct"> n²에 비례해 커진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 파동함수 ψ에서 실제로 측정 가능한 확률밀도를 주는 양은?</p>
+          <label><input type="radio" name="q2" value="wrong"> ψ 그 자체</label>
+          <label><input type="radio" name="q2" value="correct"> |ψ|² (절댓값의 제곱)</label>
+          <label><input type="radio" name="q2" value="wrong"> ψ의 기울기</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 에르빈 슈뢰딩거 (Erwin Schrödinger, 1887~1961)</h3>
+        <p>오스트리아의 이론물리학자. 1926년 양자계의 파동함수가 따르는 방정식을 제시하여 <strong>파동역학(wave mechanics)</strong>을
+        창시했다. 드브로이의 물질파 개념에서 출발해 파동함수 ψ가 시간과 공간에 따라 어떻게 변하는지를 기술하는 방정식을 세웠고,
+        이는 곧 하이젠베르크의 행렬역학과 수학적으로 동등함이 밝혀졌다. 1933년 폴 디랙과 함께 노벨 물리학상을 받았다.
+        한편 양자역학의 확률 해석에 끝까지 불편함을 느껴 사고실험 "슈뢰딩거의 고양이"를 제안하기도 했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1900년 — 플랑크의 양자 가설, 에너지가 불연속 덩어리로 주고받힘을 제안</li>
+          <li>1913년 — 보어의 원자 모형, 전자 궤도의 에너지 양자화를 도입</li>
+          <li>1924년 — 드브로이가 물질파(입자도 파동성을 가짐) 개념을 제시</li>
+          <li>1925년 — 하이젠베르크 등이 행렬역학을 정식화</li>
+          <li>1926년 — 슈뢰딩거가 파동방정식을 발표, 파동함수 ψ로 양자 상태를 기술</li>
+          <li>1926년 — 보른이 |ψ|²을 확률밀도로 해석(보른 규칙)</li>
+          <li>1927년 — 코펜하겐 해석이 정립되며 현대 양자역학의 표준이 됨</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 슈뢰딩거 방정식은 원자·분자·고체의 거동을 정량적으로 예측하는
+        현대 양자역학의 중심 방정식이다. "무한 우물에 갇힌 입자"라는 가장 단순한 모형만으로도
+        에너지 양자화, 영점 에너지, 정상파로서의 파동함수 같은 양자세계의 핵심 특징이 자연스럽게 나타난다.
+        이 방정식은 화학 결합, 반도체, 레이저 등 현대 기술의 이론적 토대가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (n: 양자수 1~6, L: 우물 너비 nm) -----
+      const DEFAULTS = { n: 1, L: 1.0 };
+      const state = { n: DEFAULTS.n, L: DEFAULTS.L };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 물리 계산 -----
+      // 에너지(상대값): E_n ∝ n² / L²,  E₁(L=L₀=1.0nm) = 1 로 정규화
+      function relativeEnergy() {
+        const L0 = DEFAULTS.L;
+        return (state.n * state.n) / (state.L * state.L) * (L0 * L0);
+      }
+
+      // 정규화된 파동함수: ψ_n(x) = √(2/L)·sin(nπx/L), 0 ≤ x ≤ L
+      // 캔버스 표시에서는 진폭을 정규화한 sin(nπ·u) 형태(u = x/L ∈ [0,1])를 사용한다.
+      function psiShape(u) {
+        return Math.sin(state.n * Math.PI * u); // -1 ~ 1
+      }
+
+      // ----- rAF 애니메이션: 정상파를 시간에 따라 진동시켜 보여준다 -----
+      let phase = 0;       // 시간 위상
+      let rafId = null;
+
+      // ----- (3) draw(): state(+phase)만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#14101f';
+        ctx.fillRect(0, 0, W, H);
+
+        // 우물 영역 좌표
+        const wallL = 70, wallR = W - 70;
+        const wellW = wallR - wallL;
+        const axisY = H / 2;
+        const amp = H * 0.30; // ψ 표시 진폭(픽셀)
+
+        // --- 우물 벽 (무한 퍼텐셜) ---
+        ctx.strokeStyle = '#8b63e0';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(wallL, 24); ctx.lineTo(wallL, H - 24);
+        ctx.moveTo(wallR, 24); ctx.lineTo(wallR, H - 24);
+        ctx.stroke();
+        ctx.fillStyle = '#9b86d6';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('V = ∞', wallL - 44, 20);
+        ctx.fillText('V = ∞', wallR + 6, 20);
+
+        // 우물 바닥(기준선)
+        ctx.strokeStyle = 'rgba(155,134,214,0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(wallL, axisY); ctx.lineTo(wallR, axisY);
+        ctx.stroke();
+
+        const N = 240; // 샘플 수
+        const timeFactor = Math.cos(phase); // 정상파 시간 진동 cos(ωt)
+
+        // --- 확률밀도 |ψ|² (주황색 채움) — 시간에 무관 ---
+        ctx.beginPath();
+        ctx.moveTo(wallL, axisY);
+        for (let i = 0; i <= N; i++) {
+          const u = i / N;
+          const x = wallL + u * wellW;
+          const p = psiShape(u);
+          const prob = p * p;            // |ψ|²  (0~1)
+          const y = axisY - prob * amp * 0.9;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(wallR, axisY);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(245,158,11,0.30)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(245,158,11,0.85)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // --- 파동함수 ψ_n(x) (보라색 곡선) — 정상파 진동 ---
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const u = i / N;
+          const x = wallL + u * wellW;
+          const y = axisY - psiShape(u) * timeFactor * amp;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = '#8b63e0';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // --- 마디(node) 표시: 내부에서 ψ=0인 지점 (n-1개) ---
+        ctx.fillStyle = '#f59e0b';
+        for (let m = 1; m < state.n; m++) {
+          const u = m / state.n; // sin(nπu)=0 인 내부 지점
+          const x = wallL + u * wellW;
+          ctx.beginPath();
+          ctx.arc(x, axisY, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // --- 라벨 ---
+        ctx.fillStyle = '#c8b6ef';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('n = ' + state.n, wallL + 6, 40);
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText('x = 0', wallL - 6, H - 8);
+        ctx.fillText('x = L', wallR - 24, H - 8);
+      }
+
+      function animate() {
+        phase += 0.06;
+        if (phase > Math.PI * 2) phase -= Math.PI * 2;
+        draw();
+        rafId = requestAnimationFrame(animate);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        document.getElementById('res-n').textContent = state.n;
+        document.getElementById('res-nodes').textContent = state.n - 1;
+        document.getElementById('res-energy').textContent = relativeEnergy().toFixed(2);
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const nSlider = document.getElementById('qn');
+      const lSlider = document.getElementById('width');
+      const nVal = document.getElementById('qn-val');
+      const lVal = document.getElementById('width-val');
+
+      function syncLabels() {
+        nVal.textContent = state.n;
+        lVal.textContent = state.L.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 — input 시 즉시 갱신 -----
+      nSlider.addEventListener('input', () => {
+        state.n = Number(nSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      lSlider.addEventListener('input', () => {
+        state.L = Number(lSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.n = DEFAULTS.n;
+        state.L = DEFAULTS.L;
+        nSlider.value = String(DEFAULTS.n);
+        lSlider.value = String(DEFAULTS.L);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 E_n ∝ n² 이므로 n²에 비례해 커지고, 확률밀도는 |ψ|²로 주어집니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. E_n = n²·h²/(8mL²) (n²에 비례), |ψ|²이 확률밀도임을 다시 보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 + 애니메이션 시작 -----
+      syncLabels();
+      updateResult();
+      draw();
+      rafId = requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

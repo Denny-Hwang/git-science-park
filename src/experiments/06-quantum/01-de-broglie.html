@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>드브로이 물질파 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f6f4fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0f0a1e; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn.ghost {
+      background: #ede9fb; color: var(--primary); margin-top: 0;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .controls .btn.ghost:hover { background: #ddd5f7; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f1ecfb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box div { margin: 4px 0; }
+    .result-box strong { color: var(--primary); }
+    .result-box .verdict { font-weight: 600; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자·난이도) -->
+  <header>
+    <h1>드브로이 물질파</h1>
+    <div class="en">de Broglie Matter Waves</div>
+    <div class="meta">1924년 · 루이 드브로이 (Louis de Broglie) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="320" aria-label="질량과 속도를 가진 입자가 물질파 파장을 동반하며 움직이는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="presets">
+          <button type="button" class="btn ghost" id="preset-electron">⚡ 전자</button>
+          <button type="button" class="btn ghost" id="preset-baseball">⚾ 야구공</button>
+        </div>
+
+        <div class="ctrl">
+          <label for="mass">질량 m: <span id="mass-val">9.1e-31</span> kg</label>
+          <input type="range" id="mass" min="-31" max="0" step="0.1" value="-30.04"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="speed">속도 v: <span id="speed-val">2.0e6</span> m/s</label>
+          <input type="range" id="speed" min="1" max="7" step="0.05" value="6.3"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div>운동량 p = m·v: <strong id="r-momentum">—</strong> kg·m/s</div>
+        <div>물질파 파장 λ = h / p: <strong id="r-lambda">—</strong> m</div>
+        <div class="verdict" id="r-verdict">—</div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 입자가 움직이며 그에 동반된 물결(물질파)이 따라온다.
+        <strong>질량이나 속도를 키우면</strong> 파장이 짧아져 물결이 촘촘해지고, 끝내는 거의 직선처럼 보인다 —
+        이것이 야구공 같은 큰 물체가 "고전 입자"로만 보이는 이유다.
+        반대로 <strong>전자처럼 가벼우면</strong> 파장이 충분히 커서 파동성이 관측된다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>모든 입자가 파동의 성질을 가진다는 물질파 개념을 이해한다.</li>
+        <li>드브로이 파장 공식 λ = h / p = h / (m·v) 를 적용한다.</li>
+        <li>질량·속도가 클수록 파장이 짧아져 파동성이 사라지는 이유를 설명한다.</li>
+        <li>왜 전자에서는 파동성이 보이고 야구공에서는 보이지 않는지 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>아인슈타인이 빛(파동)이 광자라는 입자처럼 행동함을 보인 데서 영감을 받아,
+        드브로이는 그 반대 — 즉 <strong>물질(입자)도 파동처럼 행동한다</strong>고 제안했다.
+        움직이는 입자에는 운동량 p에 반비례하는 파장 λ = h / p 의 "물질파"가 동반된다.</p>
+        <p>플랑크 상수 h(=6.626×10⁻³⁴ J·s)는 극도로 작기 때문에, 일상의 물체처럼 운동량 p가 크면
+        파장 λ는 원자보다도 훨씬 작아져 사실상 측정할 수 없다. 그래서 야구공은 파동으로 보이지 않는다.
+        반면 전자처럼 질량이 매우 작은 입자는 λ가 원자 간격 정도로 커져 회절·간섭 같은 파동 현상이 관측된다.</p>
+      </div>
+
+      <div class="formula-box">
+        λ = h / p = h / (m · v)
+        <br>
+        h = 6.626 × 10⁻³⁴ J·s
+        <br>
+        p ↑  ⇒  λ ↓  (질량·속도 클수록 파장 짧음)
+      </div>
+
+      <!-- SVG 다이어그램: 가벼운 입자(긴 파장) vs 무거운 입자(짧은 파장) -->
+      <svg width="440" height="200" viewBox="0 0 440 200" role="img"
+           aria-label="가벼운 입자는 긴 파장의 물질파를, 무거운 입자는 짧은 파장의 물질파를 동반함을 비교한 다이어그램">
+        <!-- 위: 전자(긴 파장) -->
+        <text x="10" y="30" font-size="12" fill="#6B46C1">전자 (작은 p → 긴 λ)</text>
+        <path d="M10 60 Q 35 25, 60 60 T 110 60 T 160 60 T 210 60 T 260 60 T 310 60 T 360 60 T 410 60"
+              fill="none" stroke="#8b63e0" stroke-width="2"/>
+        <circle cx="410" cy="60" r="7" fill="#6B46C1"/>
+        <line x1="60" y1="78" x2="160" y2="78" stroke="#6b7280" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="98" y="92" font-size="11" fill="#6b7280">λ 큼</text>
+        <!-- 아래: 야구공(짧은 파장, 거의 직선) -->
+        <text x="10" y="135" font-size="12" fill="#6B46C1">야구공 (큰 p → 짧은 λ)</text>
+        <path d="M10 165 q 6.25 -10,12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0 t 12.5 0"
+              fill="none" stroke="#8b63e0" stroke-width="2"/>
+        <circle cx="410" cy="165" r="7" fill="#6B46C1"/>
+        <text x="180" y="190" font-size="11" fill="#6b7280">λ 매우 작음 (거의 직선)</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "물질파는 전자처럼 작은 입자에만 있고, 야구공에는 없다"고 생각하기 쉽다.
+        실제로는 <em>모든</em> 움직이는 물체에 물질파가 동반된다. 다만 야구공의 파장은 원자핵보다도 훨씬 작아서
+        (약 10⁻³⁴ m 수준) 어떤 장치로도 관측할 수 없을 뿐이다. 파동성이 "없는" 것이 아니라 "보이지 않는" 것이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 같은 속도에서 질량이 더 큰 입자의 물질파 파장은?</p>
+          <label><input type="radio" name="q1" value="correct"> 더 짧아진다 (λ ∝ 1/m)</label>
+          <label><input type="radio" name="q1" value="wrong"> 더 길어진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 야구공의 파동성을 일상에서 관측할 수 없는 가장 큰 이유는?</p>
+          <label><input type="radio" name="q2" value="wrong"> 야구공에는 물질파가 아예 없기 때문</label>
+          <label><input type="radio" name="q2" value="correct"> 파장이 원자보다도 훨씬 작아 측정 불가능하기 때문</label>
+          <label><input type="radio" name="q2" value="wrong"> 야구공이 너무 빨라서 빛보다 빠르기 때문</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 루이 드브로이 (Louis de Broglie, 1892~1987)</h3>
+        <p>프랑스의 귀족 가문 출신 물리학자. 처음에는 역사학을 전공했으나 형 모리스 드브로이의 X선 연구에 영향을 받아
+        물리학으로 전향했다. 1924년 박사학위 논문에서 "물질도 파동의 성질을 가진다"는 대담한 가설을 제시했다.
+        지도교수들이 판단을 망설이자 아인슈타인에게 자문을 구했고, 아인슈타인은 "베일의 한 자락을 걷어 올렸다"며 극찬했다.
+        이 공로로 1929년 노벨 물리학상을 받았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1905년 — 아인슈타인이 광전효과로 빛의 입자성(광자)을 제시</li>
+          <li>1913년 — 보어의 원자 모형, 전자 궤도의 양자화 조건 등장</li>
+          <li>1924년 — 드브로이가 박사 논문에서 물질파 가설 λ = h / p 제안</li>
+          <li>1927년 — 데이비슨–거머 실험과 G.P.톰슨의 실험으로 전자의 회절(파동성)이 확인됨</li>
+          <li>1926년~ — 슈뢰딩거가 물질파 개념을 파동방정식으로 발전시켜 파동역학 완성</li>
+          <li>1929년 — 드브로이 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 드브로이의 물질파 가설은 파동–입자 이중성을 빛에서 모든 물질로 확장하여,
+        고전적 "입자 대 파동"의 경계를 무너뜨렸다. 이 개념은 슈뢰딩거의 파동방정식으로 이어져 현대 양자역학의
+        수학적 토대가 되었고, 전자현미경처럼 전자의 짧은 파장을 활용하는 기술로도 직접 응용되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상수 -----
+      const H = 6.626e-34;            // 플랑크 상수 (J·s)
+      // 슬라이더 의미: mass = 10^massExp (kg), speed = 10^speedExp (m/s)
+      // 전자: m≈9.1e-31kg, v≈2e6m/s  /  야구공: m≈0.145kg, v≈40m/s
+      const PRESETS = {
+        electron: { massExp: Math.log10(9.1e-31), speedExp: Math.log10(2.0e6) },
+        baseball: { massExp: Math.log10(0.145),   speedExp: Math.log10(40)    }
+      };
+      const DEFAULTS = { massExp: PRESETS.electron.massExp, speedExp: PRESETS.electron.speedExp };
+      const state = { massExp: DEFAULTS.massExp, speedExp: DEFAULTS.speedExp };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 파생값 -----
+      function mass()  { return Math.pow(10, state.massExp); }   // kg
+      function speed() { return Math.pow(10, state.speedExp); }  // m/s
+      function momentum() { return mass() * speed(); }           // kg·m/s
+      function lambda()   { return H / momentum(); }             // m
+
+      // 지수표기 문자열 (예: 9.1e-31)
+      function fmtExp(x, digits) {
+        if (x === 0) return '0';
+        const exp = Math.floor(Math.log10(Math.abs(x)));
+        const mant = x / Math.pow(10, exp);
+        return mant.toFixed(digits === undefined ? 2 : digits) + 'e' + exp;
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 애니메이션 위상
+      let phase = 0;
+      let rafId = null;
+
+      // 물질파 파장을 화면 픽셀 파장으로 매핑.
+      // λ는 10^-34 ~ 10^-9 m 범위로 매우 넓으므로 로그 스케일로 픽셀 파장(2~140px)에 대응시킨다.
+      function pixelWavelength() {
+        const lamExp = Math.log10(lambda());   // 대략 -34 ~ -9
+        // lamExp -34 → 2px(거의 직선), -9 → 140px(뚜렷한 파동)
+        const t = (lamExp - (-34)) / ((-9) - (-34)); // 0~1
+        const clamped = Math.max(0, Math.min(1, t));
+        return 2 + clamped * 138;
+      }
+
+      // ----- (3) draw(): state(+phase)만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H_ = canvas.height;
+        ctx.clearRect(0, 0, W, H_);
+
+        // 배경
+        ctx.fillStyle = '#0f0a1e';
+        ctx.fillRect(0, 0, W, H_);
+
+        const cy = H_ / 2;
+        const pxLam = pixelWavelength();
+        const amp = Math.min(70, 18 + pxLam * 0.45); // 파장 길수록 진폭도 약간 크게(시각적)
+
+        // 기준선
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+
+        // --- 물질파 (사인파) ---
+        ctx.strokeStyle = '#8b63e0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const k = (2 * Math.PI) / pxLam;
+        for (let x = 0; x <= W; x++) {
+          const y = cy - amp * Math.sin(k * x + phase);
+          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // 파장 가장 짧을 때(거의 직선)임을 알리는 안내
+        if (pxLam <= 4) {
+          ctx.fillStyle = 'rgba(255,255,255,0.55)';
+          ctx.font = '13px sans-serif';
+          ctx.fillText('파장이 너무 짧아 거의 직선 (고전 입자처럼 보임)', 16, cy - 90 < 16 ? 24 : cy - 90);
+        }
+
+        // --- 입자 (파동을 타고 이동) ---
+        const period = pxLam;                  // 한 파장만큼 진행하면 phase 한 주기
+        const travel = (phase / (2 * Math.PI)) * period;
+        const px = (W * 0.12 + travel) % (W * 0.88) + W * 0.06;
+        const py = cy - amp * Math.sin(k * px + phase);
+
+        // 입자 글로우
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, 16);
+        grad.addColorStop(0, 'rgba(190,160,255,0.9)');
+        grad.addColorStop(1, 'rgba(107,70,193,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(px, py, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#d6c8ff';
+        ctx.beginPath();
+        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // λ 라벨
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('λ ≈ ' + fmtExp(lambda()) + ' m', 16, H_ - 16);
+      }
+
+      // ----- 애니메이션 루프 (requestAnimationFrame) -----
+      function loop() {
+        phase += 0.12;
+        if (phase > 1e6) phase = phase % (2 * Math.PI); // 오버플로 방지
+        draw();
+        rafId = requestAnimationFrame(loop);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        document.getElementById('r-momentum').textContent = fmtExp(momentum());
+        document.getElementById('r-lambda').textContent = fmtExp(lambda());
+
+        const lam = lambda();
+        const verdict = document.getElementById('r-verdict');
+        // 원자 크기(~1e-10 m) 기준으로 관측 가능성 코멘트
+        if (lam >= 1e-10) {
+          verdict.textContent = '✅ 관측 가능: 파장이 원자 크기(~10⁻¹⁰ m) 이상이라 회절·간섭 같은 파동성이 나타난다.';
+          verdict.style.color = '#16a34a';
+        } else if (lam >= 1e-15) {
+          verdict.textContent = '⚠️ 관측 매우 어려움: 파장이 원자보다 작아 특수한 장치로만 흔적을 볼 수 있다.';
+          verdict.style.color = '#d97706';
+        } else {
+          verdict.textContent = '❌ 관측 불가능: 파장이 원자핵보다도 훨씬 작아 사실상 고전 입자처럼 행동한다.';
+          verdict.style.color = '#dc2626';
+        }
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const massSlider = document.getElementById('mass');
+      const speedSlider = document.getElementById('speed');
+      const massVal = document.getElementById('mass-val');
+      const speedVal = document.getElementById('speed-val');
+
+      function syncLabels() {
+        massVal.textContent = fmtExp(mass(), 1);
+        speedVal.textContent = fmtExp(speed(), 1);
+      }
+
+      // ----- (2) 슬라이더 이벤트: 즉시 draw()/result 갱신 -----
+      massSlider.addEventListener('input', () => {
+        state.massExp = Number(massSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      speedSlider.addEventListener('input', () => {
+        state.speedExp = Number(speedSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 프리셋 -----
+      function applyPreset(p) {
+        state.massExp = p.massExp;
+        state.speedExp = p.speedExp;
+        massSlider.value = String(p.massExp);
+        speedSlider.value = String(p.speedExp);
+        syncLabels(); updateResult(); draw();
+      }
+      document.getElementById('preset-electron').addEventListener('click', () => applyPreset(PRESETS.electron));
+      document.getElementById('preset-baseball').addEventListener('click', () => applyPreset(PRESETS.baseball));
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        applyPreset({ massExp: DEFAULTS.massExp, speedExp: DEFAULTS.speedExp });
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 λ = h / (m·v) 이므로 질량이 크면 파장이 짧아지고, 야구공의 파장은 원자보다 작아 관측되지 않습니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. λ = h / (m·v) 관계와 "파동성은 없는 게 아니라 보이지 않는다"는 점을 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 + 애니메이션 시작 -----
+      syncLabels();
+      updateResult();
+      draw();
+      rafId = requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

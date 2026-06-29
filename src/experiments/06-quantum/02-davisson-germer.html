@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>데이비슨-거머 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f6f5fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0b0b14; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f0ecfb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>데이비슨-거머 실험</h1>
+    <div class="en">Davisson&ndash;Germer Experiment</div>
+    <div class="meta">1927년 · 클린턴 데이비슨 (Clinton Davisson), 레스터 거머 (Lester Germer) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" aria-label="전자총에서 나온 전자가 니켈 결정에서 회절하여 각도별 세기 곡선에 봉우리를 만드는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="voltage">가속 전압 V: <span id="voltage-val">54</span> V</label>
+          <input type="range" id="voltage" min="20" max="150" step="1" value="54"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="dspace">결정 격자 간격 d: <span id="dspace-val">0.091</span> nm</label>
+          <input type="range" id="dspace" min="0.050" max="0.200" step="0.001" value="0.091"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        전자 파장 λ: <strong>—</strong><br>
+        1차 회절 봉우리 각도 θ: <strong id="result-theta">—</strong>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 검출기를 각도별로 돌리며 측정한 세기 곡선에
+        <strong>뾰족한 봉우리</strong>가 나타난다. 이것은 입자인 전자가 마치 파동처럼
+        결정 격자에서 <strong>회절</strong>한다는 증거다(드브로이 물질파).
+        <strong>전압 V를 키우면</strong> 전자 파장 λ가 짧아져 봉우리가 작은 각도 쪽으로,
+        <strong>격자 간격 d를 키우면</strong> 봉우리가 다시 작은 각도 쪽으로 이동한다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>전자에도 파장 λ = h / √(2meV) 인 물질파가 대응함을 이해한다.</li>
+        <li>결정 격자에서 전자가 회절해 특정 각도에 세기 봉우리를 만듦을 설명한다.</li>
+        <li>브래그 조건 nλ = 2d·sinθ 로 봉우리 각도가 정해짐을 익힌다.</li>
+        <li>가속 전압 V와 격자 간격 d가 봉우리 위치에 주는 영향을 파악한다.</li>
+        <li>이 실험이 드브로이 물질파(전자의 파동성)의 실험적 증명임을 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>전자를 전압 V로 가속하면 운동에너지 eV 를 얻는다. 드브로이에 따르면 운동량 p 를 가진 입자에는
+        파장 λ = h / p 인 물질파가 대응한다. 비상대론적으로 p = √(2meV) 이므로
+        <strong>λ = h / √(2meV)</strong> 가 된다. 54 V에서는 λ ≈ 0.167 nm 로, X선과 비슷한 원자 크기 규모다.</p>
+        <p>이 파동이 규칙적으로 배열된 니켈 결정 격자(간격 d)에 입사하면, 격자면에서 반사된 파동들이
+        서로 간섭한다. 경로차가 파장의 정수배일 때 보강간섭이 일어나 그 각도에서 세기가 크게 솟는다.
+        이것이 <strong>브래그 회절</strong>이며, 곧 전자가 파동처럼 행동한다는 직접 증거다.</p>
+      </div>
+
+      <div class="formula-box">
+        λ = h / √(2·m·e·V)
+        <br>
+        브래그 조건: n·λ = 2·d·sinθ
+        <br>
+        1차(n=1): sinθ = λ / (2·d)
+      </div>
+
+      <!-- SVG 다이어그램: 전자총 → 결정 → 검출기, 회절 봉우리 -->
+      <svg width="440" height="240" viewBox="0 0 440 240" role="img"
+           aria-label="전자총에서 나온 전자 빔이 니켈 결정에서 회절하여 검출기 쪽으로 회절 봉우리를 만드는 경로 다이어그램">
+        <!-- 전자총 -->
+        <rect x="14" y="92" width="46" height="36" rx="4" fill="#6B46C1"/>
+        <text x="10" y="146" font-size="11">전자총</text>
+        <!-- 입사 전자빔 -->
+        <line x1="60" y1="110" x2="210" y2="170" stroke="#22d3ee" stroke-width="2"/>
+        <polygon points="210,170 200,162 202,172" fill="#22d3ee"/>
+        <text x="118" y="132" font-size="11" fill="#0e7490">입사 전자빔</text>
+        <!-- 니켈 결정 (격자 점) -->
+        <g fill="#9ca3af">
+          <circle cx="190" cy="180" r="4"/><circle cx="206" cy="180" r="4"/>
+          <circle cx="222" cy="180" r="4"/><circle cx="238" cy="180" r="4"/>
+          <circle cx="198" cy="194" r="4"/><circle cx="214" cy="194" r="4"/>
+          <circle cx="230" cy="194" r="4"/><circle cx="246" cy="194" r="4"/>
+        </g>
+        <text x="180" y="222" font-size="11">니켈 결정 (격자 간격 d)</text>
+        <!-- 회절된 전자 (검출기 쪽) -->
+        <line x1="214" y1="180" x2="380" y2="120" stroke="#facc15" stroke-width="2"/>
+        <polygon points="380,120 370,120 376,130" fill="#facc15"/>
+        <text x="300" y="120" font-size="11" fill="#a16207">회절 전자</text>
+        <!-- 검출기 -->
+        <rect x="384" y="100" width="42" height="40" rx="4" fill="#16a34a"/>
+        <text x="384" y="158" font-size="11">검출기</text>
+        <!-- 각도 θ 호 -->
+        <path d="M 250 156 A 60 60 0 0 0 268 196" fill="none" stroke="#6B46C1" stroke-width="1.5"/>
+        <text x="258" y="172" font-size="12" fill="#6B46C1">θ</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "전자는 작은 알갱이(입자)니까 결정에 부딪히면 사방으로 튕겨 나가
+        세기가 고르게 퍼질 것"이라 생각하기 쉽다. 실제로는 특정 각도에 <em>뾰족한 세기 봉우리</em>가
+        나타난다. 이는 단순한 충돌로는 설명되지 않으며, 전자의 물질파가 격자에서 <em>회절·간섭</em>한
+        결과다. 즉 무늬(봉우리)의 존재 자체가 전자의 파동성을 증명한다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 데이비슨-거머 실험이 입증한 것은?</p>
+          <label><input type="radio" name="q1" value="correct"> 전자의 파동성 (드브로이 물질파)</label>
+          <label><input type="radio" name="q1" value="wrong"> 전자의 전하량</label>
+          <label><input type="radio" name="q1" value="wrong"> 빛의 입자성 (광자)</label>
+        </div>
+        <div class="q">
+          <p>2. 가속 전압 V를 높이면 전자 파장 λ는 어떻게 되는가?</p>
+          <label><input type="radio" name="q2" value="wrong"> 길어진다</label>
+          <label><input type="radio" name="q2" value="correct"> 짧아진다 (λ ∝ 1/√V)</label>
+          <label><input type="radio" name="q2" value="wrong"> 변하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 클린턴 데이비슨 (Clinton Davisson, 1881~1958) &middot; 레스터 거머 (Lester Germer, 1896~1971)</h3>
+        <p>미국 벨 연구소의 물리학자 데이비슨과 그의 조수 거머는 금속 표면에 전자를 충돌시키는 실험을 진행하던 중,
+        진공 장치 사고로 니켈 시료를 가열·재결정화하게 되었다. 그 결과 시료가 큰 단결정으로 바뀌었고,
+        전자 빔이 특정 각도에서 강하게 산란되는 봉우리가 나타났다. 이를 드브로이의 물질파 이론으로 해석해
+        전자의 파동성을 실험으로 입증했다. 데이비슨은 같은 현상을 독립적으로 관찰한 조지 패짓 톰슨과 함께
+        1937년 노벨 물리학상을 받았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1905년 — 아인슈타인이 광전효과로 빛의 입자성(광자)을 제시</li>
+          <li>1913년 — 브래그 부자가 X선 결정 회절(브래그 법칙 nλ = 2d·sinθ)을 확립</li>
+          <li>1924년 — 드브로이가 박사학위 논문에서 물질파(λ = h/p) 가설 제안</li>
+          <li>1927년 — 데이비슨·거머가 니켈 결정에서 전자 회절 봉우리를 관측, 물질파 실험적 증명</li>
+          <li>1927년 — 조지 패짓 톰슨이 박막 투과 전자 회절로 같은 결론에 독립 도달</li>
+          <li>1937년 — 데이비슨과 G. P. 톰슨이 전자 회절 발견으로 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 빛뿐 아니라 전자 같은 "입자"도 파동처럼 회절한다는 것을 보여
+        드브로이의 물질파 가설을 결정적으로 입증했다. 파동–입자 이중성이 빛에만 국한되지 않고
+        모든 물질에 적용됨을 확립해 양자역학의 토대를 다졌으며, 훗날 전자현미경과 전자 회절 분석법
+        같은 강력한 기술의 출발점이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 -----
+      const H = 6.62607015e-34;   // 플랑크 상수 (J·s)
+      const ME = 9.1093837015e-31; // 전자 질량 (kg)
+      const QE = 1.602176634e-19;  // 기본 전하 (C)
+
+      // ----- 상태 (V: 가속전압 V, d: 격자 간격 nm) -----
+      const DEFAULTS = { V: 54, d: 0.091 };
+      const state = { V: DEFAULTS.V, d: DEFAULTS.d };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 계산 -----
+      // 전자 파장 λ = h / √(2·m·e·V)  → nm
+      function wavelengthNM() {
+        const p = Math.sqrt(2 * ME * QE * state.V); // kg·m/s
+        const lambdaM = H / p;                       // m
+        return lambdaM * 1e9;                        // nm
+      }
+      // 1차 회절 봉우리 각도: sinθ = λ / (2d).  없으면 null
+      function firstPeakDeg() {
+        const ratio = wavelengthNM() / (2 * state.d);
+        if (ratio > 1) return null; // 1차 봉우리 존재 불가
+        return Math.asin(ratio) * 180 / Math.PI;
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H2 = canvas.height;
+        ctx.clearRect(0, 0, W, H2);
+
+        // 배경
+        ctx.fillStyle = '#0b0b14';
+        ctx.fillRect(0, 0, W, H2);
+
+        // 극좌표 세기 패턴의 중심(결정 위치)
+        const cx = W / 2, cy = 150;
+        const Rmax = 110;          // 세기 패턴 최대 반지름
+        const peakDeg = firstPeakDeg();
+
+        // --- 전자총 ---
+        ctx.fillStyle = '#6B46C1';
+        ctx.fillRect(20, cy - 16, 54, 32);
+        ctx.fillStyle = '#e2e0f0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('전자총', 24, cy + 36);
+
+        // --- 입사 전자빔 (전자총 → 결정) ---
+        ctx.strokeStyle = '#22d3ee';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(74, cy);
+        ctx.lineTo(cx, cy);
+        ctx.stroke();
+        // 빔 위 움직이는 점선 느낌(정적)
+        ctx.fillStyle = '#22d3ee';
+        ctx.fillText('입사 전자빔', 92, cy - 8);
+
+        // --- 니켈 결정 (격자 점 배열) ---
+        ctx.fillStyle = '#9ca3af';
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 5; c++) {
+            ctx.beginPath();
+            ctx.arc(cx + c * 9 - 4, cy + 8 + r * 9, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('니켈 결정', cx - 18, cy + 64);
+
+        // --- 극좌표 세기 패턴 (I(φ) ∝ cos²) ---
+        // 봉우리는 입사빔에 대해 산란각 φ_peak = 2θ(=peakDeg*2 의 형태로 시각화)로 표시.
+        // 여기서는 표면 법선 기준 회절각 θ 를 검출 각도로 사용해 위쪽 반원에 그린다.
+        // φ = 0 (오른쪽 수평, 입사빔 진행방향) ~ 180° (왼쪽). 위쪽 반평면에 검출 곡선.
+        const lobeWidthDeg = 14; // 봉우리 폭(시각화용)
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        let started = false;
+        for (let aDeg = 0; aDeg <= 180; aDeg += 1) {
+          let intensity;
+          if (peakDeg === null) {
+            intensity = 0.12; // 봉우리 없음: 거의 균일하게 약함
+          } else {
+            // 봉우리 중심을 검출각 peakDeg(법선 기준) 양쪽에 대응시킨다.
+            // 검출 각도(법선=위쪽=90°) 기준으로 ±peakDeg 위치에 봉우리.
+            const left = 90 + peakDeg;
+            const right = 90 - peakDeg;
+            const dL = aDeg - left, dR = aDeg - right;
+            const gL = Math.exp(-(dL * dL) / (2 * lobeWidthDeg * lobeWidthDeg));
+            const gR = Math.exp(-(dR * dR) / (2 * lobeWidthDeg * lobeWidthDeg));
+            intensity = 0.12 + 0.88 * Math.max(gL, gR);
+          }
+          const rad = aDeg * Math.PI / 180;
+          const rr = Rmax * intensity;
+          // 위쪽 반평면: y 감소 방향
+          const px = cx + rr * Math.cos(Math.PI - rad);
+          const py = cy - rr * Math.sin(Math.PI - rad);
+          if (!started) { ctx.moveTo(px, py); started = true; }
+          else { ctx.lineTo(px, py); }
+        }
+        ctx.strokeStyle = '#facc15';
+        ctx.stroke();
+
+        // 패턴 채움(은은하게)
+        ctx.lineTo(cx, cy);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(250, 204, 21, 0.10)';
+        ctx.fill();
+
+        // --- 기준선: 표면 법선(점선) ---
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx, cy - Rmax - 16);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('법선', cx + 6, cy - Rmax - 4);
+
+        // --- 검출기(봉우리 방향에 위치) ---
+        if (peakDeg !== null) {
+          const detDeg = 90 + peakDeg;             // 법선 왼쪽 봉우리에 배치
+          const detRad = detDeg * Math.PI / 180;
+          const detR = Rmax + 28;
+          const dx = cx + detR * Math.cos(Math.PI - detRad);
+          const dy = cy - detR * Math.sin(Math.PI - detRad);
+          // 결정 → 검출기 회절 빔
+          ctx.strokeStyle = '#facc15';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(dx, dy);
+          ctx.stroke();
+          // 검출기 박스
+          ctx.fillStyle = '#16a34a';
+          ctx.save();
+          ctx.translate(dx, dy);
+          ctx.rotate(Math.PI - detRad);
+          ctx.fillRect(-2, -14, 16, 28);
+          ctx.restore();
+          // θ 라벨
+          ctx.fillStyle = '#facc15';
+          ctx.fillText('θ = ' + peakDeg.toFixed(1) + '°', cx - 80, cy - 30);
+        } else {
+          ctx.fillStyle = '#f87171';
+          ctx.fillText('이 조건에선 1차 봉우리 없음 (λ > 2d)', cx - 90, cy - 30);
+        }
+
+        // --- 하단: 검출 각도별 세기 곡선 (직교 그래프) ---
+        const gx0 = 60, gx1 = W - 30;          // x축 범위(픽셀)
+        const gy0 = H2 - 30, gyTop = cy + 90;  // y축 범위(아래 큰값=세기 0)
+        // 축
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gyTop); ctx.lineTo(gx0, gy0); ctx.lineTo(gx1, gy0);
+        ctx.stroke();
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('세기', gx0 - 30, gyTop + 6);
+        ctx.fillText('검출 각도 θ →', gx1 - 90, gy0 + 18);
+        // 0°, 90° 눈금
+        ctx.fillText('0°', gx0 - 4, gy0 + 16);
+        ctx.fillText('90°', gx1 - 14, gy0 + 16);
+
+        // 곡선: θ 0~90° 범위, peakDeg 위치에 봉우리
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const graphH = gy0 - gyTop;
+        for (let i = 0; i <= 180; i++) {
+          const thetaDeg = i * 90 / 180; // 0~90
+          let inten;
+          if (peakDeg === null) {
+            inten = 0.08;
+          } else {
+            const dd = thetaDeg - peakDeg;
+            inten = 0.08 + 0.92 * Math.exp(-(dd * dd) / (2 * (lobeWidthDeg / 1.5) * (lobeWidthDeg / 1.5)));
+          }
+          const px = gx0 + (gx1 - gx0) * (thetaDeg / 90);
+          const py = gy0 - graphH * inten;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // 봉우리 위치 점선 표시
+        if (peakDeg !== null) {
+          const px = gx0 + (gx1 - gx0) * (peakDeg / 90);
+          ctx.strokeStyle = 'rgba(250,204,21,0.5)';
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(px, gyTop); ctx.lineTo(px, gy0);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#facc15';
+          ctx.fillText('봉우리 ' + peakDeg.toFixed(1) + '°', px - 24, gyTop - 2);
+        }
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const lambda = wavelengthNM();
+        const peak = firstPeakDeg();
+        document.querySelector('#result strong').textContent = lambda.toFixed(4) + ' nm';
+        document.getElementById('result-theta').textContent =
+          (peak === null) ? '없음 (λ > 2d)' : peak.toFixed(1) + '°';
+      }
+
+      // ----- 슬라이더 -----
+      const vSlider = document.getElementById('voltage');
+      const dSlider = document.getElementById('dspace');
+      const vVal = document.getElementById('voltage-val');
+      const dVal = document.getElementById('dspace-val');
+
+      function syncLabels() {
+        vVal.textContent = state.V;
+        dVal.textContent = state.d.toFixed(3);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      vSlider.addEventListener('input', () => {
+        state.V = Number(vSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      dSlider.addEventListener('input', () => {
+        state.d = Number(dSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.V = DEFAULTS.V;
+        state.d = DEFAULTS.d;
+        vSlider.value = String(DEFAULTS.V);
+        dSlider.value = String(DEFAULTS.d);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 전자도 파동처럼 회절하며(물질파), λ = h/√(2meV) 이므로 V가 커지면 λ는 짧아집니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 핵심은 전자의 파동성(드브로이 물질파)과 λ ∝ 1/√V 관계입니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

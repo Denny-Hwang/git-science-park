@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중력 렌즈 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f3f5f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #05060f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaeef4; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>중력 렌즈</h1>
+    <div class="en">Gravitational Lensing</div>
+    <div class="meta">1936년 · 알베르트 아인슈타인 (Albert Einstein) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" aria-label="앞쪽의 거대 질량(렌즈 은하)이 뒤쪽 광원의 빛을 휘게 해 관측자에게 고리 또는 여러 개의 상으로 보이는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="mass">렌즈 질량 M: <span id="mass-val">5.0</span> ×10¹² M☉</label>
+          <input type="range" id="mass" min="0.5" max="10" step="0.1" value="5.0"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="offset">광원 정렬 어긋남(오프셋) β: <span id="offset-val">0.0</span> ″</label>
+          <input type="range" id="offset" min="0" max="4" step="0.05" value="0.0"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        아인슈타인 반지름 θ_E: <strong>—</strong> &nbsp;·&nbsp; 보이는 상: <strong id="image-kind">—</strong>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 광원·렌즈·관측자가 <strong>완벽히 일직선</strong>(오프셋 = 0)일수록
+        상은 닫힌 <strong>아인슈타인 고리</strong>에 가까워진다. 오프셋을 키우면 고리가 깨지면서
+        양쪽으로 늘어난 <strong>두 개의 호(arc)</strong> → 더 어긋나면 <strong>두 개의 점 상</strong>으로 변한다.
+        렌즈 <strong>질량 M을 키우면</strong> 아인슈타인 반지름(θ_E ∝ √M)이 커져 고리/상이 바깥쪽으로 벌어진다.
+        이 현상은 눈에 보이지 않는 <strong>암흑물질</strong>의 무게를 재고 먼 우주를 탐사하는 데 쓰인다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>거대 질량이 시공간을 휘어 빛의 경로를 꺾는다는 일반상대성의 결과를 이해한다.</li>
+        <li>아인슈타인 반지름이 질량의 제곱근에 비례함(θ_E ∝ √M)을 설명한다.</li>
+        <li>광원–렌즈–관측자의 정렬 정도에 따라 상이 고리 → 호 → 이중 상으로 바뀜을 안다.</li>
+        <li>중력 렌즈가 암흑물질 측정과 먼 우주 탐사에 어떻게 쓰이는지 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>일반상대성이론에 따르면 질량은 주변 시공간을 휘게 하고, 빛은 그 휘어진 시공간을 따라 진행한다.
+        그래서 거대한 질량(은하나 은하단)이 그 뒤편 천체에서 오는 빛을 마치 볼록 렌즈처럼 꺾어,
+        배경 천체가 <strong>여러 개의 상</strong>·늘어난 <strong>호(arc)</strong>, 또는 완전 정렬 시 닫힌
+        <strong>아인슈타인 고리(Einstein ring)</strong>로 보이게 한다.</p>
+        <p>광원이 렌즈 바로 뒤에 정확히 정렬되면(β = 0) 대칭성 때문에 빛이 사방에서 동일하게 휘어 고리가 된다.
+        정렬이 어긋날수록(β &gt; 0) 고리가 깨져 렌즈 양쪽으로 밝은 상 두 개가 남고, 그 사이 거리는 정렬도와 질량에 따라 정해진다.</p>
+      </div>
+
+      <div class="formula-box">
+        θ_E = √( 4GM/c² · (D_LS / (D_L · D_S)) )
+        <br>
+        θ_E ∝ √M
+        <br>
+        θ_± = ( β ± √(β² + 4·θ_E²) ) / 2
+      </div>
+
+      <!-- SVG 다이어그램: 광원 → 렌즈(질량) → 휘어진 빛 → 관측자 -->
+      <svg width="440" height="220" viewBox="0 0 440 220" role="img"
+           aria-label="배경 광원에서 나온 빛이 가운데 질량을 지나며 양쪽으로 휘어 관측자에게 두 개의 상으로 도달하는 경로 다이어그램">
+        <!-- 광원 -->
+        <circle cx="30" cy="110" r="9" fill="#facc15"/>
+        <text x="10" y="135" font-size="11">광원</text>
+        <!-- 렌즈(질량) -->
+        <circle cx="220" cy="110" r="16" fill="#1A365D"/>
+        <circle cx="220" cy="110" r="26" fill="none" stroke="#2d5494" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="198" y="160" font-size="11">렌즈 질량 M</text>
+        <!-- 관측자 -->
+        <circle cx="410" cy="110" r="7" fill="#22d3ee"/>
+        <text x="392" y="135" font-size="11">관측자</text>
+        <!-- 직진 시선(점선) -->
+        <line x1="39" y1="110" x2="403" y2="110" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4"/>
+        <!-- 위로 휘는 빛 경로 -->
+        <path d="M39 110 Q 150 60 220 70 Q 290 80 403 110" fill="none" stroke="#facc15" stroke-width="1.6"/>
+        <!-- 아래로 휘는 빛 경로 -->
+        <path d="M39 110 Q 150 160 220 150 Q 290 140 403 110" fill="none" stroke="#facc15" stroke-width="1.6"/>
+        <!-- 보이는 상(겉보기 위치) -->
+        <circle cx="150" cy="58" r="5" fill="#fde68a"/>
+        <circle cx="150" cy="162" r="5" fill="#fde68a"/>
+        <text x="120" y="48" font-size="11" fill="#6b7280">상 1</text>
+        <text x="120" y="186" font-size="11" fill="#6b7280">상 2</text>
+        <!-- θ_E 표시 -->
+        <text x="232" y="92" font-size="11" fill="#2d5494">θ_E</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "빛은 질량이 없으니 중력의 영향을 받지 않는다"고 생각하기 쉽다.
+        하지만 일반상대성에서는 중력이 빛을 <em>직접 당기는 것</em>이 아니라 <em>시공간 자체를 휘게</em> 하고,
+        빛은 그 휘어진 공간에서 가능한 가장 곧은 길(측지선)을 따라가다 결과적으로 꺾인다.
+        또한 "렌즈가 빛을 모아 더 밝게만 보인다"는 것도 일부일 뿐, 정렬에 따라 <em>여러 개의 상이나 고리</em>가 생기는 것이 핵심이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 광원–렌즈–관측자가 완벽히 일직선으로 정렬될 때 보이는 상은?</p>
+          <label><input type="radio" name="q1" value="correct"> 닫힌 고리(아인슈타인 고리)</label>
+          <label><input type="radio" name="q1" value="wrong"> 점 하나(상 1개)</label>
+          <label><input type="radio" name="q1" value="wrong"> 아무것도 보이지 않음</label>
+        </div>
+        <div class="q">
+          <p>2. 렌즈 질량 M을 4배로 키우면 아인슈타인 반지름 θ_E는 약 몇 배가 되는가? (θ_E ∝ √M)</p>
+          <label><input type="radio" name="q2" value="wrong"> 4배</label>
+          <label><input type="radio" name="q2" value="correct"> 2배</label>
+          <label><input type="radio" name="q2" value="wrong"> 변하지 않음</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 알베르트 아인슈타인 (Albert Einstein, 1879~1955)</h3>
+        <p>독일 태생의 이론물리학자로, 1915년 일반상대성이론을 완성하며 중력을 "시공간의 곡률"로 설명했다.
+        그는 1936년 학술지 「Science」에 짧은 논문을 실어, 별 하나가 다른 별 뒤에 정확히 정렬되면
+        그 빛이 휘어 <em>고리 모양</em>의 상으로 보일 수 있음을 계산해 보였다.
+        다만 별-별 정렬은 너무 드물어 "실제로 관측될 가능성은 거의 없다"고 스스로 덧붙였다 —
+        그가 미처 내다보지 못한 것은, 별보다 훨씬 거대한 <strong>은하</strong>가 렌즈가 되리라는 점이었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1915년 — 아인슈타인, 일반상대성이론 발표 (중력 = 시공간의 곡률)</li>
+          <li>1919년 — 에딩턴의 일식 관측으로 별빛이 태양 옆에서 휘는 것이 확인됨</li>
+          <li>1936년 — 아인슈타인, 별에 의한 빛의 휘어짐과 "고리 상"을 계산해 발표</li>
+          <li>1937년 — 츠비키(Zwicky), 은하(은하단)가 강력한 중력 렌즈가 될 수 있음을 지적</li>
+          <li>1979년 — 쌍둥이 퀘이사 QSO 0957+561, 최초로 관측된 중력 렌즈 현상</li>
+          <li>1998년~ — 약한 중력 렌즈 분석으로 암흑물질 지도와 우주 구조 연구가 본격화</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 중력 렌즈는 일반상대성이론의 직접적 예측이 우주 규모에서 실현된 사례다.
+        오늘날 천문학자들은 렌즈로 휘어진 상을 분석해 눈에 보이지 않는 <strong>암흑물질</strong>의 분포와 양을 측정하고,
+        멀고 어두운 천체를 자연의 망원경처럼 확대해 관측한다. 아인슈타인이 "관측되기 어렵다"고 한 현상이
+        오늘날에는 우주를 들여다보는 핵심 도구가 된 셈이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (M: 10^12 태양질량 상대값, offset β: 각초) -----
+      const DEFAULTS = { mass: 5.0, offset: 0.0 };
+      const state = { mass: DEFAULTS.mass, offset: DEFAULTS.offset };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산: 아인슈타인 반지름(상대 각초) -----
+      // θ_E ∝ √M. 보기 좋은 스케일 상수를 곱해 "" 단위 상대값으로 표시.
+      function einsteinRadiusArcsec() {
+        return 1.2 * Math.sqrt(state.mass); // 상대 각초(arcsec)
+      }
+
+      // ----- 정렬도 → 상의 종류 판정 -----
+      // ratio = β / θ_E.  0이면 완전 고리, 작으면 호, 크면 분리된 두 점상.
+      function imageClassification() {
+        const thetaE = einsteinRadiusArcsec();
+        const ratio = thetaE > 0 ? state.offset / thetaE : Infinity;
+        if (ratio < 0.06) return { kind: '아인슈타인 고리', ratio: ratio };
+        if (ratio < 0.9) return { kind: '두 개의 호(arc)', ratio: ratio };
+        return { kind: '두 개의 점 상', ratio: ratio };
+      }
+
+      // ----- 별 배경(고정 좌표) -----
+      const stars = [];
+      (function seedStars() {
+        let s = 1234567;
+        const rand = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+        for (let i = 0; i < 90; i++) {
+          stars.push({ x: rand(), y: rand(), r: rand() * 1.2 + 0.3, a: rand() * 0.6 + 0.2 });
+        }
+      })();
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 우주 배경
+        ctx.fillStyle = '#05060f';
+        ctx.fillRect(0, 0, W, H);
+        stars.forEach((st) => {
+          ctx.globalAlpha = st.a;
+          ctx.fillStyle = '#dbeafe';
+          ctx.beginPath();
+          ctx.arc(st.x * W, st.y * H, st.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        const cx = W / 2, cy = H / 2;
+
+        // 화면 스케일: 1 arcsec → px
+        const pxPerArcsec = 26;
+        const thetaE = einsteinRadiusArcsec();
+        const rE = thetaE * pxPerArcsec;              // 고리 반지름(px)
+        const beta = state.offset * pxPerArcsec;      // 광원 오프셋(px)
+
+        const cls = imageClassification();
+
+        // --- 렌즈 후광(중력 우물 느낌) ---
+        const halo = ctx.createRadialGradient(cx, cy, 4, cx, cy, Math.max(rE * 1.6, 40));
+        halo.addColorStop(0, 'rgba(45,84,148,0.55)');
+        halo.addColorStop(1, 'rgba(45,84,148,0)');
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(rE * 1.6, 40), 0, Math.PI * 2);
+        ctx.fill();
+
+        // --- 진짜 광원의 (가려진) 위치: 위쪽으로 β만큼 어긋남 ---
+        const srcX = cx, srcY = cy - beta;
+        // 점선으로 실제 광원 위치 안내
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(250,204,21,0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(srcX, srcY, 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(250,204,21,0.85)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('실제 광원 위치', srcX + 10, srcY - 4);
+
+        // --- 렌즈 방정식으로 상의 위치/형태 결정 ---
+        // 1차원 점질량 렌즈: θ_± = (β ± √(β²+4θ_E²)) / 2  (단위 px, 부호는 화면 방향)
+        const betaA = beta; // px
+        const disc = Math.sqrt(betaA * betaA + 4 * rE * rE);
+        const thetaPlus = (betaA + disc) / 2;   // 광원과 같은 쪽(위)
+        const thetaMinus = (betaA - disc) / 2;  // 반대쪽(아래, 음수)
+
+        ctx.save();
+        ctx.shadowColor = '#fde68a';
+        ctx.shadowBlur = 14;
+
+        if (cls.kind === '아인슈타인 고리') {
+          // 거의 완전한 고리
+          ctx.strokeStyle = '#fde68a';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(cx, cy, rE, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(253,230,138,0.4)';
+          ctx.lineWidth = 12;
+          ctx.beginPath();
+          ctx.arc(cx, cy, rE, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          // 두 개의 상(호/점). β가 작으면 긴 호, 크면 짧은 점.
+          // 호의 펼침 각도: 정렬이 좋을수록(ratio 작을수록) 넓게 펼쳐진다.
+          const spread = Math.max(0.18, Math.min(1.0, 1.0 - cls.ratio)) * 1.5; // rad 반폭
+          const yTop = cy + thetaPlus * -1;   // 위쪽 상 (thetaPlus는 위 방향이므로 cy - thetaPlus)
+          const yBot = cy + (-thetaMinus);    // 아래쪽 상
+          // 위쪽 상의 각도(중심 기준)와 반지름
+          const rTop = Math.abs(cy - yTop);
+          const rBot = Math.abs(yBot - cy);
+          const baseAngleTop = -Math.PI / 2; // 위
+          const baseAngleBot = Math.PI / 2;  // 아래
+
+          ctx.strokeStyle = '#fde68a';
+          ctx.lineWidth = 6;
+          // 위쪽 호
+          ctx.beginPath();
+          ctx.arc(cx, cy, rTop, baseAngleTop - spread, baseAngleTop + spread);
+          ctx.stroke();
+          // 아래쪽 호
+          ctx.beginPath();
+          ctx.arc(cx, cy, rBot, baseAngleBot - spread, baseAngleBot + spread);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // --- 렌즈 은하(중앙 질량) ---
+        const galaxy = ctx.createRadialGradient(cx, cy, 1, cx, cy, 16);
+        galaxy.addColorStop(0, '#fff7d6');
+        galaxy.addColorStop(0.4, '#9ec1ff');
+        galaxy.addColorStop(1, '#1A365D');
+        ctx.fillStyle = galaxy;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 라벨
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('렌즈 은하 (질량 M)', cx + 18, cy + 4);
+
+        // 아인슈타인 반지름 가이드
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = 'rgba(34,211,238,0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, cy, rE, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(34,211,238,0.85)';
+        ctx.fillText('θ_E', cx + rE + 4, cy - 4);
+
+        // 상태 텍스트
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('보이는 상: ' + cls.kind, 12, 22);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const thetaE = einsteinRadiusArcsec();
+        const cls = imageClassification();
+        document.querySelector('#result strong').textContent = thetaE.toFixed(2) + ' ″ (상대값)';
+        document.getElementById('image-kind').textContent = cls.kind;
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const massSlider = document.getElementById('mass');
+      const offsetSlider = document.getElementById('offset');
+      const massVal = document.getElementById('mass-val');
+      const offsetVal = document.getElementById('offset-val');
+
+      function syncLabels() {
+        massVal.textContent = state.mass.toFixed(1);
+        offsetVal.textContent = state.offset.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      massSlider.addEventListener('input', () => {
+        state.mass = Number(massSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      offsetSlider.addEventListener('input', () => {
+        state.offset = Number(offsetSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.mass = DEFAULTS.mass;
+        state.offset = DEFAULTS.offset;
+        massSlider.value = String(DEFAULTS.mass);
+        offsetSlider.value = String(DEFAULTS.offset);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 완벽한 정렬이면 아인슈타인 고리, θ_E ∝ √M 이므로 질량 4배는 반지름 2배입니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 완전 정렬 → 고리, θ_E는 질량의 제곱근에 비례함을 떠올려 보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

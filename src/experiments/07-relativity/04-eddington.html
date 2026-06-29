@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>에딩턴의 일식 관측 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f3f5f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #05060f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef2f8; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 160px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>에딩턴의 일식 관측</h1>
+    <div class="en">Eddington's Eclipse Expedition</div>
+    <div class="meta">1919년 · 아서 에딩턴 (Arthur Eddington) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="420" role="img"
+        aria-label="일식 때 태양 곁을 지나는 별빛이 휘어 별의 겉보기 위치가 태양 바깥쪽으로 이동하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="impact">광선의 충돌계수 b (태양 중심 접근거리): <span id="impact-val">1.0</span> R<sub>☉</sub></label>
+          <input type="range" id="impact" min="1.0" max="6.0" step="0.05" value="1.0"
+            aria-describedby="impact-val">
+        </div>
+
+        <div class="control-row">
+          <label for="mass">태양 질량 배율 M: <span id="mass-val">1.0</span> M<sub>☉</sub></label>
+          <input type="range" id="mass" min="0.2" max="3.0" step="0.05" value="1.0"
+            aria-describedby="mass-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>빛 편향각 α: <strong id="r-deflect">—</strong></div>
+          <div>겉보기 위치 이동: <strong id="r-shift">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>뉴턴 예측 (½ 값): <strong id="r-newton">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 노란 실선은 휘어 도착한 <em>실제 광선</em>, 흰 점선은 관측자가
+        뒤로 연장해 인식하는 <em>겉보기 방향</em>입니다. 별의 겉보기 위치(흰 점)가 실제 위치(파란 점)보다
+        태양 <strong>바깥쪽</strong>으로 밀려나는 데 주목하세요. 충돌계수 b를 줄이거나 태양 질량 M을
+        키우면 편향각이 커집니다(편향 ∝ M / b). 평소엔 태양이 너무 밝아 곁의 별을 볼 수 없어,
+        <strong>개기일식</strong>으로 달이 태양을 가려야 비로소 이 효과를 측정할 수 있습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>질량이 시공간을 휘게 하여 빛의 경로도 휘어진다는 일반상대성의 핵심을 이해한다.</li>
+        <li>편향각이 질량에 비례하고 충돌계수(접근거리)에 반비례함을 익힌다.</li>
+        <li>일반상대성의 예측(1.75″)이 뉴턴 중력 예측(0.87″)의 정확히 2배임을 안다.</li>
+        <li>왜 개기일식이라는 특수한 조건에서만 이 관측이 가능한지 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>일반상대성이론에서 태양 같은 큰 질량은 주변 시공간을 휘게 만든다. 빛은 늘 시공간의
+        "가장 곧은 길(측지선)"을 따라가지만, 그 시공간 자체가 휘어 있으므로 결과적으로 광선이
+        질량 쪽으로 굽는다. 멀리 있는 별빛이 태양 가장자리를 스칠 때 약 <strong>1.75각초(1.75″)</strong>
+        휘어진다고 아인슈타인은 예측했다.</p>
+        <p>관측자는 빛이 휘어 온다는 사실을 모른 채 도착한 빛의 방향을 곧게 뒤로 연장한다.
+        그래서 별이 실제 위치보다 태양에서 <strong>바깥쪽</strong>으로 밀려난 것처럼 보인다.
+        뉴턴 중력(빛을 입자로 본 계산)도 빛의 휘어짐을 예측하지만 그 값은 절반(약 0.87″)에 불과해,
+        두 이론은 측정으로 구별할 수 있었다.</p>
+      </div>
+
+      <div class="formula-box">
+        α = 4GM / (c²·b)<br>
+        α(태양 가장자리) ≈ 1.75″ &nbsp;(일반상대성)<br>
+        뉴턴 예측 = ½ × 1.75″ ≈ 0.87″
+      </div>
+
+      <!-- SVG 다이어그램: 별빛이 태양 곁을 지나 휘는 모습 -->
+      <svg width="380" height="220" viewBox="0 0 380 220" role="img"
+        aria-label="멀리 있는 별에서 온 빛이 태양 곁을 지나며 휘어 지구에 도달하고, 겉보기 위치가 바깥으로 밀리는 다이어그램">
+        <!-- 태양 -->
+        <circle cx="200" cy="120" r="26" fill="#f6c453" stroke="#d97706" stroke-width="2"/>
+        <text x="200" y="124" font-size="11" text-anchor="middle" fill="#7c4a02">태양</text>
+        <!-- 지구(관측자) -->
+        <circle cx="40" cy="120" r="9" fill="#2563eb"/>
+        <text x="40" y="146" font-size="10" text-anchor="middle" fill="#374151">지구</text>
+        <!-- 실제 별 위치 (오른쪽 위) -->
+        <circle cx="346" cy="74" r="4" fill="#2563eb"/>
+        <text x="350" y="70" font-size="10" fill="#2563eb">실제 별</text>
+        <!-- 휘어 도착한 실제 광선 (태양 곁을 스쳐 꺾임) -->
+        <path d="M346,74 Q226,92 40,120" fill="none" stroke="#f6c453" stroke-width="2"/>
+        <!-- 겉보기 방향 (지구에서 본 직선 연장 - 더 위로) -->
+        <line x1="40" y1="120" x2="346" y2="40" stroke="#ffffff" stroke-width="1.5"
+          stroke-dasharray="5 4"/>
+        <circle cx="346" cy="40" r="4" fill="#ffffff" stroke="#9ca3af"/>
+        <text x="300" y="32" font-size="10" fill="#6b7280">겉보기 별</text>
+        <!-- 이동 표시 -->
+        <line x1="346" y1="74" x2="346" y2="44" stroke="#dc2626" stroke-width="1.5"/>
+        <text x="352" y="58" font-size="9" fill="#dc2626">밀림</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        휜 광선(노랑)을 곧게 연장하면(흰 점선) 별이 태양에서 바깥쪽으로 밀려 보인다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "빛은 질량이 없으니 중력의 영향을 받지 않는다"고 생각하기 쉽다.
+        하지만 일반상대성에서 중력은 시공간의 휘어짐이며, 질량이 없는 빛조차 휘어진 시공간을 따라가므로
+        경로가 굽는다. 또 "별이 태양 쪽으로 끌려 보인다"고 오해하기 쉬운데, 실제로는 휜 빛을 곧게
+        연장해 인식하기 때문에 별은 태양에서 <em>멀어진 바깥쪽</em>으로 밀려 보인다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>1919년 에딩턴의 일식 관측이 확인한 것은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 태양이 지구 주위를 돈다</label>
+        <label><input type="radio" name="q1" value="correct"> 중력이 빛을 휘게 한다 (일반상대성)</label>
+        <label><input type="radio" name="q1" value="wrong"> 빛의 속도가 변한다</label>
+        <label><input type="radio" name="q1" value="wrong"> 태양에서 새로운 원소가 발견된다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>태양 가장자리에서 일반상대성이 예측한 빛 편향각(약 1.75″)은 뉴턴 중력 예측에 비해?</p>
+        <label><input type="radio" name="q2" value="wrong"> 같다</label>
+        <label><input type="radio" name="q2" value="wrong"> 절반이다</label>
+        <label><input type="radio" name="q2" value="correct"> 2배다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아서 에딩턴 (Arthur Stanley Eddington, 1882~1944)</h3>
+        <p>영국의 천체물리학자로 별의 내부 구조와 항성 진화 연구의 선구자다. 제1차 세계대전 직후
+        독일 과학자 아인슈타인의 이론을 영어권에 적극 소개했고, 1919년 5월 29일 개기일식을 이용해
+        일반상대성이론의 빛 휘어짐 예측을 검증하는 원정대를 이끌었다.</p>
+        <p>에딩턴 팀은 아프리카 서해안 프린시페 섬으로, 또 다른 팀은 브라질 소브랄로 가서
+        일식 때 태양 근처 히아데스 성단 별들을 촬영했다. 이 사진을 평소(밤하늘) 별 위치와 비교해
+        별들이 바깥으로 밀려난 양을 측정, 아인슈타인의 1.75″ 예측과 일치함을 확인했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1915년 — 아인슈타인, 일반상대성이론 완성. 빛 휘어짐 약 1.75″ 예측</li>
+          <li>1916년 — 슈바르츠실트가 태양 주변 시공간 해를 구함</li>
+          <li>1919년 5월 29일 — 에딩턴의 프린시페·소브랄 일식 원정대 관측</li>
+          <li>1919년 11월 6일 — 영국 왕립학회·왕립천문학회 합동 회의에서 결과 발표</li>
+          <li>1919년 11월 7일 — 더 타임스 "과학혁명, 뉴턴 우주관 붕괴" 보도 → 아인슈타인 세계적 명성</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 추상적인 이론이 별빛이라는 직접 관측으로 검증된 사건으로,
+        일반상대성이론을 사변에서 실증 과학으로 끌어올렸다. 200년 넘게 군림하던 뉴턴 중력 패러다임이
+        새 이론으로 대체될 수 있음을 대중에게 각인시켰고, 무명에 가깝던 아인슈타인을 하룻밤 사이에
+        세계적 유명인사로 만들었다. 이후 중력렌즈 현상은 현대 천문학에서 암흑물질 탐사와 먼 은하 관측에
+        널리 활용되는 핵심 도구가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        impact: 1.0,   // 충돌계수 b (태양 반지름 R 단위)
+        mass: 1.0      // 태양 질량 배율 M (M_sun 단위)
+      };
+
+      // 물리 기준: 태양 가장자리(b=1R, M=1)에서 일반상대성 편향각 = 1.75각초
+      const ALPHA_GR_LIMB = 1.75; // arcsec, GR 예측 (태양 가장자리)
+
+      // 편향각(각초): α = 1.75 * M / b  (b는 R 단위, GR)
+      function deflectionGR() {
+        return ALPHA_GR_LIMB * state.mass / state.impact;
+      }
+      // 뉴턴 예측은 절반
+      function deflectionNewton() {
+        return deflectionGR() / 2;
+      }
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const impactSlider = document.getElementById('impact');
+      const massSlider = document.getElementById('mass');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 우주 배경 + 별들
+        ctx.fillStyle = '#05060f';
+        ctx.fillRect(0, 0, W, H);
+        drawStarfield();
+
+        const sunX = W * 0.5;
+        const sunY = H * 0.5;
+        const sunR = 34;                       // 태양 시각 반지름(px)
+        const observerX = 36;                  // 지구 관측자 (왼쪽)
+        const observerY = sunY;
+
+        // 일식: 달이 태양을 가림 (어두운 원반 + 코로나 고리)
+        // 코로나
+        const corona = ctx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, sunR + 26);
+        corona.addColorStop(0, 'rgba(255,236,170,0.85)');
+        corona.addColorStop(1, 'rgba(255,236,170,0)');
+        ctx.fillStyle = corona;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunR + 26, 0, Math.PI * 2);
+        ctx.fill();
+        // 달(가림 원반)
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+        ctx.fillStyle = '#0b0d18';
+        ctx.fill();
+        ctx.strokeStyle = '#f6c453';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#cbb27a';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('일식(달이 가림)', sunX, sunY + sunR + 40);
+        ctx.textAlign = 'left';
+
+        // 충돌계수 -> px (b=1R 이 태양 가장자리 sunR)
+        const bPx = state.impact * sunR;
+
+        // 휘는 각: 시각적 과장(실제 1.75″는 눈에 안 보이므로 비례 확대)
+        // 화면각 = deflection * scale
+        const alphaArcsec = deflectionGR();
+        const visAngle = Math.min(0.9, alphaArcsec * 0.32); // rad (시각화용 과장)
+
+        // 별이 태양 위쪽을 스쳐 지나가도록 배치 (광선은 태양 위를 지남)
+        // 실제 광선: 별(오른쪽) -> 근접점(태양 위, 충돌계수 bPx) -> 지구(왼쪽)
+        const apexX = sunX;
+        const apexY = sunY - bPx;              // 근접점 (태양 위)
+
+        // 광선의 도착 방향(지구에서 본 입사 방향)을 visAngle만큼 휘게 한다.
+        // 직선이라면 별은 입사선 연장선상에 있음. 휘어서 더 아래로 들어옴.
+        const baseDx = apexX - observerX;      // 지구->근접점 수평거리
+        const baseDy = apexY - observerY;      // (음수: 위쪽)
+        const segLen = Math.hypot(baseDx, baseDy);
+        const baseAng = Math.atan2(baseDy, baseDx); // 지구에서 근접점 방향각
+
+        // 실제 광선이 지구로 들어오는 각도 = baseAng + visAngle (아래로 더 휘어 들어옴)
+        const incomingAng = baseAng + visAngle;
+
+        // 별까지 오른쪽으로 더 뻗는 거리
+        const farLen = (W - apexX) + 80;
+
+        // 실제 별 위치(휘기 전 광선의 연장 = 근접점에서 baseAng 방향 직선)
+        const realStarX = apexX + farLen * Math.cos(baseAng);
+        const realStarY = apexY + farLen * Math.sin(baseAng);
+
+        // 겉보기 별 위치: 지구에서 incomingAng 방향(휜 방향)으로 직선 연장
+        const totalLen = segLen + farLen;
+        const apparentStarX = observerX + totalLen * Math.cos(incomingAng);
+        const apparentStarY = observerY + totalLen * Math.sin(incomingAng);
+
+        // --- 실제 광선(휜 경로): 지구 -> 근접점(휜각 반영) -> 별 ---
+        // 지구->근접점 구간은 incomingAng 방향에서 근접점으로 부드럽게,
+        // 근접점->별은 baseAng 방향. 곡선으로 표현.
+        ctx.strokeStyle = '#f6c453';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(observerX, observerY);
+        // 지구에서 incomingAng으로 약간 진행한 제어점 -> 근접점
+        const ctrlX = observerX + segLen * 0.55 * Math.cos(incomingAng);
+        const ctrlY = observerY + segLen * 0.55 * Math.sin(incomingAng);
+        ctx.quadraticCurveTo(ctrlX, ctrlY, apexX, apexY);
+        ctx.lineTo(realStarX, realStarY);
+        ctx.stroke();
+
+        // --- 겉보기 방향(점선): 지구 -> 겉보기 별 ---
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(observerX, observerY);
+        ctx.lineTo(apparentStarX, apparentStarY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 지구(관측자)
+        ctx.beginPath();
+        ctx.arc(observerX, observerY, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#2563eb';
+        ctx.fill();
+        ctx.fillStyle = '#9fb6e0';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('지구 관측자', observerX - 6, observerY + 26);
+
+        // 실제 별(파랑)
+        drawStar(realStarX, realStarY, '#5b9bff');
+        ctx.fillStyle = '#5b9bff';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('실제 위치', realStarX - 60, realStarY + 4);
+
+        // 겉보기 별(흰)
+        drawStar(apparentStarX, apparentStarY, '#ffffff');
+        ctx.fillStyle = '#e5e7eb';
+        ctx.fillText('겉보기 위치', apparentStarX - 70, apparentStarY - 8);
+
+        // 이동량 화살표(실제->겉보기)
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(realStarX, realStarY);
+        ctx.lineTo(apparentStarX, apparentStarY);
+        ctx.stroke();
+
+        // 편향각 라벨
+        ctx.fillStyle = '#f6c453';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('α = ' + alphaArcsec.toFixed(2) + '″', sunX + 10, sunY - bPx - 8);
+
+        // 충돌계수 표시선
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(sunX, sunY);
+        ctx.lineTo(apexX, apexY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '10px sans-serif';
+        ctx.fillText('b = ' + state.impact.toFixed(2) + ' R', sunX + 6, (sunY + apexY) / 2);
+      }
+
+      function drawStar(x, y, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // 반짝임
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x - 9, y); ctx.lineTo(x + 9, y);
+        ctx.moveTo(x, y - 9); ctx.lineTo(x, y + 9);
+        ctx.stroke();
+      }
+
+      // 고정 배경 별 (의사난수로 매번 동일)
+      const bgStars = [];
+      (function seedStars() {
+        let s = 12345;
+        const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+        for (let i = 0; i < 70; i++) {
+          bgStars.push({ x: rnd() * 560, y: rnd() * 420, r: rnd() * 1.2 + 0.3 });
+        }
+      })();
+      function drawStarfield() {
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        bgStars.forEach((st) => {
+          ctx.beginPath();
+          ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const gr = deflectionGR();
+        const nw = deflectionNewton();
+        // 겉보기 이동량은 편향각과 동일한 각도(별의 위치 변화 = 편향각)
+        document.getElementById('r-deflect').textContent = gr.toFixed(2) + ' 각초(″)';
+        document.getElementById('r-shift').textContent = gr.toFixed(2) + ' 각초(″) 바깥쪽';
+        document.getElementById('r-newton').textContent = nw.toFixed(2) + ' 각초(″)';
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      impactSlider.addEventListener('input', () => {
+        state.impact = Number(impactSlider.value);
+        document.getElementById('impact-val').textContent = state.impact.toFixed(2);
+        updateResult();
+        draw();
+      });
+      massSlider.addEventListener('input', () => {
+        state.mass = Number(massSlider.value);
+        document.getElementById('mass-val').textContent = state.mass.toFixed(2);
+        updateResult();
+        draw();
+      });
+
+      // ----- 리셋 -----
+      function resetSim() {
+        state.impact = 1.0;
+        state.mass = 1.0;
+        impactSlider.value = '1.0';
+        massSlider.value = '1.0';
+        document.getElementById('impact-val').textContent = '1.00';
+        document.getElementById('mass-val').textContent = '1.00';
+        updateResult();
+        draw();
+      }
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '큰 질량이 시공간을 휘게 해 빛의 경로가 굽는다는 일반상대성을 입증했습니다.',
+        '일식 때 별빛이 휘어 별의 겉보기 위치가 바뀐 것을 측정한 실험입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '일반상대성 예측(1.75″)은 뉴턴 예측(0.87″)의 정확히 2배입니다.',
+        'GR 편향각은 뉴턴 예측의 2배(1.75″ vs 0.87″)입니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

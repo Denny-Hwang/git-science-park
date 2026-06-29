@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>허블의 우주 팽창 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f4f6fa;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #050814; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef2f9; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>허블의 우주 팽창</h1>
+    <div class="en">Hubble's Expanding Universe</div>
+    <div class="meta">1929년 · 에드윈 허블 (Edwin Hubble) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" aria-label="팽창하는 우주에서 여러 은하가 거리에 비례해 서로 멀어지고, 선택한 은하의 스펙트럼선이 적색편이되는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="dist">은하까지 거리 d: <span id="dist-val">100</span> Mpc</label>
+          <input type="range" id="dist" min="10" max="800" step="5" value="100"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="hubble">허블 상수 H₀: <span id="hubble-val">70</span> km/s/Mpc</label>
+          <input type="range" id="hubble" min="50" max="90" step="1" value="70"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        후퇴 속도 v: <strong>—</strong> &nbsp;|&nbsp; 적색편이 z: <strong id="z-val">—</strong>
+        <br><span style="font-size:0.9rem;color:var(--text-muted);">v = H₀·d &nbsp; / &nbsp; z ≈ v / c</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 거리 d를 키우면 그 은하의 후퇴 속도 v와 적색편이 z가 함께 커진다.
+        캔버스 왼쪽 우주에서 모든 은하가 <strong>거리에 비례해</strong> 동시에 서로 멀어지고(공간 격자가 늘어남),
+        선택된 은하(노란 테두리)의 스펙트럼선은 멀수록 <strong>빨간 쪽으로 더 많이 이동</strong>(적색편이)한다.
+        우리가 특별한 중심에 있어서가 아니라, 공간 자체가 늘어나기 때문이다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>허블 법칙 v = H₀·d 로 거리와 후퇴 속도가 비례함을 이해한다.</li>
+        <li>멀어지는 은하의 빛이 적색편이(파장이 길어짐)됨을 안다.</li>
+        <li>적색편이 z ≈ v / c 로 속도를 가늠하는 방법을 익힌다.</li>
+        <li>우주가 팽창한다는 것이 빅뱅의 증거임을 파악한다.</li>
+        <li>우리 은하가 중심이 아니라 공간 자체가 팽창함을 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>1929년 에드윈 허블은 멀리 있는 은하일수록 더 빠르게 우리에게서 멀어진다는 것을 관측했다.
+        멀어지는 천체의 빛은 파장이 길어져 스펙트럼선이 빨간색 쪽으로 밀린다(적색편이). 이 적색편이의 크기로
+        후퇴 속도를 알 수 있다.</p>
+        <p>거리 d와 후퇴 속도 v는 정비례한다: <strong>v = H₀·d</strong>. 비례상수 H₀가 허블 상수이며
+        현재 측정값은 약 70 km/s/Mpc 이다. 이는 1 Mpc(약 326만 광년) 떨어진 은하가 초당 약 70 km로
+        멀어진다는 뜻이다. 속도가 빛의 속도 c에 비해 작을 때 적색편이는 <strong>z ≈ v / c</strong> 로 근사된다.</p>
+        <p>중요한 점은 은하들이 빈 공간을 가로질러 날아가는 것이 아니라, <em>은하 사이의 공간 자체가
+        늘어난다</em>는 것이다. 그래서 어느 은하에서 보든 멀리 있는 은하일수록 더 빨리 멀어지는 것처럼 보인다.</p>
+      </div>
+
+      <div class="formula-box">
+        v = H₀ · d
+        <br>
+        z ≈ v / c &nbsp; (v ≪ c)
+        <br>
+        H₀ ≈ 70 km/s/Mpc
+      </div>
+
+      <!-- SVG 다이어그램: 허블 다이어그램(거리-속도 직선) -->
+      <svg width="420" height="240" viewBox="0 0 420 240" role="img"
+           aria-label="가로축 거리, 세로축 후퇴 속도인 허블 다이어그램. 데이터 점들이 원점을 지나는 직선 위에 분포한다.">
+        <!-- 축 -->
+        <line x1="50" y1="200" x2="400" y2="200" stroke="#4A5568" stroke-width="2"/>
+        <line x1="50" y1="200" x2="50" y2="20" stroke="#4A5568" stroke-width="2"/>
+        <!-- 축 화살표 -->
+        <polygon points="400,200 392,196 392,204" fill="#4A5568"/>
+        <polygon points="50,20 46,28 54,28" fill="#4A5568"/>
+        <!-- 허블 직선 v = H0 d -->
+        <line x1="50" y1="200" x2="380" y2="40" stroke="#dc2626" stroke-width="2.5"/>
+        <!-- 데이터 점들 (직선 주위 분포) -->
+        <circle cx="95"  cy="178" r="4" fill="#2d5494"/>
+        <circle cx="135" cy="170" r="4" fill="#2d5494"/>
+        <circle cx="175" cy="148" r="4" fill="#2d5494"/>
+        <circle cx="215" cy="138" r="4" fill="#2d5494"/>
+        <circle cx="255" cy="112" r="4" fill="#2d5494"/>
+        <circle cx="295" cy="98"  r="4" fill="#2d5494"/>
+        <circle cx="335" cy="72"  r="4" fill="#2d5494"/>
+        <!-- 라벨 -->
+        <text x="200" y="228" font-size="12" fill="#1a1a1a">거리 d (Mpc)</text>
+        <text x="8" y="115" font-size="12" fill="#1a1a1a" transform="rotate(-90 14 115)">후퇴 속도 v (km/s)</text>
+        <text x="300" y="44" font-size="11" fill="#dc2626">v = H₀ · d</text>
+        <text x="42" y="214" font-size="11" fill="#6b7280">0</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "은하들이 멀어지니까 우리 은하가 폭발의 중심이다"라고 생각하기 쉽다.
+        실제로는 <em>중심이 따로 없다</em>. 공간 자체가 늘어나기 때문에 어느 은하에서 관측해도 똑같이
+        멀리 있는 은하일수록 빨리 멀어지는 것처럼 보인다. 또한 적색편이는 은하가 공간 속을 빛보다 빠르게
+        날아가서가 아니라 빛이 이동하는 동안 공간이 늘어나 파장이 길어진 것이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 더 멀리 있는 은하일수록 후퇴 속도는 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="correct"> 더 빠르다 (v = H₀·d)</label>
+          <label><input type="radio" name="q1" value="wrong"> 더 느리다</label>
+          <label><input type="radio" name="q1" value="wrong"> 거리와 무관하다</label>
+        </div>
+        <div class="q">
+          <p>2. 멀어지는 은하의 빛에서 스펙트럼선은 어느 쪽으로 이동하는가?</p>
+          <label><input type="radio" name="q2" value="wrong"> 파란색 쪽 (청색편이)</label>
+          <label><input type="radio" name="q2" value="correct"> 빨간색 쪽 (적색편이)</label>
+          <label><input type="radio" name="q2" value="wrong"> 이동하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 에드윈 허블 (Edwin Hubble, 1889~1953)</h3>
+        <p>미국의 천문학자로, 윌슨산 천문대의 100인치 후커 망원경을 사용해 우주에 대한 인식을 송두리째 바꿨다.
+        1924년에는 안드로메다 "성운"이 우리 은하 밖의 또 다른 은하임을 밝혀, 우주가 우리 은하 하나가 아님을 보였다.
+        1929년에는 여러 은하의 거리와 후퇴 속도를 비교해 둘이 비례한다는 허블 법칙을 발표했다.
+        그의 이름은 허블 우주망원경(HST)에도 붙어 있다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1912년 — 베스토 슬라이퍼가 나선 은하 다수에서 적색편이를 측정</li>
+          <li>1915~1917년 — 아인슈타인의 일반상대성이론과 정적 우주를 위한 우주상수 도입</li>
+          <li>1922~1927년 — 프리드만·르메트르가 팽창하는 우주 해(解)를 이론적으로 제시</li>
+          <li>1924년 — 허블이 안드로메다가 외부 은하임을 확인(우주의 크기 확장)</li>
+          <li>1929년 — 허블이 거리–속도 비례 관계(허블 법칙) 발표</li>
+          <li>1965년 — 우주배경복사 발견으로 팽창 우주(빅뱅) 이론이 결정적으로 뒷받침됨</li>
+          <li>1998년 — 초신성 관측으로 우주 팽창이 가속됨이 밝혀짐(암흑에너지)</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 허블의 발견은 우주가 정적이지 않고 팽창한다는 직접적 증거였으며,
+        시간을 거꾸로 돌리면 우주가 한 점에서 시작했다는 빅뱅 이론으로 이어졌다. 아인슈타인은 정적 우주를
+        고집하며 도입했던 우주상수를 두고 "생애 최대의 실수"라 후회했다고 전해진다. 허블 상수 H₀는 우주의
+        팽창 속도이자 우주의 나이를 가늠하는 핵심 값으로, 오늘날까지도 정밀 측정이 이어지는 현대 우주론의 출발점이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상수 -----
+      const C_KMS = 299792.458; // 빛의 속도 (km/s)
+
+      // ----- 상태 (단위: d Mpc, H0 km/s/Mpc) -----
+      const DEFAULTS = { d: 100, H0: 70 };
+      const state = { d: DEFAULTS.d, H0: DEFAULTS.H0 };
+
+      // 시뮬레이션용 은하들(고정 시드: 무작위지만 매 렌더 동일)
+      // baseX, baseY: "팽창 전" 정규화 좌표(0~1), 선택 은하 인덱스 표시
+      const GALAXIES = [
+        { bx: 0.18, by: 0.30, r: 2.4 },
+        { bx: 0.34, by: 0.62, r: 3.0 },
+        { bx: 0.52, by: 0.22, r: 2.0 },
+        { bx: 0.66, by: 0.74, r: 3.4 },
+        { bx: 0.78, by: 0.42, r: 2.6 },
+        { bx: 0.28, by: 0.84, r: 2.2 },
+        { bx: 0.60, by: 0.50, r: 2.8 },
+        { bx: 0.86, by: 0.18, r: 2.0 },
+        { bx: 0.44, by: 0.40, r: 2.4 },
+        { bx: 0.72, by: 0.60, r: 3.0 }
+      ];
+      const SELECTED = 6; // 선택 은하 인덱스(중앙 부근)
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산 -----
+      function recede() { return state.H0 * state.d; }     // v (km/s)
+      function redshift() { return recede() / C_KMS; }     // z ≈ v/c
+
+      // ----- 팽창 인자: 거리 d에 따라 우주 그림이 늘어나는 정도(시각화) -----
+      // d 최소(10)에서 1.0, 최대(800)에서 약 1.6 까지 선형 확대
+      function expansionFactor() {
+        const t = (state.d - 10) / (800 - 10); // 0~1
+        return 1 + 0.6 * t;
+      }
+
+      // ----- 적색편이를 반영한 색: z가 클수록 빨간 쪽 -----
+      function shiftedColor(z) {
+        // z 정규화(이 시뮬 최대 v≈800*90=72000 → z≈0.24)
+        const t = Math.max(0, Math.min(1, z / 0.24));
+        // 청록(518nm 근사)에서 적색으로 보간
+        const r = Math.round(80 + 175 * t);
+        const g = Math.round(210 - 150 * t);
+        const b = Math.round(180 - 150 * t);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경(우주)
+        ctx.fillStyle = '#050814';
+        ctx.fillRect(0, 0, W, H);
+
+        // 좌측: 팽창 우주 패널 / 우측: 스펙트럼 패널
+        const split = Math.round(W * 0.62);
+
+        drawUniverse(0, 0, split, H);
+        drawSpectrum(split, 0, W - split, H);
+      }
+
+      // --- 좌측: 팽창하는 우주(격자 + 은하) ---
+      function drawUniverse(ox, oy, w, h) {
+        const factor = expansionFactor();
+        const cx = ox + w / 2, cy = oy + h / 2;
+
+        // 늘어나는 공간 격자
+        ctx.strokeStyle = 'rgba(120,150,210,0.22)';
+        ctx.lineWidth = 1;
+        const baseStep = w / 8;
+        const step = baseStep * factor;
+        // 중심 기준으로 격자선 그리기
+        for (let gx = cx; gx <= ox + w + step; gx += step) {
+          ctx.beginPath(); ctx.moveTo(gx, oy); ctx.lineTo(gx, oy + h); ctx.stroke();
+        }
+        for (let gx = cx - step; gx >= ox - step; gx -= step) {
+          ctx.beginPath(); ctx.moveTo(gx, oy); ctx.lineTo(gx, oy + h); ctx.stroke();
+        }
+        for (let gy = cy; gy <= oy + h + step; gy += step) {
+          ctx.beginPath(); ctx.moveTo(ox, gy); ctx.lineTo(ox + w, gy); ctx.stroke();
+        }
+        for (let gy = cy - step; gy >= oy - step; gy -= step) {
+          ctx.beginPath(); ctx.moveTo(ox, gy); ctx.lineTo(ox + w, gy); ctx.stroke();
+        }
+
+        // 은하들: 중심에서 거리에 비례해 모두 바깥으로 밀려남(팽창)
+        GALAXIES.forEach((gal, i) => {
+          // 기본 위치(중심 기준 상대좌표)
+          const rx = (gal.bx - 0.5) * w;
+          const ry = (gal.by - 0.5) * h;
+          // 팽창: 중심에서의 변위에 factor 적용 → 멀수록 더 많이 이동
+          const x = cx + rx * factor;
+          const y = cy + ry * factor;
+
+          // 각 은하의 후퇴 속도/적색편이(중심에서의 거리 비례)
+          const distNorm = Math.sqrt(rx * rx + ry * ry) / (Math.min(w, h) / 2);
+          const galZ = redshift() * distNorm;
+
+          // 팽창 화살표(바깥 방향)
+          if (i !== 0) {
+            const len = 6 + 10 * distNorm;
+            const ang = Math.atan2(ry, rx);
+            ctx.strokeStyle = 'rgba(180,200,255,0.4)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+            ctx.stroke();
+          }
+
+          // 은하 본체
+          ctx.beginPath();
+          ctx.arc(x, y, gal.r * 1.6, 0, Math.PI * 2);
+          ctx.fillStyle = shiftedColor(galZ);
+          ctx.fill();
+          // 헤일로
+          ctx.beginPath();
+          ctx.arc(x, y, gal.r * 1.6 + 3, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // 선택 은하 강조
+          if (i === SELECTED) {
+            ctx.beginPath();
+            ctx.arc(x, y, gal.r * 1.6 + 7, 0, Math.PI * 2);
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#facc15';
+            ctx.font = '12px sans-serif';
+            ctx.fillText('선택 은하', x + 12, y - 8);
+          }
+        });
+
+        // 관측자(우리 은하) - 중심
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('우리 은하', cx + 8, cy + 16);
+
+        // 패널 제목
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('팽창하는 우주 (공간 격자가 늘어남)', ox + 10, oy + 18);
+      }
+
+      // --- 우측: 스펙트럼선 적색편이 ---
+      function drawSpectrum(ox, oy, w, h) {
+        const z = redshift();
+        const padTop = 40, padBot = 30;
+        const barX = ox + 14;
+        const barW = w - 28;
+        const barTop = oy + padTop;
+        const barH = h - padTop - padBot;
+
+        // 가시광 스펙트럼 띠(보라→빨강을 위에서 아래로)
+        for (let py = 0; py < barH; py++) {
+          const wl = 400 + (700 - 400) * (py / barH); // 400~700nm
+          const rgb = wavelengthToRGB(wl);
+          ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+          ctx.fillRect(barX, barTop + py, barW, 1);
+        }
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barTop, barW, barH);
+
+        // 정지파장(기준) 스펙트럼선 위치: 두 개의 기준선
+        const restLines = [486, 656]; // Hβ, Hα 근사(nm)
+        function wlToY(wl) {
+          const t = (wl - 400) / (700 - 400);
+          return barTop + t * barH;
+        }
+
+        restLines.forEach((wl0) => {
+          const yRest = wlToY(wl0);
+          // 적색편이된 파장: λ_obs = λ0 (1+z)
+          const wlObs = Math.min(700, wl0 * (1 + z));
+          const yObs = wlToY(wlObs);
+
+          // 기준선(흰 점선)
+          ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(barX, yRest); ctx.lineTo(barX + barW, yRest);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // 이동선(빨간 실선)
+          ctx.strokeStyle = '#ff3b30';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(barX, yObs); ctx.lineTo(barX + barW, yObs);
+          ctx.stroke();
+
+          // 이동 화살표(기준 → 이동, 즉 빨간 쪽=아래로)
+          if (yObs > yRest + 2) {
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 1.5;
+            const ax = barX + barW + 4;
+            ctx.beginPath(); ctx.moveTo(ax, yRest); ctx.lineTo(ax, yObs); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(ax, yObs); ctx.lineTo(ax - 3, yObs - 5);
+            ctx.moveTo(ax, yObs); ctx.lineTo(ax + 3, yObs - 5);
+            ctx.stroke();
+          }
+        });
+
+        // 라벨
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('스펙트럼(적색편이)', ox + 8, oy + 18);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('보라', barX, barTop - 6);
+        ctx.fillText('빨강', barX, barTop + barH + 16);
+        ctx.fillStyle = '#facc15';
+        ctx.fillText('z = ' + z.toFixed(3), ox + 8, oy + h - 8);
+      }
+
+      // ----- 파장(nm) → RGB 근사 변환 (파장→색) -----
+      function wavelengthToRGB(wl) {
+        let r = 0, g = 0, b = 0;
+        if (wl >= 380 && wl < 440) { r = -(wl - 440) / (440 - 380); g = 0; b = 1; }
+        else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / (490 - 440); b = 1; }
+        else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / (510 - 490); }
+        else if (wl >= 510 && wl < 580) { r = (wl - 510) / (580 - 510); g = 1; b = 0; }
+        else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / (645 - 580); b = 0; }
+        else if (wl >= 645 && wl <= 750) { r = 1; g = 0; b = 0; }
+        let factor = 1;
+        if (wl >= 380 && wl < 420) factor = 0.3 + 0.7 * (wl - 380) / (420 - 380);
+        else if (wl >= 645 && wl <= 750) factor = 0.3 + 0.7 * (750 - wl) / (750 - 645);
+        const gamma = 0.8;
+        const adjust = (c) => c <= 0 ? 0 : Math.round(255 * Math.pow(c * factor, gamma));
+        return { r: adjust(r), g: adjust(g), b: adjust(b) };
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const v = recede();
+        const z = redshift();
+        document.querySelector('#result strong').textContent =
+          Math.round(v).toLocaleString() + ' km/s';
+        document.getElementById('z-val').textContent = z.toFixed(4);
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const distSlider = document.getElementById('dist');
+      const hubbleSlider = document.getElementById('hubble');
+      const distVal = document.getElementById('dist-val');
+      const hubbleVal = document.getElementById('hubble-val');
+
+      function syncLabels() {
+        distVal.textContent = state.d;
+        hubbleVal.textContent = state.H0;
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      distSlider.addEventListener('input', () => {
+        state.d = Number(distSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      hubbleSlider.addEventListener('input', () => {
+        state.H0 = Number(hubbleSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.d = DEFAULTS.d;
+        state.H0 = DEFAULTS.H0;
+        distSlider.value = String(DEFAULTS.d);
+        hubbleSlider.value = String(DEFAULTS.H0);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 멀수록 빠르게(v = H₀·d) 멀어지고, 그 빛은 적색편이됩니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 허블 법칙 v = H₀·d 와 적색편이(파장이 길어짐)를 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

@@ -74,16 +74,19 @@
   - `05-atomic/07-rutherford` — 러더퍼드 산란 (원자핵 발견, 충돌 파라미터).
   - `05-atomic/08-bohr` — 보어 원자 모형 (Eₙ=−13.6/n², 선 스펙트럼).
   - `05-atomic/09-franck-hertz` — 프랑크-헤르츠 (4.9eV 간격 전류 급감, 준위 양자화).
+- **Phase 5 실험 14종 추가** (`06-quantum`·`07-relativity` 카테고리 완성) — 동일한 3탭·Canvas 규격:
+  - 양자역학: `01-de-broglie`(물질파 λ=h/p), `02-davisson-germer`(전자 회절), `03-schrodinger`(우물 ψ·Eₙ), `04-uncertainty`(Δx·Δp≥ħ/2), `05-stern-gerlach`(스핀 양자화), `06-quantum-tunneling`(T≈e^(−2κL)), `07-bell-inequality`(CHSH S>2).
+  - 상대성·우주론: `01-time-dilation`(γ), `02-length-contraction`(L₀/γ), `03-spacetime-curvature`(측지선), `04-eddington`(빛의 휘어짐), `05-gravitational-lensing`(아인슈타인 고리), `06-hubble`(v=H₀d), `07-cmb`(2.725K 흑체).
 - 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 전 페이지의 탭 전환·슬라이더/버튼 반응·콘솔 에러를 자동 점검.
 
 ### Changed
 
-- `src/data/experiments.json`: 구현 완료한 32개 실험(id 1–32)의 `status`를 `ready`로 전환 — `01-ancient`·`02-scientific-revolution`·`03-precision-era`·`04-energy-field`·`05-atomic` 카테고리 100% 완료.
-- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 21개는 "준비중" 비활성 유지).
+- `src/data/experiments.json`: 구현 완료한 46개 실험(id 1–46)의 `status`를 `ready`로 전환 — `01-ancient`~`07-relativity` 7개 카테고리 100% 완료.
+- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 7개는 "준비중" 비활성 유지).
 
 ### 예정 (Planned)
 
-- 남은 21개 실험의 인터랙티브 페이지 단계적 구현 — `06-quantum`(7)·`07-relativity`(7)·`08-modern`(7).
+- 마지막 카테고리 `08-modern`(7) 구현 → v1.0(53/53) 달성.
 - Canvas 공통 유틸리티·레이아웃 셸(shell) 추출로 중복 축소.
 
 ---

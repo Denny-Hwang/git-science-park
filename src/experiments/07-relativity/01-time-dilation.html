@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시간 지연 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f3f5f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0d1b30; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf0f8; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>시간 지연</h1>
+    <div class="en">Time Dilation</div>
+    <div class="meta">1905년 · 알베르트 아인슈타인 (Albert Einstein) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="380" role="img"
+        aria-label="정지한 빛 시계와 움직이는 빛 시계에서 빛이 거울 사이를 왕복하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="speed">우주선 속도 v: <span id="speed-val">0.80</span> c (광속의 비율)</label>
+          <input type="range" id="speed" min="0" max="0.99" step="0.01" value="0.80"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="control-row">
+          <label>속도 프리셋</label>
+          <div class="btn-row" role="group" aria-label="속도 프리셋">
+            <button type="button" class="btn preset" data-v="0.1">0.1c</button>
+            <button type="button" class="btn preset" data-v="0.5">0.5c</button>
+            <button type="button" class="btn preset active" data-v="0.8">0.8c</button>
+            <button type="button" class="btn preset" data-v="0.99">0.99c</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>로런츠 인자 γ: <strong id="r-gamma">—</strong></div>
+          <div>움직이는 시계의 진행률 (1/γ): <strong id="r-rate">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>정지계 경과: <strong id="r-rest">0.00 s</strong></div>
+          <div>우주선 경과: <strong id="r-moving">0.00 s</strong></div>
+        </div>
+        <div style="margin-top:8px;">
+          예시: 정지계에서 <strong>10년</strong>이 흐르는 동안 우주선에서는 <strong id="r-example">—</strong>만 흐른다.
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 광속 c는 모든 관측자에게 동일합니다. 움직이는 빛 시계의 빛은
+        <em>대각선</em>으로 더 긴 경로를 가야 하지만 속도는 같으므로, 한 번 똑딱이는 데 더 오래 걸립니다.
+        그래서 움직이는 시계가 느리게 갑니다. v를 작게 하면(예: 0.1c) 두 시계가 거의 똑같이 가고,
+        v를 0.99c에 가깝게 올리면 차이가 극적으로 커집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>광속 불변 원리에서 시간 지연이 어떻게 따라 나오는지 이해한다.</li>
+        <li>로런츠 인자 γ = 1/√(1 − v²/c²)의 의미와 v→c 일 때의 발산을 익힌다.</li>
+        <li>"빛 시계"의 빛 경로가 길어지는 기하로 Δt = γ·Δt₀ 를 유도한다.</li>
+        <li>일상 속도에서는 효과가 미미하고, 광속 근처에서 극적으로 커짐을 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>특수상대성이론의 두 가정은 (1) 모든 관성계에서 물리 법칙은 동일하고,
+        (2) 진공에서 빛의 속도 <em>c</em>는 광원·관측자의 운동과 무관하게 일정하다는 것이다.</p>
+        <p>속도가 빠른 시계를 정지한 관측자가 보면 더 느리게 간다. 움직이는 관측자가 측정한
+        고유 시간 Δt₀(시계가 정지해 있는 그 계에서의 시간)와, 정지 관측자가 본 시간 Δt 사이에는
+        <strong>Δt = γ·Δt₀</strong> 관계가 성립한다. γ ≥ 1 이므로 정지계에서 본 시간이 항상 더 길다
+        (= 움직이는 시계가 느리게 간다).</p>
+      </div>
+
+      <div class="formula-box">
+        γ = 1 / √(1 − v²/c²)<br>
+        Δt = γ · Δt₀<br>
+        v → c  ⇒  γ → ∞
+      </div>
+
+      <!-- SVG 다이어그램: 빛 시계의 수직 경로 vs 대각선 경로 -->
+      <svg width="360" height="200" viewBox="0 0 360 200" role="img"
+        aria-label="정지 빛 시계는 빛이 수직으로 왕복하고, 움직이는 빛 시계는 빛이 대각선으로 더 긴 경로를 가는 비교 다이어그램">
+        <!-- 정지 시계 -->
+        <text x="20" y="18" font-size="12" fill="#1A365D">정지 시계</text>
+        <line x1="30" y1="30" x2="90" y2="30" stroke="#9ca3af" stroke-width="3"/>
+        <line x1="30" y1="170" x2="90" y2="170" stroke="#9ca3af" stroke-width="3"/>
+        <line x1="60" y1="30" x2="60" y2="170" stroke="#f59e0b" stroke-width="2.5"/>
+        <circle cx="60" cy="100" r="5" fill="#fbbf24"/>
+        <text x="38" y="190" font-size="10" fill="#6b7280">경로 = 2L</text>
+        <!-- 움직이는 시계 -->
+        <text x="200" y="18" font-size="12" fill="#1A365D">움직이는 시계</text>
+        <line x1="180" y1="30" x2="240" y2="30" stroke="#9ca3af" stroke-width="3"/>
+        <line x1="270" y1="170" x2="330" y2="170" stroke="#9ca3af" stroke-width="3"/>
+        <!-- 대각선 광 경로 -->
+        <line x1="210" y1="30" x2="300" y2="170" stroke="#f59e0b" stroke-width="2.5"/>
+        <line x1="300" y1="170" x2="390" y2="30" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 3"/>
+        <circle cx="255" cy="100" r="5" fill="#fbbf24"/>
+        <!-- 이동 방향 화살표 -->
+        <line x1="200" y1="186" x2="320" y2="186" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="225" y="183" font-size="10" fill="#2563eb">이동 v</text>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#2563eb"/>
+          </marker>
+        </defs>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        빛의 속도가 같으므로 대각선(더 긴) 경로를 도는 움직이는 시계가 한 번 똑딱이는 데 더 오래 걸린다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "시간 지연은 그냥 시계가 고장 나거나 빨리 움직여서 측정이 틀리는 것"이라는
+        생각은 틀리다. 시간 지연은 측정 오차가 아니라 <em>시간 그 자체</em>가 다르게 흐르는 실재 효과다.
+        GPS 위성 시계 보정, 빠르게 움직이는 뮤온의 수명 연장 등 실험으로 확인되었다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>광속에 가깝게 움직이는 우주선의 시계는, 지상에 정지한 관측자가 볼 때 어떻게 보이는가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 더 빠르게 간다</label>
+        <label><input type="radio" name="q1" value="correct"> 더 느리게 간다</label>
+        <label><input type="radio" name="q1" value="wrong"> 똑같이 간다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>속도 v가 광속 c에 점점 가까워지면 로런츠 인자 γ는 어떻게 되는가?</p>
+        <label><input type="radio" name="q2" value="wrong"> 0에 가까워진다</label>
+        <label><input type="radio" name="q2" value="wrong"> 1에 수렴한다</label>
+        <label><input type="radio" name="q2" value="correct"> 무한대로 발산한다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 알베르트 아인슈타인 (Albert Einstein, 1879~1955)</h3>
+        <p>독일 태생의 이론물리학자. 1905년 "기적의 해(Annus Mirabilis)"에 광전효과, 브라운 운동,
+        특수상대성이론, 질량-에너지 등가(E = mc²)에 관한 논문을 잇따라 발표했다.
+        특수상대성이론 논문 「운동하는 물체의 전기역학에 대하여」에서 광속 불변과 상대성 원리만으로
+        시간 지연·길이 수축·동시성의 상대성을 이끌어냈다.</p>
+        <p>1915년에는 중력을 시공간의 곡률로 설명하는 일반상대성이론을 완성했고, 1921년 광전효과 연구로
+        노벨 물리학상을 받았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1887년 — 마이컬슨·몰리 실험: 에테르의 흔적을 찾지 못해 광속 불변을 시사</li>
+          <li>1892~1904년 — 로런츠, 운동하는 좌표계 사이의 변환(로런츠 변환)과 인자 γ 도입</li>
+          <li>1905년 — 아인슈타인, 특수상대성이론 발표. 시간 지연 Δt = γ·Δt₀ 유도</li>
+          <li>1908년 — 민코프스키, 시간과 공간을 하나로 묶은 4차원 시공간 개념 제시</li>
+          <li>1971년 — 하펠레·키팅 실험: 제트기에 실은 원자시계로 시간 지연 직접 측정</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 절대적이라 믿었던 시간이 관측자의 운동 상태에 따라 달라진다는 것을
+        밝혀, 뉴턴의 절대 시공간 개념을 무너뜨렸다. 시간 지연은 쌍둥이 역설, 질량-에너지 등가,
+        일반상대성이론으로 이어지는 출발점이며, 오늘날 GPS 위성 시계 보정과 입자가속기 설계 등에서
+        실제로 적용되는 검증된 물리 법칙이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        beta: 0.80,     // v/c
+        running: false,
+        elapsed: 0,     // 정지계 기준 경과 시간(애니메이션 단위)
+        lastTs: null
+      };
+
+      // 시각화 상수
+      const MIRROR_GAP_PX = 150;   // 거울 사이 세로 간격(px)
+      const CYCLE_REST = 1.6;      // 정지 시계가 1회 왕복(똑딱)하는 데 걸리는 단위 시간
+      const TIME_SCALE = 1.0;      // 애니메이션 배속
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const speedSlider = document.getElementById('speed');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 -----
+      function gamma() {
+        const b = Math.min(0.999999, state.beta);
+        return 1 / Math.sqrt(1 - b * b);
+      }
+
+      // 정지계 시각 t에서 빛이 거울 사이를 왕복하는 위치(0~1, 0=아래거울, 1=위거울)
+      // tri(): 0->1->0 을 주기 1로 반복하는 삼각파
+      function tri(phase) {
+        const p = phase - Math.floor(phase);
+        return p < 0.5 ? p * 2 : (1 - p) * 2;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const g = gamma();
+        const topY = 70, botY = topY + MIRROR_GAP_PX;
+
+        // --- 정지 빛 시계 (왼쪽) ---
+        const restX = W * 0.27;
+        drawClock(restX, topY, botY, '정지 시계', '#9ca3af');
+        // 정지 시계 빛: 주기 CYCLE_REST 로 수직 왕복
+        const restPhase = state.elapsed / CYCLE_REST;
+        const restFrac = tri(restPhase); // 0(아래)~1(위)
+        const restPy = botY - restFrac * (botY - topY);
+        drawPhoton(restX, restPy);
+        // 정지 시계 똑딱 횟수
+        const restTicks = Math.floor(restPhase * 2);
+
+        // --- 움직이는 빛 시계 (오른쪽) ---
+        // 움직이는 시계는 정지계에서 보면 빛이 대각선 경로를 가므로
+        // 한 똑딱(같은 거울 왕복 1/2)에 정지 시계보다 γ배 더 오래 걸린다.
+        const moveX = W * 0.62;
+        const driftAmp = 36;  // 가로로 흔들리는 폭(움직임 시각화)
+        const movePhase = state.elapsed / (CYCLE_REST * g);
+        const moveFrac = tri(movePhase);
+        const movePy = botY - moveFrac * (botY - topY);
+        // 광자의 가로 위치도 함께 이동(대각선 느낌)
+        const sway = (tri(movePhase + 0.5) - 0.5) * 2 * driftAmp * Math.min(1, state.beta + 0.05);
+        drawClock(moveX, topY, botY, '움직이는 시계 (v=' + state.beta.toFixed(2) + 'c)', '#2d5494');
+        drawPhoton(moveX + sway, movePy);
+        const moveTicks = Math.floor(movePhase * 2);
+
+        // 똑딱 카운터
+        ctx.fillStyle = '#dbeafe';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('똑딱 ' + restTicks + '회', restX, botY + 40);
+        ctx.fillText('똑딱 ' + moveTicks + '회', moveX, botY + 40);
+        ctx.textAlign = 'left';
+
+        // γ 표시
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('γ = ' + g.toFixed(3), 16, 24);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('정지계 t = ' + state.elapsed.toFixed(1), 16, 44);
+      }
+
+      function drawClock(cx, topY, botY, label, color) {
+        const halfW = 30;
+        // 거울 두 개
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx - halfW, topY); ctx.lineTo(cx + halfW, topY);
+        ctx.moveTo(cx - halfW, botY); ctx.lineTo(cx + halfW, botY);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        // 라벨
+        ctx.fillStyle = color === '#9ca3af' ? '#e2e8f0' : '#93c5fd';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, cx, topY - 14);
+        ctx.textAlign = 'left';
+      }
+
+      function drawPhoton(x, y) {
+        // 광자 잔상(빛 줄기)
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#fde047';
+        ctx.shadowColor = '#facc15';
+        ctx.shadowBlur = 14;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const g = gamma();
+        document.getElementById('r-gamma').textContent = g.toFixed(4);
+        document.getElementById('r-rate').textContent = (1 / g).toFixed(4) + ' 배';
+        // 예시: 정지 10년 -> 우주선 10/γ 년
+        const movingYears = 10 / g;
+        document.getElementById('r-example').textContent = movingYears.toFixed(2) + '년';
+        updateLiveReadout();
+      }
+
+      function updateLiveReadout() {
+        const g = gamma();
+        document.getElementById('r-rest').textContent = state.elapsed.toFixed(2) + ' s';
+        document.getElementById('r-moving').textContent = (state.elapsed / g).toFixed(2) + ' s';
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      speedSlider.addEventListener('input', () => {
+        state.beta = Number(speedSlider.value);
+        document.getElementById('speed-val').textContent = state.beta.toFixed(2);
+        syncPresetButtons();
+        updateResult();
+        draw();
+      });
+
+      function syncPresetButtons() {
+        presetBtns.forEach((b) => {
+          b.classList.toggle('active', Math.abs(Number(b.dataset.v) - state.beta) < 0.005);
+        });
+      }
+
+      // 속도 프리셋
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.beta = Number(btn.dataset.v);
+          speedSlider.value = state.beta;
+          document.getElementById('speed-val').textContent = state.beta.toFixed(2);
+          updateResult();
+          draw();
+        });
+      });
+
+      // ----- 애니메이션 루프 (rAF) -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        state.elapsed += dt * TIME_SCALE;
+        updateLiveReadout();
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() {
+        state.running = false;
+      }
+      function resetSim() {
+        state.running = false;
+        state.elapsed = 0;
+        state.lastTs = null;
+        updateLiveReadout();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '움직이는 시계는 정지 관측자가 볼 때 더 느리게 갑니다 (Δt = γ·Δt₀).',
+        '광속 불변 때문에 움직이는 빛 시계의 빛 경로가 길어져 더 느리게 갑니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'γ = 1/√(1 − v²/c²) 에서 v→c 이면 분모가 0에 가까워져 γ→∞ 입니다.',
+        'γ = 1/√(1 − v²/c²) 의 분모를 생각해 보세요. v→c 이면 분모가 0에 가까워집니다.');
+
+      // ----- 초기 렌더 -----
+      syncPresetButtons();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

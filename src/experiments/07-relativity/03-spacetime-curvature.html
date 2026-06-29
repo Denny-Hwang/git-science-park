@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시공간 곡률 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #070b18; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef2f8; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.05rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>시공간 곡률</h1>
+    <div class="en">Spacetime Curvature</div>
+    <div class="meta">1915년 · 알베르트 아인슈타인 (Albert Einstein) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="440" role="img"
+        aria-label="중심 질량이 시공간 격자를 휘게 하고 시험입자가 휜 시공간을 따라 움직이는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="mass">중심 질량 M: <span id="mass-val">5.0</span> (상대 단위)</label>
+          <input type="range" id="mass" min="0" max="20" step="0.1" value="5.0"
+            aria-describedby="mass-val">
+        </div>
+
+        <div class="control-row">
+          <label for="speed">시험입자 초기 속도: <span id="speed-val">1.0</span> (상대 단위)</label>
+          <input type="range" id="speed" min="0" max="2.5" step="0.05" value="1.0"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="control-row">
+          <label for="radius">시험입자 초기 거리 r: <span id="radius-val">140</span></label>
+          <input type="range" id="radius" min="60" max="220" step="2" value="140"
+            aria-describedby="radius-val">
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="showTrail" checked>
+            <label for="showTrail">궤적 자취 표시</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>곡률 강도(상대값): <strong id="r-curv">—</strong></div>
+          <div>시험입자 거동: <strong id="r-behavior">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>슈바르츠실트 반경 rₛ(상대값): <strong id="r-rs">—</strong></div>
+          <div>중심까지 현재 거리: <strong id="r-dist">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 중심 질량 M을 키우면 격자가 더 깊게 움푹 패이고, 시험입자의 경로가
+        더 강하게 휘어집니다. 입자는 어떤 "힘"에 끌려가는 것이 아니라, <em>휜 시공간 위에서 가장 곧은 길
+        (측지선)을 따라</em> 움직일 뿐입니다. 초기 속도가 너무 느리면 중심으로 낙하하고, 적당하면 공전하며,
+        아주 빠르면 휘기만 하고 지나갑니다(산란).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>질량-에너지가 시공간을 휘게 한다는 일반상대성의 핵심을 이해한다.</li>
+        <li>중력을 "힘"이 아니라 "휜 시공간을 따라가는 운동(측지선)"으로 보는 관점을 익힌다.</li>
+        <li>고무 막 비유의 의미와 한계를 안다.</li>
+        <li>질량이 클수록 곡률이 깊어지고, 슈바르츠실트 반경 개념이 등장함을 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>뉴턴은 중력을 질량 사이에 작용하는 <em>힘</em>으로 보았다. 아인슈타인의 일반상대성이론(1915)은
+        전혀 다른 그림을 제시한다. 질량과 에너지는 그 주변의 <strong>시공간 자체를 휘게(curve)</strong> 만들고,
+        물체는 그 휜 시공간 속에서 <strong>측지선(geodesic) — 가장 곧은 길</strong>을 따라 움직인다. 우리가
+        "중력에 끌린다"고 느끼는 것은 사실 휘어진 시공간의 기하학을 따라가는 자연스러운 운동이다.</p>
+        <p>흔히 쓰는 비유: 팽팽한 고무 막 위에 무거운 공을 놓으면 막이 움푹 들어가고, 그 근처를 지나던
+        작은 구슬은 패인 곳을 따라 휘어 돌거나 빨려든다. 막의 "움푹함"이 곧 시공간의 곡률에 해당한다.</p>
+      </div>
+
+      <div class="formula-box">
+        Gμν = (8πG / c⁴) · Tμν<br>
+        곡률(좌변) ⟸⟹ 질량·에너지(우변)<br>
+        rₛ = 2GM / c²
+      </div>
+
+      <!-- SVG 다이어그램: 휜 시공간 격자(고무 막)와 측지선 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="중심 질량이 격자를 움푹 휘게 하고 시험입자가 휜 격자를 따라 휘어 도는 측지선 다이어그램">
+        <!-- 휜 격자 (간단한 깔때기 모양 곡선들) -->
+        <g stroke="#1A365D" stroke-width="1" fill="none" opacity="0.55">
+          <path d="M20,60 Q180,140 340,60"/>
+          <path d="M20,95 Q180,185 340,95"/>
+          <path d="M20,130 Q180,225 340,130"/>
+          <path d="M40,40 Q180,120 40,180"/>
+          <path d="M120,30 Q180,120 120,200"/>
+          <path d="M240,30 Q180,120 240,200"/>
+          <path d="M320,40 Q180,120 320,180"/>
+        </g>
+        <!-- 중심 질량 -->
+        <circle cx="180" cy="135" r="16" fill="#1A365D"/>
+        <text x="180" y="170" font-size="11" fill="#1A365D" text-anchor="middle">중심 질량 M</text>
+        <!-- 측지선(시험입자 경로) -->
+        <path d="M30,40 Q150,40 200,95 Q235,135 200,175 Q150,205 60,180"
+          stroke="#d97706" stroke-width="2.5" fill="none" stroke-dasharray="2 3"/>
+        <circle cx="30" cy="40" r="5" fill="#d97706"/>
+        <text x="40" y="34" font-size="10" fill="#d97706">시험입자(측지선)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        격자가 깊게 패인 중심 주위에서 시험입자의 "가장 곧은 길"은 휘어 보인다 — 이것이 중력이다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "고무 막 비유에서 공이 패인 곳으로 빨려드는 건 결국 '아래쪽으로 당기는
+        중력' 때문 아닌가?"라고 생각하기 쉽다. 비유는 어디까지나 보조 장치다. 실제로는 <em>아래로 당기는 힘</em>이
+        있는 것이 아니라, 휘어진 것은 공간만이 아니라 <strong>시간을 포함한 시공간</strong>이며, 물체는 그
+        기하학에서 가장 자연스러운 경로(측지선)를 따를 뿐이다. 또한 중력은 "힘"이 아니라 시공간의 기하 효과다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>일반상대성이론에서 행성이 태양 주위를 도는 이유로 가장 올바른 설명은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 태양이 행성을 끌어당기는 인력(힘)이 작용해서</label>
+        <label><input type="radio" name="q1" value="correct"> 태양이 휘게 한 시공간의 측지선을 따라가기 때문에</label>
+        <label><input type="radio" name="q1" value="wrong"> 행성이 태양의 자기장에 붙잡혀서</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>중심 질량 M을 더 크게 하면 주변 시공간은?</p>
+        <label><input type="radio" name="q2" value="wrong"> 평평해진다(곡률이 줄어든다)</label>
+        <label><input type="radio" name="q2" value="correct"> 더 깊게 휘어진다(곡률이 커진다)</label>
+        <label><input type="radio" name="q2" value="wrong"> 변하지 않는다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 알베르트 아인슈타인 (Albert Einstein, 1879~1955)</h3>
+        <p>독일 출신의 이론물리학자. 1905년 특수상대성이론으로 시간과 공간의 절대성을 무너뜨린 뒤,
+        가속과 중력이 국소적으로 구별되지 않는다는 <em>등가원리</em>에서 출발해 10년에 걸쳐 일반상대성이론을
+        완성했다. 1915년 11월, 중력을 시공간의 곡률로 기술하는 장방정식(Einstein field equations)을 발표했다.</p>
+        <p>그는 자유낙하하는 사람이 자신의 무게를 느끼지 못한다는 단순한 통찰("내 생애 가장 행복한 생각")에서
+        출발해, 중력이 곧 시공간 기하학임을 수학적으로 증명했다. 수학자 마르셀 그로스만과 리만 기하학의
+        도움이 결정적이었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1687년 — 뉴턴 『프린키피아』, 중력을 질량 간 원거리 인력으로 정식화</li>
+          <li>1905년 — 아인슈타인, 특수상대성이론 발표(시공간 개념 등장)</li>
+          <li>1907년 — 등가원리 착상: 가속도와 중력은 국소적으로 구별 불가</li>
+          <li>1915년 — 일반상대성이론(장방정식) 발표, 중력 = 시공간의 곡률</li>
+          <li>1919년 — 에딩턴의 일식 관측, 태양 곁을 지나는 별빛 휘어짐 확인 → 이론 검증</li>
+          <li>1919년 — 슈바르츠실트 해, 블랙홀과 사건의 지평선(rₛ) 개념의 씨앗</li>
+          <li>2015~2016년 — LIGO, 중력파 직접 검출로 시공간 동역학 입증</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 일반상대성이론은 200년 넘게 군림하던 뉴턴의 절대 시공간과 원거리 힘의
+        그림을 대체하며, 중력을 <em>시공간의 기하학</em>으로 재정의했다. 수성 근일점 이동, 별빛의 중력 굴절,
+        시간 지연(GPS 보정), 블랙홀, 중력파, 우주 팽창에 이르기까지 현대 천체물리학과 우주론의 토대가 되었다.
+        "물질은 시공간에게 어떻게 휘어질지 말하고, 시공간은 물질에게 어떻게 움직일지 말한다"(휠러)는 한 문장이
+        그 정신을 요약한다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        mass: 5.0,        // 중심 질량(상대 단위)
+        speed: 1.0,       // 시험입자 초기 속도(상대 단위)
+        radius: 140,      // 시험입자 초기 거리(px)
+        showTrail: true,
+        running: false,
+        lastTs: null,
+        // 시험입자 동역학 상태(px, px/frame 단위)
+        px: 0, py: 0, vx: 0, vy: 0,
+        trail: [],
+        captured: false   // 중심에 흡수됨
+      };
+
+      // 물리/시각 상수
+      const G_SIM = 26;     // 시뮬레이션 중력 상수(시각적 보정)
+      const SOFTEN = 14;    // 소프트닝(특이점 발산 방지)
+      const TRAIL_MAX = 260;
+      const DT = 0.9;       // 적분 시간 간격
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const massSlider = document.getElementById('mass');
+      const speedSlider = document.getElementById('speed');
+      const radiusSlider = document.getElementById('radius');
+      const trailToggle = document.getElementById('showTrail');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // 중심 좌표
+      function center() { return { x: canvas.width / 2, y: canvas.height / 2 }; }
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 (시각화용) -----
+      // 곡률 깊이: 질량에 비례. 격자 처짐 = M / (거리 + 소프트닝).
+      function wellDepth(distFromCenter) {
+        return (state.mass * 900) / (distFromCenter + 28);
+      }
+      // 슈바르츠실트 반경(상대값) rs ∝ M
+      function schwarzschildR() {
+        return state.mass * 1.6;
+      }
+      // 곡률 강도(상대값): 질량에 비례한 단순 지표
+      function curvatureStrength() {
+        return state.mass;
+      }
+
+      // 시험입자 초기화: 중심 위쪽에서 출발, 접선 방향 속도 부여
+      function placeParticle() {
+        const c = center();
+        state.px = c.x;
+        state.py = c.y - state.radius;
+        // 접선 방향(오른쪽) 속도
+        state.vx = state.speed * 1.6;
+        state.vy = 0;
+        state.trail = [];
+        state.captured = false;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        const c = center();
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 별
+        drawStars();
+
+        // 휜 시공간 격자(원근 처짐)
+        drawWarpedGrid();
+
+        // 슈바르츠실트 반경 표시(질량 클 때)
+        const rs = schwarzschildR();
+        if (rs > 4) {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, rs, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(220,38,38,0.6)';
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 중심 질량
+        const mr = 6 + Math.min(34, state.mass * 1.8);
+        const grd = ctx.createRadialGradient(c.x, c.y, 1, c.x, c.y, mr);
+        grd.addColorStop(0, '#cfe0ff');
+        grd.addColorStop(1, '#1A365D');
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, mr, 0, Math.PI * 2);
+        ctx.fillStyle = state.mass <= 0.05 ? 'rgba(120,140,180,0.35)' : grd;
+        ctx.fill();
+
+        // 궤적 자취
+        if (state.showTrail && state.trail.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(state.trail[0].x, state.trail[0].y);
+          for (let i = 1; i < state.trail.length; i++) {
+            ctx.lineTo(state.trail[i].x, state.trail[i].y);
+          }
+          ctx.strokeStyle = 'rgba(217,119,6,0.7)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // 시험입자
+        if (!state.captured) {
+          ctx.beginPath();
+          ctx.arc(state.px, state.py, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        // 라벨
+        ctx.fillStyle = 'rgba(226,232,240,0.85)';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('중심 질량 M = ' + state.mass.toFixed(1), 12, 20);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('● 시험입자', 12, 38);
+      }
+
+      // 배경 별(고정 시드 느낌으로 가벼운 패턴)
+      function drawStars() {
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        for (let i = 0; i < 60; i++) {
+          const x = (i * 97 + 13) % canvas.width;
+          const y = (i * 53 + 29) % canvas.height;
+          const s = (i % 3 === 0) ? 1.4 : 0.8;
+          ctx.fillRect(x, y, s, s);
+        }
+      }
+
+      // 휜 격자: 각 격자점을 중심 방향으로 처지게(시각적 곡률) 표현
+      function drawWarpedGrid() {
+        const c = center();
+        const W = canvas.width, H = canvas.height;
+        const step = 34;
+        ctx.strokeStyle = 'rgba(120,150,210,0.35)';
+        ctx.lineWidth = 1;
+
+        // 격자점을 곡률에 따라 변위시키는 함수
+        function warp(x, y) {
+          const dx = x - c.x, dy = y - c.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          const pull = wellDepth(d);            // 안쪽으로 당기는 변위량
+          const k = pull / (d + 1);
+          return {
+            x: x - dx * k * 0.04,
+            y: y - dy * k * 0.04
+          };
+        }
+
+        // 가로선
+        for (let gy = step; gy < H; gy += step) {
+          ctx.beginPath();
+          let first = true;
+          for (let gx = 0; gx <= W; gx += 8) {
+            const p = warp(gx, gy);
+            if (first) { ctx.moveTo(p.x, p.y); first = false; }
+            else ctx.lineTo(p.x, p.y);
+          }
+          ctx.stroke();
+        }
+        // 세로선
+        for (let gx = step; gx < W; gx += step) {
+          ctx.beginPath();
+          let first = true;
+          for (let gy = 0; gy <= H; gy += 8) {
+            const p = warp(gx, gy);
+            if (first) { ctx.moveTo(p.x, p.y); first = false; }
+            else ctx.lineTo(p.x, p.y);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // ----- 거동 분류 -----
+      function classifyBehavior() {
+        if (state.mass <= 0.05) return '직진(평평한 시공간)';
+        if (state.captured) return '낙하(중심으로 빨려듦)';
+        // 초기 조건 기반 추정: 속도가 매우 낮으면 낙하, 적당하면 공전, 매우 빠르면 산란
+        if (state.speed < 0.4) return '낙하 경향';
+        if (state.speed > 1.9 && state.mass < 10) return '직진 휘어짐(산란)';
+        return '공전 경향';
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        document.getElementById('r-curv').textContent = curvatureStrength().toFixed(1);
+        document.getElementById('r-behavior').textContent = classifyBehavior();
+        document.getElementById('r-rs').textContent = schwarzschildR().toFixed(1);
+        const c = center();
+        const dx = state.px - c.x, dy = state.py - c.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        document.getElementById('r-dist').textContent =
+          state.captured ? '— (흡수됨)' : Math.round(d).toString();
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      massSlider.addEventListener('input', () => {
+        state.mass = Number(massSlider.value);
+        document.getElementById('mass-val').textContent = state.mass.toFixed(1);
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+      speedSlider.addEventListener('input', () => {
+        state.speed = Number(speedSlider.value);
+        document.getElementById('speed-val').textContent = state.speed.toFixed(2);
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+      radiusSlider.addEventListener('input', () => {
+        state.radius = Number(radiusSlider.value);
+        document.getElementById('radius-val').textContent = state.radius;
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+      trailToggle.addEventListener('change', () => {
+        state.showTrail = trailToggle.checked;
+        draw();
+      });
+
+      // ----- 시뮬레이션 적분 (측지선 근사: 중심 방향 가속) -----
+      function stepPhysics() {
+        if (state.captured) return;
+        const c = center();
+        const dx = c.x - state.px;
+        const dy = c.y - state.py;
+        const d2 = dx * dx + dy * dy + SOFTEN * SOFTEN;
+        const d = Math.sqrt(d2);
+
+        // 가속도 = G * M / r^2, 중심 방향
+        const a = (G_SIM * state.mass) / d2;
+        const ax = a * (dx / d);
+        const ay = a * (dy / d);
+
+        state.vx += ax * DT;
+        state.vy += ay * DT;
+        state.px += state.vx * DT;
+        state.py += state.vy * DT;
+
+        // 자취 기록
+        state.trail.push({ x: state.px, y: state.py });
+        if (state.trail.length > TRAIL_MAX) state.trail.shift();
+
+        // 중심 흡수 판정(슈바르츠실트 반경 또는 코어 진입)
+        const distNow = Math.sqrt((state.px - c.x) ** 2 + (state.py - c.y) ** 2);
+        const core = Math.max(8, schwarzschildR());
+        if (distNow < core && state.mass > 0.05) {
+          state.captured = true;
+          state.running = false;
+        }
+
+        // 화면 밖으로 멀리 벗어나면 정지(산란 완료)
+        if (state.px < -200 || state.px > canvas.width + 200 ||
+            state.py < -200 || state.py > canvas.height + 200) {
+          state.running = false;
+        }
+      }
+
+      // ----- 애니메이션 루프 (rAF) -----
+      function loop() {
+        if (!state.running) return;
+        stepPhysics();
+        updateResult();
+        draw();
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        if (state.mass <= 0.05) {
+          // 평평한 시공간: 직진 데모를 위해 작은 질량에서도 동작하지만 의미상 직진
+        }
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function pause() { state.running = false; }
+
+      function resetSim(redraw) {
+        state.running = false;
+        state.lastTs = null;
+        placeParticle();
+        if (redraw !== false) {
+          updateResult();
+          draw();
+        }
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '중력은 힘이 아니라, 태양이 휘게 한 시공간의 측지선을 따라가는 운동입니다.',
+        '일반상대성에서 중력은 "힘"이 아니라 휜 시공간의 기하 효과입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '질량-에너지가 클수록 시공간은 더 깊게 휘어집니다(곡률 증가).',
+        '질량이 커지면 곡률은 커집니다(고무 막이 더 깊게 패임).');
+
+      // ----- 초기 렌더 -----
+      placeParticle();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

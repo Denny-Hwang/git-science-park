@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>벨 부등식과 얽힘 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f6f4fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 680px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .controls .preset {
+      margin: 0 6px 6px 0; padding: 6px 12px; border: 1px solid var(--primary);
+      border-radius: 6px; background: #fff; color: var(--primary);
+      cursor: pointer; font-size: 0.88rem;
+    }
+    .controls .preset:hover { background: #f3eefd; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f1ecfb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .verdict.over { color: #16a34a; font-weight: 700; }
+    .result-box .verdict.under { color: #dc2626; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>벨 부등식과 얽힘</h1>
+    <div class="en">Bell's Inequality &amp; Entanglement</div>
+    <div class="meta">1964년 · 존 스튜어트 벨 (John Stewart Bell) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="680" height="420" aria-label="중앙 얽힘 광원에서 좌우 검출기로 입자가 가고, 상관 곡선과 CHSH S 막대를 표시하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="a">앨리스 각도 a: <span id="a-val">0</span>°</label>
+          <input type="range" id="a" min="0" max="180" step="1" value="0" aria-describedby="result">
+        </div>
+        <div class="ctrl">
+          <label for="ap">앨리스 각도 a': <span id="ap-val">90</span>°</label>
+          <input type="range" id="ap" min="0" max="180" step="1" value="90" aria-describedby="result">
+        </div>
+        <div class="ctrl">
+          <label for="b">밥 각도 b: <span id="b-val">45</span>°</label>
+          <input type="range" id="b" min="0" max="180" step="1" value="45" aria-describedby="result">
+        </div>
+        <div class="ctrl">
+          <label for="bp">밥 각도 b': <span id="bp-val">135</span>°</label>
+          <input type="range" id="bp" min="0" max="180" step="1" value="135" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <button type="button" class="preset" id="preset-optimal">최적 각도 (S = 2√2)</button>
+          <button type="button" class="preset" id="preset-classical">고전 한계 근처 (S = 2)</button>
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        CHSH 값 S = <strong>—</strong> &nbsp;
+        <span class="verdict" id="verdict">—</span>
+        <br>
+        <span style="font-size:0.92rem; color:var(--text-muted);">
+          고전(국소 숨은 변수) 한계: |S| ≤ 2 &nbsp;·&nbsp; 양자 최대: 2√2 ≈ 2.83
+        </span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 막대그래프에서 빨간 점선이 고전 한계 <strong>2</strong>,
+        초록 점선이 양자 최대 <strong>2√2 ≈ 2.83</strong>이다.
+        막대가 <strong>2를 넘어 강조 표시</strong>되면 그 결과는 어떤 국소적 숨은 변수 이론으로도
+        설명할 수 없다 — 자연이 <strong>비국소적</strong>이라는 뜻이다.
+        "최적 각도" 버튼을 눌러 a, a', b, b'가 45°씩 어긋날 때 S가 최댓값 2√2에 도달함을 확인하라.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>얽힌 두 입자의 측정 상관관계 E(a, b) = −cos(a − b)를 이해한다.</li>
+        <li>국소적 숨은 변수(고전) 이론에서는 CHSH 값 |S| ≤ 2 임을 안다.</li>
+        <li>양자역학이 특정 각도에서 S = 2√2 ≈ 2.83 으로 부등식을 위배함을 확인한다.</li>
+        <li>부등식 위배가 곧 자연의 <strong>비국소성</strong>을 뜻함을 파악한다.</li>
+        <li>벨의 정리가 "철학적 논쟁"을 "실험으로 판가름할 문제"로 바꾼 의미를 이해한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>EPR(아인슈타인·포돌스키·로젠)은 양자역학이 불완전하며, 측정 전에 결과를 미리 정해 두는
+        "숨은 변수"가 있어야 한다고 주장했다(<em>국소 실재론</em>). 즉 멀리 떨어진 두 측정은 서로
+        영향을 줄 수 없고(국소성), 각 입자는 측정과 무관하게 정해진 성질을 갖는다(실재성)는 것이다.</p>
+        <p>벨은 1964년, 이 국소 실재론 가정이 맞다면 측정 상관에 대한 <strong>부등식</strong>이 성립해야
+        함을 보였다. CHSH 형태로 쓰면, 두 사람(앨리스·밥)이 각각 두 각도(a, a'와 b, b')로 측정한
+        상관값들의 조합 S는 고전적으로 <strong>|S| ≤ 2</strong>를 넘을 수 없다.</p>
+        <p>그러나 얽힘 상태의 양자 상관은 <strong>E(a, b) = −cos(a − b)</strong> 이며, 네 각도를 45°씩
+        엇갈리게 잡으면 S = 2√2 ≈ 2.83 에 도달한다. 실험은 양자역학의 예측이 옳음을 거듭 확인했고,
+        따라서 국소 실재론은 틀렸다 — 자연은 비국소적이다.</p>
+      </div>
+
+      <div class="formula-box">
+        E(a, b) = −cos(a − b)
+        <br>
+        S = E(a, b) − E(a, b') + E(a', b) + E(a', b')
+        <br>
+        고전(국소 숨은 변수): |S| ≤ 2 &nbsp;|&nbsp; 양자 최대: |S| = 2√2 ≈ 2.83
+      </div>
+
+      <!-- SVG 다이어그램: 광원 → 좌우 검출기(각도) -->
+      <svg width="440" height="180" viewBox="0 0 440 180" role="img"
+           aria-label="중앙 얽힘 광원에서 좌우 두 검출기로 입자가 가는 EPR 배치 다이어그램">
+        <!-- 광원 -->
+        <circle cx="220" cy="90" r="14" fill="#8b63e0"/>
+        <text x="196" y="128" font-size="11">얽힘 광원</text>
+        <!-- 좌우로 가는 입자 경로 -->
+        <line x1="206" y1="90" x2="90" y2="90" stroke="#facc15" stroke-width="2"/>
+        <line x1="234" y1="90" x2="350" y2="90" stroke="#facc15" stroke-width="2"/>
+        <polygon points="96,86 88,90 96,94" fill="#facc15"/>
+        <polygon points="344,86 352,90 344,94" fill="#facc15"/>
+        <!-- 앨리스 검출기 -->
+        <rect x="46" y="60" width="44" height="60" rx="6" fill="#6B46C1"/>
+        <text x="44" y="50" font-size="12" fill="#6B46C1">앨리스</text>
+        <text x="50" y="146" font-size="11" fill="#6b7280">각도 a</text>
+        <!-- 앨리스 분석기 눈금(각도) -->
+        <line x1="68" y1="90" x2="68" y2="70" stroke="#fff" stroke-width="2"/>
+        <line x1="68" y1="90" x2="84" y2="80" stroke="#fff" stroke-width="2"/>
+        <!-- 밥 검출기 -->
+        <rect x="350" y="60" width="44" height="60" rx="6" fill="#6B46C1"/>
+        <text x="366" y="50" font-size="12" fill="#6B46C1">밥</text>
+        <text x="356" y="146" font-size="11" fill="#6b7280">각도 b</text>
+        <line x1="372" y1="90" x2="372" y2="70" stroke="#fff" stroke-width="2"/>
+        <line x1="372" y1="90" x2="356" y2="80" stroke="#fff" stroke-width="2"/>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "얽힘으로 한쪽 측정이 다른 쪽 결과를 <em>즉시 바꾸므로</em>
+        빛보다 빠른 통신이 가능하다"고 오해하기 쉽다. 실제로는 각 검출기에서 보는 결과는 무작위라
+        그 자체로 정보를 전달하지 못한다(통신 불가 정리). 비국소적 상관은 존재하지만 신호를 보낼 수는
+        없다. 또 하나, 벨 부등식 위배는 "양자역학이 임의로 신비롭다"는 뜻이 아니라
+        <em>국소 실재론</em>이라는 특정 고전 가정이 틀렸음을 정량적으로 증명한 것이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 측정 결과가 벨 부등식을 위배한다(|S| > 2)는 것은 무엇을 의미하는가?</p>
+          <label><input type="radio" name="q1" value="correct"> 국소적 숨은 변수 이론으로는 설명할 수 없다 (양자 얽힘의 비국소성)</label>
+          <label><input type="radio" name="q1" value="wrong"> 빛보다 빠른 통신이 실제로 가능하다</label>
+          <label><input type="radio" name="q1" value="wrong"> 측정 장치에 오차가 있다는 뜻이다</label>
+        </div>
+        <div class="q">
+          <p>2. 양자역학이 도달할 수 있는 CHSH 값 S의 최댓값은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 2</label>
+          <label><input type="radio" name="q2" value="correct"> 2√2 ≈ 2.83</label>
+          <label><input type="radio" name="q2" value="wrong"> 4</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 존 스튜어트 벨 (John Stewart Bell, 1928~1990)</h3>
+        <p>북아일랜드 벨파스트 출신의 이론물리학자로, 주로 CERN에서 입자물리학 가속기 설계와
+        장 이론을 연구했다. 양자역학의 기초에 대한 탐구는 그의 "취미"에 가까웠지만, 1964년 발표한
+        벨의 정리(Bell's theorem)는 EPR 논쟁을 형이상학에서 실험으로 옮긴 20세기 물리학의
+        획기적 성과로 평가된다. 그는 또한 측정 문제와 양자역학 해석에 대한 깊은 통찰을 남겼다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1935년 — 아인슈타인·포돌스키·로젠(EPR)이 양자역학의 불완전성을 주장, "유령 같은 원격 작용" 비판</li>
+          <li>1935년 — 슈뢰딩거가 "얽힘(entanglement)"이라는 용어를 도입</li>
+          <li>1964년 — 존 벨이 국소 숨은 변수 이론이 반드시 만족해야 할 부등식을 유도(벨의 정리)</li>
+          <li>1969년 — 클라우저·혼·시모니·홀트(CHSH)가 실험 가능한 부등식 형태 제시</li>
+          <li>1972~1982년 — 클라우저, 이어서 아스페가 광자 실험으로 양자 예측 확인(부등식 위배)</li>
+          <li>2015년 — 허점(loophole)을 동시에 막은 결정적 실험들로 비국소성 확정</li>
+          <li>2022년 — 아스페·클라우저·차일링거가 벨 부등식 실험 공로로 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 벨의 정리는 "양자역학이 완전한가"라는 철학적 논쟁을
+        <em>실험으로 판가름할 수 있는 과학 문제</em>로 바꾸었다. 실험 결과 부등식이 거듭 위배되면서,
+        측정 전에 모든 것이 정해져 있고 멀리 떨어진 곳에 영향을 줄 수 없다는 국소 실재론은 폐기되었다.
+        이로써 양자 얽힘의 비국소성이 자연의 실제 성질임이 확립되었고, 오늘날 양자 암호·양자
+        텔레포테이션·양자 컴퓨팅의 토대가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (각도 단위: 도) -----
+      const DEFAULTS = { a: 0, ap: 90, b: 45, bp: 135 };
+      const state = { a: DEFAULTS.a, ap: DEFAULTS.ap, b: DEFAULTS.b, bp: DEFAULTS.bp };
+      const CLASSICAL = 2;
+      const QUANTUM = 2 * Math.SQRT2; // 2√2 ≈ 2.828
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리: 양자 상관 E(a,b) = −cos(a − b) -----
+      const deg2rad = (d) => d * Math.PI / 180;
+      function corr(deg1, deg2) {
+        return -Math.cos(deg2rad(deg1) - deg2rad(deg2));
+      }
+      // CHSH: S = E(a,b) − E(a,b') + E(a',b) + E(a',b')
+      function chshS() {
+        return corr(state.a, state.b)
+             - corr(state.a, state.bp)
+             + corr(state.ap, state.b)
+             + corr(state.ap, state.bp);
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#14101f';
+        ctx.fillRect(0, 0, W, H);
+
+        // ===== 상단: 얽힘 광원 + 좌우 검출기 배치 =====
+        const topY = 70;
+        const srcX = W / 2;
+        // 광원
+        ctx.beginPath();
+        ctx.arc(srcX, topY, 12, 0, Math.PI * 2);
+        ctx.fillStyle = '#8b63e0';
+        ctx.fill();
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('얽힘 광원', srcX, topY + 30);
+
+        const detL = 90, detR = W - 90;
+        // 입자 경로(좌우)
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(srcX - 14, topY); ctx.lineTo(detL + 18, topY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(srcX + 14, topY); ctx.lineTo(detR - 18, topY); ctx.stroke();
+
+        // 검출기 + 분석기 각도 표시
+        function drawDetector(x, label, angDeg, colorTop) {
+          ctx.fillStyle = '#6B46C1';
+          ctx.beginPath();
+          if (ctx.roundRect) { ctx.roundRect(x - 18, topY - 22, 36, 44, 6); }
+          else { ctx.rect(x - 18, topY - 22, 36, 44); }
+          ctx.fill();
+          // 분석기 방향 표시(각도)
+          const r = 14;
+          const ang = deg2rad(angDeg);
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x - r * Math.cos(ang), topY + r * Math.sin(ang));
+          ctx.lineTo(x + r * Math.cos(ang), topY - r * Math.sin(ang));
+          ctx.stroke();
+          ctx.fillStyle = '#e9d8fd';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText(label, x, topY - 30);
+        }
+        drawDetector(detL, '앨리스 (a/a′)', state.a);
+        drawDetector(detR, '밥 (b/b′)', state.b);
+
+        // ===== 중단: 상관 곡선 E(Δ) = −cos(Δ) =====
+        const plotX = 70, plotW = W - 140;
+        const plotY = 150, plotH = 110;
+        const midY = plotY + plotH / 2;
+        // 축
+        ctx.strokeStyle = '#3b3553';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(plotX, plotY); ctx.lineTo(plotX, plotY + plotH); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(plotX, midY); ctx.lineTo(plotX + plotW, midY); ctx.stroke();
+        ctx.fillStyle = '#8a83a3';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('+1', plotX - 4, plotY + 4);
+        ctx.fillText(' 0', plotX - 4, midY + 4);
+        ctx.fillText('−1', plotX - 4, plotY + plotH + 4);
+        ctx.textAlign = 'center';
+        ctx.fillText('각도 차 Δ = a − b  (0° ~ 360°)', plotX + plotW / 2, plotY + plotH + 18);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('양자 상관 곡선  E(Δ) = −cos(Δ)', plotX + plotW / 2, plotY - 8);
+
+        // 곡선
+        ctx.strokeStyle = '#8b63e0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i <= plotW; i++) {
+          const delta = (i / plotW) * 2 * Math.PI; // 0~2π
+          const e = -Math.cos(delta); // -1~1
+          const px = plotX + i;
+          const py = midY - e * (plotH / 2);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // 현재 a−b 지점 표시
+        let dAB = ((state.a - state.b) % 360 + 360) % 360;
+        const markI = (dAB / 360) * plotW;
+        const eAB = corr(state.a, state.b);
+        const markPx = plotX + markI;
+        const markPy = midY - eAB * (plotH / 2);
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath(); ctx.arc(markPx, markPy, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(250,204,21,0.4)';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(markPx, midY); ctx.lineTo(markPx, markPy); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ===== 하단: CHSH S 막대 =====
+        const S = chshS();
+        const absS = Math.abs(S);
+        const barAreaX = 70, barAreaW = W - 140;
+        const barY = 300, barH = 70;
+        const scaleMax = 3.2; // S축 최댓값
+        const sx = (v) => barAreaX + (v / scaleMax) * barAreaW;
+
+        // 막대 배경 트랙
+        ctx.fillStyle = '#241d36';
+        ctx.fillRect(barAreaX, barY, barAreaW, barH);
+
+        // 막대(|S|)
+        const filledW = (absS / scaleMax) * barAreaW;
+        const over = absS > CLASSICAL + 1e-9;
+        ctx.fillStyle = over ? '#22c55e' : '#a78bfa';
+        ctx.fillRect(barAreaX, barY, filledW, barH);
+        // 2 초과 구간 강조(테두리 빛)
+        if (over) {
+          const overStart = sx(CLASSICAL);
+          ctx.fillStyle = 'rgba(34,197,94,0.35)';
+          ctx.fillRect(overStart, barY - 4, filledW + barAreaX - overStart, barH + 8);
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(overStart, barY - 4, (filledW + barAreaX) - overStart, barH + 8);
+        }
+
+        // 고전 한계선 (2, 빨강 점선)
+        ctx.strokeStyle = '#f87171';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(sx(CLASSICAL), barY - 14); ctx.lineTo(sx(CLASSICAL), barY + barH + 6); ctx.stroke();
+        // 양자 최대선 (2√2, 초록 점선)
+        ctx.strokeStyle = '#4ade80';
+        ctx.beginPath(); ctx.moveTo(sx(QUANTUM), barY - 14); ctx.lineTo(sx(QUANTUM), barY + barH + 6); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 라벨
+        ctx.fillStyle = '#f87171';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('고전 한계 2', sx(CLASSICAL), barY - 18);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText('양자 최대 2√2', sx(QUANTUM), barY - 18);
+
+        // |S| 수치
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('|S| = ' + absS.toFixed(3), barAreaX + 4, barY + barH + 22);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = over ? '#4ade80' : '#cbd5e0';
+        ctx.fillText(over ? '→ 고전 한계 초과: 벨 부등식 위배!' : '→ 고전 한계 이내', barAreaX + 130, barY + barH + 22);
+
+        ctx.textAlign = 'left'; // 기본값 복원
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const S = chshS();
+        const absS = Math.abs(S);
+        document.querySelector('#result strong').textContent = S.toFixed(3);
+        const v = document.getElementById('verdict');
+        if (absS > CLASSICAL + 1e-9) {
+          v.textContent = '✅ 고전 한계 2 초과 — 벨 부등식 위배 (비국소성)';
+          v.className = 'verdict over';
+        } else {
+          v.textContent = '— 고전 한계 |S| ≤ 2 이내';
+          v.className = 'verdict under';
+        }
+      }
+
+      // ----- 슬라이더 + 라벨 -----
+      const sliders = {
+        a: document.getElementById('a'),
+        ap: document.getElementById('ap'),
+        b: document.getElementById('b'),
+        bp: document.getElementById('bp')
+      };
+      const labels = {
+        a: document.getElementById('a-val'),
+        ap: document.getElementById('ap-val'),
+        b: document.getElementById('b-val'),
+        bp: document.getElementById('bp-val')
+      };
+      function syncLabels() {
+        labels.a.textContent = state.a;
+        labels.ap.textContent = state.ap;
+        labels.b.textContent = state.b;
+        labels.bp.textContent = state.bp;
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      Object.keys(sliders).forEach((key) => {
+        sliders[key].addEventListener('input', () => {
+          state[key] = Number(sliders[key].value);
+          syncLabels(); updateResult(); draw();
+        });
+      });
+
+      // ----- 프리셋 적용 -----
+      function applyValues(vals) {
+        state.a = vals.a; state.ap = vals.ap; state.b = vals.b; state.bp = vals.bp;
+        sliders.a.value = String(vals.a);
+        sliders.ap.value = String(vals.ap);
+        sliders.b.value = String(vals.b);
+        sliders.bp.value = String(vals.bp);
+        syncLabels(); updateResult(); draw();
+      }
+      // 최적: a=0, a'=90, b=45, b'=135 → 인접 각도차가 모두 45°·135°가 되어 |S| = 2√2
+      document.getElementById('preset-optimal').addEventListener('click', () => {
+        applyValues({ a: 0, ap: 90, b: 45, bp: 135 });
+      });
+      // 고전 한계 근처: 모든 각도 정렬 또는 직각 배치로 |S|≈2
+      document.getElementById('preset-classical').addEventListener('click', () => {
+        applyValues({ a: 0, ap: 90, b: 0, bp: 90 });
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        applyValues(DEFAULTS);
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 |S| > 2는 국소 숨은 변수로 설명 불가(비국소성)이며, 양자 최대는 2√2 ≈ 2.83입니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 부등식 위배(|S|>2)는 비국소성을 뜻하고, 양자 한계는 2√2임을 떠올려 보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

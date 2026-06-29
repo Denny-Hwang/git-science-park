@@ -693,7 +693,7 @@
         "운동량",
         "양자"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 34,
@@ -712,7 +712,7 @@
         "브래그 회절",
         "파동성"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 35,
@@ -731,7 +731,7 @@
         "퍼텐셜 우물",
         "양자역학"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 36,
@@ -750,7 +750,7 @@
         "파속",
         "양자 한계"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 37,
@@ -769,7 +769,7 @@
         "은 원자",
         "측정"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 38,
@@ -788,7 +788,7 @@
         "파동함수",
         "알파 붕괴"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 39,
@@ -807,7 +807,7 @@
         "숨은 변수",
         "EPR"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 40,
@@ -826,7 +826,7 @@
         "로런츠 인자",
         "쌍둥이 역설"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 41,
@@ -845,7 +845,7 @@
         "고유 길이",
         "상대속도"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 42,
@@ -864,7 +864,7 @@
         "측지선",
         "중력"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 43,
@@ -883,7 +883,7 @@
         "에딩턴",
         "중력"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 44,
@@ -902,7 +902,7 @@
         "은하단",
         "천체"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 45,
@@ -921,7 +921,7 @@
         "후퇴 속도",
         "빅뱅"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 46,
@@ -940,7 +940,7 @@
         "마이크로파",
         "펜지어스-윌슨"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 47,

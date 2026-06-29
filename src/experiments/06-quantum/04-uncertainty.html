@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하이젠베르크 불확정성 원리 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f6f4fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #111; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f1ecfb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .ok { color: #16a34a; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>하이젠베르크 불확정성 원리</h1>
+    <div class="en">Heisenberg Uncertainty Principle</div>
+    <div class="meta">1927년 · 베르너 하이젠베르크 (Werner Heisenberg) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" aria-label="위쪽은 위치 공간의 가우스 파속, 아래쪽은 운동량 공간 분포. 위치 불확정성을 좁히면 운동량 분포가 넓어지는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="dx">위치 불확정성 Δx: <span id="dx-val">1.0</span> nm</label>
+          <input type="range" id="dx" min="0.05" max="3.0" step="0.01" value="1.0"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        Δx = <strong id="r-dx">—</strong> &nbsp;|&nbsp;
+        Δp = <strong id="r-dp">—</strong> &nbsp;|&nbsp;
+        곱 Δx·Δp = <strong id="r-prod">—</strong>
+        <br>
+        한계 ħ/2 = <strong id="r-limit">—</strong> &nbsp;→&nbsp; <span id="r-judge">—</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> Δx 슬라이더로 위쪽 위치 파속의 폭을 좁히면(뾰족해지면),
+        아래쪽 운동량 분포는 반대로 <strong>넓게 퍼진다.</strong> Δx를 넓히면 위치는 흐릿해지지만
+        운동량은 뚜렷해진다. 두 폭의 <strong>곱 Δx·Δp 는 항상 ħ/2 이상</strong>으로,
+        아무리 조절해도 이 한계 아래로 내려갈 수 없다. 이것은 측정 기술의 부족이 아니라
+        파동이 가진 <strong>자연의 근본적 한계</strong>다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>위치와 운동량을 동시에 임의로 정확히 알 수 없음을 이해한다.</li>
+        <li>불확정성 관계식 Δx·Δp ≥ ħ/2 의 의미와 한계값을 설명한다.</li>
+        <li>위치 파속을 좁히면(Δx↓) 운동량 퍼짐(Δp↑)이 커지는 상충 관계를 안다.</li>
+        <li>이 한계가 측정 기술이 아니라 입자의 파동성(푸리에 관계)에서 비롯됨을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>양자 입자는 한 점에 콕 박힌 점이 아니라 공간에 퍼진 <strong>파속(wave packet)</strong>으로 기술된다.
+        위치가 잘 정의되려면 파속이 좁아야 하고, 운동량(파장)이 잘 정의되려면 여러 마루가 늘어선 긴 파동이어야 한다.
+        하나를 좁히면 다른 하나가 넓어지는 이 상충은 <strong>푸리에 변환</strong>의 수학적 성질이다 — 좁은 봉우리는
+        넓은 주파수(운동량) 분포로, 넓은 봉우리는 좁은 운동량 분포로 변환된다.</p>
+        <p>가장 한계에 가까운 가우스 파속에서는 두 폭의 곱이 정확히 <strong>Δx·Δp = ħ/2</strong> 가 되며,
+        다른 모든 상태는 그보다 큰 값을 가진다. 즉 곱은 결코 ħ/2 아래로 내려갈 수 없다.</p>
+      </div>
+
+      <div class="formula-box">
+        Δx · Δp ≥ ħ / 2
+        <br>
+        ħ = 1.055 × 10⁻³⁴ J·s
+        <br>
+        Δp = ħ / (2 · Δx)  (한계 상태)
+      </div>
+
+      <!-- SVG 다이어그램: 좁은 위치 → 넓은 운동량 / 넓은 위치 → 좁은 운동량 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+           aria-label="좁은 위치 파속은 넓은 운동량 분포로, 넓은 위치 파속은 좁은 운동량 분포로 대응되는 푸리에 관계 다이어그램">
+        <!-- 왼쪽: 좁은 Δx → 넓은 Δp -->
+        <text x="20" y="18" font-size="12" fill="#6B46C1">위치 Δx 작음</text>
+        <path d="M20 70 C 55 70, 60 30, 70 30 C 80 30, 85 70, 120 70" fill="none" stroke="#6B46C1" stroke-width="2"/>
+        <line x1="20" y1="70" x2="120" y2="70" stroke="#9ca3af" stroke-width="1"/>
+        <text x="40" y="98" font-size="11" fill="#6b7280">x (좁음)</text>
+        <text x="150" y="55" font-size="20" fill="#6b7280">→</text>
+        <text x="200" y="18" font-size="12" fill="#dc2626">운동량 Δp 큼</text>
+        <path d="M200 70 C 250 70, 250 45, 290 45 C 330 45, 330 70, 380 70" fill="none" stroke="#dc2626" stroke-width="2"/>
+        <line x1="200" y1="70" x2="380" y2="70" stroke="#9ca3af" stroke-width="1"/>
+        <text x="270" y="98" font-size="11" fill="#6b7280">p (넓음)</text>
+
+        <!-- 오른쪽: 넓은 Δx → 좁은 Δp -->
+        <text x="20" y="138" font-size="12" fill="#6B46C1">위치 Δx 큼</text>
+        <path d="M20 190 C 70 190, 70 165, 110 165 C 150 165, 150 190, 200 190" fill="none" stroke="#6B46C1" stroke-width="2"/>
+        <line x1="20" y1="190" x2="200" y2="190" stroke="#9ca3af" stroke-width="1"/>
+        <text x="90" y="212" font-size="11" fill="#6b7280">x (넓음)</text>
+        <text x="210" y="178" font-size="20" fill="#6b7280">→</text>
+        <text x="270" y="138" font-size="12" fill="#16a34a">운동량 Δp 작음</text>
+        <path d="M270 190 C 305 190, 310 150, 320 150 C 330 150, 335 190, 370 190" fill="none" stroke="#16a34a" stroke-width="2"/>
+        <line x1="270" y1="190" x2="370" y2="190" stroke="#9ca3af" stroke-width="1"/>
+        <text x="300" y="212" font-size="11" fill="#6b7280">p (좁음)</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "더 정밀한 현미경이나 측정 장비를 만들면 위치와 운동량을 동시에
+        완벽히 알 수 있다"고 생각하기 쉽다. 불확정성은 <em>측정 도구의 한계나 관측 교란만의 문제가 아니라</em>,
+        입자가 본질적으로 파동으로 기술되기 때문에 생기는 <em>자연의 근본적 한계</em>다.
+        애초에 위치와 운동량이 동시에 정해진 값을 갖지 않는다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 입자의 위치를 더 정확히 알수록(Δx 작아짐) 운동량은?</p>
+          <label><input type="radio" name="q1" value="correct"> 더 부정확해진다 (Δp 커짐)</label>
+          <label><input type="radio" name="q1" value="wrong"> 더 정확해진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 불확정성 원리가 성립하는 근본 이유로 가장 옳은 것은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 측정 장비의 정밀도가 부족해서</label>
+          <label><input type="radio" name="q2" value="correct"> 입자가 파동으로 기술되는 자연의 근본 성질이라서</label>
+          <label><input type="radio" name="q2" value="wrong"> 관측자가 직접 보면 입자가 부끄러워해서</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 베르너 하이젠베르크 (Werner Heisenberg, 1901~1976)</h3>
+        <p>독일의 이론물리학자로, 24세이던 1925년 행렬역학(matrix mechanics)을 창안해 양자역학의 토대를 놓았다.
+        1927년 불확정성 원리를 발표하여 양자 세계에서 위치와 운동량 같은 짝(켤레 변수)을 동시에 정확히
+        규정할 수 없음을 보였다. 이 공로로 1932년 노벨 물리학상을 받았으며, 보어와 함께 양자역학의
+        '코펜하겐 해석'을 정립했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1900년 — 플랑크가 에너지 양자화를 도입, 양자 시대의 문을 엶</li>
+          <li>1925년 — 하이젠베르크의 행렬역학, 슈뢰딩거의 파동역학(1926)이 잇따라 등장</li>
+          <li>1927년 — 하이젠베르크가 불확정성 원리(Δx·Δp ≥ ħ/2)를 발표</li>
+          <li>1927년 — 솔베이 회의에서 보어·하이젠베르크와 아인슈타인이 양자역학 해석을 두고 격론</li>
+          <li>1932년 — 하이젠베르크 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 불확정성 원리는 고전역학의 결정론적 세계관을 무너뜨렸다.
+        뉴턴 물리학에서는 초기 위치와 운동량을 알면 미래를 완전히 예측할 수 있다고 보았지만,
+        양자 세계에서는 그 둘을 동시에 정확히 알 수 없으므로 본질적으로 확률로만 기술된다.
+        아인슈타인은 "신은 주사위를 던지지 않는다"며 반발했으나, 불확정성은 수많은 실험으로 검증되어
+        현대 물리학과 양자 기술(반도체, 양자컴퓨터)의 핵심 토대가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 -----
+      const HBAR = 1.055e-34;        // J·s
+      const HALF_HBAR = HBAR / 2;    // 한계 ħ/2
+
+      // ----- 상태 (Δx 단위: nm) -----
+      const DEFAULTS = { dx: 1.0 };
+      const state = { dx: DEFAULTS.dx };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산: 한계 상태 가정 Δx·Δp = ħ/2 -----
+      function dxMeters() { return state.dx * 1e-9; }      // nm → m
+      function dpValue() { return HALF_HBAR / dxMeters(); } // Δp = ħ/(2Δx)
+      function product() { return dxMeters() * dpValue(); } // = ħ/2
+
+      // 지수 표기 도우미 (예: 5.28e-26)
+      function sci(v, digits) {
+        if (v === 0) return '0';
+        const exp = Math.floor(Math.log10(Math.abs(v)));
+        const mant = v / Math.pow(10, exp);
+        return mant.toFixed(digits === undefined ? 2 : digits) + '×10' + supExp(exp);
+      }
+      // 윗첨자 지수 문자열
+      function supExp(n) {
+        const map = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³',
+          '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+        return String(n).split('').map((ch) => map[ch] || ch).join('');
+      }
+
+      // ----- 가우스 곡선 그리기 도우미 -----
+      // baseY: 곡선의 기준선(아래쪽), top: 봉우리 최대 높이(px), sigmaPx: 표준편차(px), peakX 중심
+      function drawGaussian(centerX, baseY, peakHeight, sigmaPx, color, fillAlpha) {
+        ctx.beginPath();
+        const left = 60, right = canvas.width - 30;
+        for (let px = left; px <= right; px++) {
+          const dxp = px - centerX;
+          const y = baseY - peakHeight * Math.exp(-(dxp * dxp) / (2 * sigmaPx * sigmaPx));
+          if (px === left) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+        }
+        // 채우기용으로 기준선까지 닫기
+        ctx.lineTo(right, baseY);
+        ctx.lineTo(left, baseY);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = fillAlpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // 곡선 외곽선 다시
+        ctx.beginPath();
+        for (let px = left; px <= right; px++) {
+          const dxp = px - centerX;
+          const y = baseY - peakHeight * Math.exp(-(dxp * dxp) / (2 * sigmaPx * sigmaPx));
+          if (px === left) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // 양방향 폭 화살표
+      function widthArrow(x1, x2, y, color, label) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+        // 화살촉
+        const tip = (x, dir) => {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + dir * 6, y - 4);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + dir * 6, y + 4);
+          ctx.stroke();
+        };
+        tip(x1, 1); tip(x2, -1);
+        ctx.fillStyle = color;
+        ctx.font = '13px sans-serif';
+        ctx.fillText(label, (x1 + x2) / 2 - 10, y - 8);
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, W, H);
+
+        const cx = W / 2;
+        const topBase = H * 0.46;   // 위쪽 영역 기준선
+        const botBase = H * 0.94;   // 아래쪽 영역 기준선
+
+        // Δx(nm)를 화면 시그마(px)로 매핑. 슬라이더 0.05~3.0 nm.
+        // 위치 폭은 Δx에 비례, 운동량 폭은 1/Δx에 비례하도록 정한다.
+        const dxNm = state.dx;
+        // 위치 시그마(px): 0.05nm→약 6px, 3.0nm→약 150px
+        const posSigma = 6 + (dxNm - 0.05) / (3.0 - 0.05) * (150 - 6);
+        // 운동량 시그마(px): Δp ∝ 1/Δx 이므로 반비례. 기준 곱을 일정하게.
+        const SIGMA_PRODUCT = 6 * 150; // px² (양 끝에서 위치와 운동량 폭이 교차하도록)
+        let momSigma = SIGMA_PRODUCT / posSigma;
+        momSigma = Math.max(6, Math.min(150, momSigma));
+
+        // --- 위쪽: 위치 공간 파속 ---
+        const posPeak = topBase - H * 0.07;
+        drawGaussian(cx, topBase, posPeak, posSigma, '#8b63e0', 0.35);
+
+        // --- 아래쪽: 운동량 공간 분포 ---
+        const momPeak = botBase - H * 0.55;
+        drawGaussian(cx, botBase, momPeak, momSigma, '#f97316', 0.30);
+
+        // 라벨 & 축
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('위치 공간  |ψ(x)|²', 64, 24);
+        ctx.fillText('운동량 공간  |φ(p)|²', 64, topBase + 28);
+
+        // 기준선
+        ctx.strokeStyle = '#3f3f46';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(60, topBase); ctx.lineTo(W - 30, topBase); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(60, botBase); ctx.lineTo(W - 30, botBase); ctx.stroke();
+
+        // 폭 화살표 (각 봉우리 중턱 높이에)
+        widthArrow(cx - posSigma, cx + posSigma, topBase - posPeak * 0.42, '#c4b5fd', 'Δx');
+        widthArrow(cx - momSigma, cx + momSigma, botBase - momPeak * 0.45, '#fdba74', 'Δp');
+
+        // 곱 표시
+        ctx.fillStyle = '#a3e635';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText('Δx · Δp ≥ ħ/2 (한계 상태에서 = ħ/2)', cx - 150, H - 6);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const dp = dpValue();
+        const prod = product();
+        document.getElementById('r-dx').textContent = state.dx.toFixed(2) + ' nm';
+        document.getElementById('r-dp').textContent = sci(dp) + ' kg·m/s';
+        document.getElementById('r-prod').textContent = sci(prod) + ' J·s';
+        document.getElementById('r-limit').textContent = sci(HALF_HBAR) + ' J·s';
+        const judge = document.getElementById('r-judge');
+        if (prod >= HALF_HBAR * (1 - 1e-9)) {
+          judge.innerHTML = '<span class="ok">한계 충족 ✓ (곱 ≥ ħ/2)</span>';
+        } else {
+          judge.textContent = '한계 위반 (불가능)';
+        }
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const dxSlider = document.getElementById('dx');
+      const dxValLabel = document.getElementById('dx-val');
+      function syncLabels() {
+        dxValLabel.textContent = state.dx.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      dxSlider.addEventListener('input', () => {
+        state.dx = Number(dxSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.dx = DEFAULTS.dx;
+        dxSlider.value = String(DEFAULTS.dx);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 위치를 정확히 알수록 운동량은 부정확해지며, 이는 파동성에서 비롯된 자연의 근본 한계입니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. Δx·Δp ≥ ħ/2 — 위치와 운동량은 상충하며, 그 이유는 입자의 파동성입니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

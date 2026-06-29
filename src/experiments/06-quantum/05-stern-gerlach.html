@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>슈테른-게를라흐 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f5f3fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .spin-up { color: #2563eb; font-weight: 700; }
+    .spin-down { color: #dc2626; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>슈테른-게를라흐 실험</h1>
+    <div class="en">Stern–Gerlach Experiment</div>
+    <div class="meta">1922년 · 오토 슈테른 (Otto Stern), 발터 게를라흐 (Walther Gerlach) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="은 원자 빔이 불균일 자기장을 지나 스크린에서 위·아래 두 점으로만 갈라지는 슈테른-게를라흐 실험 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="gradient">자기장 기울기 (∂B/∂z) 세기: <span id="gradient-val">5.0</span></label>
+          <input type="range" id="gradient" min="0" max="10" step="0.1" value="5.0"
+            aria-describedby="gradient-val">
+        </div>
+
+        <div class="control-row">
+          <label for="count">발사할 은 원자 수: <span id="count-val">200</span> 개</label>
+          <input type="range" id="count" min="20" max="600" step="20" value="200"
+            aria-describedby="count-val">
+        </div>
+
+        <div class="control-row">
+          <label>예측 모델 보기</label>
+          <div class="btn-row" role="group" aria-label="예측 모델 선택">
+            <button type="button" class="btn preset active" data-model="quantum">⚛️ 양자 (관측 결과)</button>
+            <button type="button" class="btn preset" data-model="classical">📉 고전 예측 (연속 띠)</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="fireBtn">▶ 빔 발사</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>분리 간격 (상대값): <strong id="r-gap">—</strong></div>
+          <div>검출된 원자: <strong id="r-total">0</strong> 개</div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>위쪽 검출 <span class="spin-up">↑</span>: <strong id="r-up">0 (0%)</strong></div>
+          <div>아래쪽 검출 <span class="spin-down">↓</span>: <strong id="r-down">0 (0%)</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>스핀 상태: <strong id="r-state">+ħ/2 (↑) 또는 −ħ/2 (↓)</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 고전 물리는 은 원자의 자기 모멘트가 모든 방향을 향할 수 있어
+        스크린에 <em>연속적으로 퍼진 띠</em>가 생긴다고 예측했습니다. 실제로는 정확히 <strong>위/아래
+        두 개의 점</strong>으로만 갈라집니다. "연속"이 아니라 "딱 두 값"으로 갈라지는 것 — 이것이 바로
+        스핀(각운동량)이 <strong>양자화</strong>되어 있다는 증거입니다. 자기장 기울기를 키우면 두 점의
+        분리 간격이 커지지만, 점의 개수는 항상 2개로 변하지 않습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>불균일 자기장이 자기 모멘트에 알짜 힘을 주어 빔을 편향시킴을 이해한다.</li>
+        <li>고전 예측(연속 분포)과 실제 관측(이산 두 점)의 결정적 차이를 비교한다.</li>
+        <li>스핀 각운동량이 +ħ/2, −ħ/2 두 값만 갖는 "공간 양자화"를 익힌다.</li>
+        <li>분리 간격이 자기장 기울기에 비례함을 정량적으로 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>자기 모멘트 <em>μ</em>를 가진 입자가 <strong>불균일</strong> 자기장(기울기 ∂B<sub>z</sub>/∂z)을
+        지나면, 자기 위치에너지 <em>U = −μ·B</em>의 기울기만큼 <strong>알짜 힘</strong>
+        <em>F<sub>z</sub> = μ<sub>z</sub>·(∂B<sub>z</sub>/∂z)</em>를 받아 빔이 휘어진다. 편향 방향과 크기는
+        자기 모멘트의 z성분 <em>μ<sub>z</sub></em>에 달려 있다.</p>
+        <p>고전적으로 자기 모멘트는 어떤 방향이든 가질 수 있으므로 <em>μ<sub>z</sub></em>는 연속적인 값을
+        가져야 하고, 스크린에는 위아래로 길게 퍼진 <strong>연속 띠</strong>가 생겨야 한다. 그러나 실제 은
+        원자 빔은 정확히 <strong>두 점</strong>으로만 갈라졌다. 즉 <em>μ<sub>z</sub></em>(따라서 스핀 각운동량
+        <em>S<sub>z</sub></em>)는 오직 두 값 <strong>+ħ/2, −ħ/2</strong>만 가질 수 있다. 이를 공간 양자화
+        (space quantization)라 한다.</p>
+      </div>
+
+      <div class="formula-box">
+        F<sub>z</sub> = μ<sub>z</sub> · (∂B<sub>z</sub> / ∂z)<br>
+        S<sub>z</sub> = m<sub>s</sub> · ħ ,  m<sub>s</sub> = ± ½<br>
+        μ<sub>z</sub> = + ħ/2  또는  − ħ/2  (오직 두 값)
+      </div>
+
+      <!-- SVG 다이어그램: 고전 연속 띠 vs 양자 두 점 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+        aria-label="동일한 입사 빔에 대해 고전 예측은 연속 띠, 양자 관측은 위아래 두 점으로 갈라지는 비교 다이어그램">
+        <!-- 원자원 -->
+        <rect x="10" y="98" width="40" height="24" rx="4" fill="#6B46C1"/>
+        <text x="8" y="142" font-size="10" fill="#374151">원자원</text>
+        <!-- 빔 -->
+        <line x1="50" y1="110" x2="150" y2="110" stroke="#9ca3af" stroke-width="2"/>
+        <!-- 자석 (N/S 비대칭) -->
+        <polygon points="150,72 230,72 230,96 150,104" fill="#1d4ed8"/>
+        <text x="183" y="90" font-size="11" fill="#fff">N</text>
+        <rect x="150" y="118" width="80" height="22" fill="#b91c1c"/>
+        <text x="183" y="134" font-size="11" fill="#fff">S</text>
+        <text x="150" y="160" font-size="10" fill="#374151">불균일 자기장</text>
+        <!-- 고전 예측: 연속 띠 -->
+        <line x1="230" y1="110" x2="330" y2="60" stroke="#9ca3af" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="230" y1="110" x2="330" y2="160" stroke="#9ca3af" stroke-width="1" stroke-dasharray="3 3"/>
+        <rect x="330" y="60" width="10" height="100" fill="#9ca3af" opacity="0.5"/>
+        <text x="344" y="60" font-size="9" fill="#6b7280">고전: 연속 띠</text>
+        <!-- 양자 관측: 두 점 -->
+        <line x1="230" y1="105" x2="370" y2="74" stroke="#2563eb" stroke-width="1.5"/>
+        <line x1="230" y1="115" x2="370" y2="146" stroke="#dc2626" stroke-width="1.5"/>
+        <circle cx="372" cy="74" r="7" fill="#2563eb"/>
+        <circle cx="372" cy="146" r="7" fill="#dc2626"/>
+        <text x="384" y="78" font-size="11" fill="#2563eb">↑</text>
+        <text x="384" y="150" font-size="11" fill="#dc2626">↓</text>
+        <text x="300" y="205" font-size="10" fill="#374151">양자: 정확히 두 점</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        같은 빔이라도 고전은 연속 띠(회색)를, 양자(실제)는 위·아래 두 점(파랑·빨강)만 만든다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "두 점은 자석이 N극·S극 두 개라서 생긴 것"이라 오해하기 쉽다.
+        실제로 갈라짐을 만드는 것은 극이 둘이라는 사실이 아니라 자기장이 <em>공간적으로 불균일</em>하다는
+        점이다(균일하면 회전력만 받고 알짜 힘이 0이라 빔이 휘지 않는다). 또 "더 센 자석을 쓰면 점이 더
+        많아진다"고 생각하기 쉽지만, 기울기를 키워도 점은 <em>항상 2개</em>이고 간격만 넓어진다. 점의
+        개수가 2로 고정된 것이 바로 양자화의 핵심이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>은 원자 빔이 불균일 자기장에서 정확히 위/아래 두 갈래로만 갈라지는 것은 무엇의 증거인가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 자석에 N극·S극이 있기 때문</label>
+        <label><input type="radio" name="q1" value="correct"> 스핀(각운동량)이 양자화되어 두 값만 갖기 때문</label>
+        <label><input type="radio" name="q1" value="wrong"> 은 원자가 두 종류로 섞여 있기 때문</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>고전 물리학(자기 모멘트가 모든 방향을 향할 수 있음)은 스크린에 어떤 무늬를 예측했는가?</p>
+        <label><input type="radio" name="q2" value="correct"> 위아래로 연속적으로 퍼진 하나의 띠</label>
+        <label><input type="radio" name="q2" value="wrong"> 정확히 위·아래 두 개의 점</label>
+        <label><input type="radio" name="q2" value="wrong"> 좌우 대칭의 세 개 점</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 오토 슈테른 (Otto Stern, 1888~1969) · 발터 게를라흐 (Walther Gerlach, 1889~1979)</h3>
+        <p>오토 슈테른은 독일 출신의 물리학자로 분자선(molecular beam) 기법을 개척했다. 1922년 프랑크푸르트
+        대학에서 발터 게를라흐와 함께 은 원자 빔을 불균일 자기장에 통과시켜 빔이 두 갈래로 갈라짐을 관측,
+        각운동량의 공간 양자화를 처음으로 직접 보였다. 슈테른은 이 분자선 방법과 양성자 자기 모멘트 측정
+        공로로 1943년 노벨 물리학상을 받았다.</p>
+        <p>흥미로운 일화로, 검출판에 은 입자가 보이지 않다가 슈테른이 값싼 시가를 피우며 입김을 불자 황화은이
+        형성되어 두 줄기 무늬가 또렷이 드러났다고 전해진다. 시가의 황 성분이 현상액 역할을 한 셈이다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1913년 — 보어의 원자 모형, 각운동량의 양자화 개념 제시</li>
+          <li>1916년 — 조머펠트, 궤도면의 공간 양자화(space quantization)를 이론적으로 도입</li>
+          <li>1921년 — 슈테른, 공간 양자화를 직접 검증할 분자선 실험을 제안</li>
+          <li>1922년 — 슈테른·게를라흐, 은 원자 빔이 두 갈래로 갈라짐을 관측</li>
+          <li>1925년 — 울런벡·하우트스밋, 전자 "스핀(spin)" 개념을 도입해 두 갈래의 정체를 규명</li>
+          <li>1927년 — 수소 원자로 재현, 바닥상태 전자 스핀(½)으로 결과를 재해석</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 슈테른-게를라흐 실험은 양자적 관측량이 연속이 아니라 <strong>이산
+        값</strong>을 가짐을 눈으로 보여준 최초의 결정적 실험이다. 당시에는 "스핀"이라는 개념조차 없었지만,
+        이 두 갈래 무늬는 곧 전자 스핀(½)의 직접 증거가 되었고, 측정이 양자 상태를 두 고유상태 중 하나로
+        "붕괴"시킨다는 양자 측정 이론, 나아가 큐비트·자기공명영상(MRI)·원자시계 등 현대 양자기술의
+        토대가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        gradient: 5.0,    // 자기장 기울기 세기 (0~10)
+        count: 200,       // 발사할 원자 수
+        model: 'quantum', // 'quantum' | 'classical'
+        running: false,
+        lastTs: null,
+        particles: [],    // {x, y, vy, spin(+1/-1), landed}
+        fired: 0,         // 발사 누적
+        up: 0,            // 위쪽 검출
+        down: 0,          // 아래쪽 검출
+        screenHits: []    // {y, spin} 스크린에 박힌 점들
+      };
+
+      // ----- 레이아웃 상수(px) -----
+      const SRC_X = 70;       // 원자원 위치
+      const MAG_X1 = 200;     // 자석 입구
+      const MAG_X2 = 380;     // 자석 출구
+      const SCREEN_X = 560;   // 스크린 위치
+      const MID_Y = 190;      // 중심선 y
+      const MAX_GAP_PX = 110; // 최대 분리(반쪽) px
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const gradSlider = document.getElementById('gradient');
+      const countSlider = document.getElementById('count');
+      const modelBtns = document.querySelectorAll('.btn.preset');
+
+      const fireBtn = document.getElementById('fireBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리/모델 헬퍼 -----
+      // 분리(반쪽) 편향량(px): 기울기에 비례.
+      function deflection() {
+        return (state.gradient / 10) * MAX_GAP_PX;
+      }
+
+      // 한 입자의 최종 도착 y(px)와 스핀 결정.
+      // 양자: 정확히 두 값(+/-) 중 하나로만, 50:50.
+      // 고전: -1~+1 연속 분포(편향량에 비례한 연속 띠).
+      function makeParticle() {
+        const dz = deflection();
+        if (state.model === 'quantum') {
+          const spin = Math.random() < 0.5 ? 1 : -1;
+          // 약간의 점 산포(검출 점 크기) 추가
+          const jitter = (Math.random() - 0.5) * 6;
+          const targetY = MID_Y - spin * dz + jitter;
+          return { x: SRC_X, y: MID_Y + (Math.random() - 0.5) * 8, vy: 0, spin: spin, targetY: targetY, landed: false };
+        } else {
+          // 고전: cosθ가 균일 분포에 가깝게 -> -1~+1 연속
+          const c = (Math.random() * 2 - 1); // -1..+1
+          const spin = c >= 0 ? 1 : -1;
+          const targetY = MID_Y - c * dz;
+          return { x: SRC_X, y: MID_Y + (Math.random() - 0.5) * 8, vy: 0, spin: spin, targetY: targetY, landed: false };
+        }
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 중심선
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.setLineDash([5, 6]);
+        ctx.beginPath();
+        ctx.moveTo(SRC_X, MID_Y); ctx.lineTo(SCREEN_X, MID_Y); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 원자원
+        ctx.fillStyle = '#8b63e0';
+        ctx.fillRect(SRC_X - 34, MID_Y - 16, 30, 32);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('원자원', SRC_X - 19, MID_Y + 34);
+        ctx.fillText('(은 Ag)', SRC_X - 19, MID_Y + 48);
+
+        // 자석 (N/S 비대칭): 위 N극(쐐기), 아래 S극(평평)
+        ctx.fillStyle = '#1d4ed8';
+        ctx.beginPath();
+        ctx.moveTo(MAG_X1, MID_Y - 70);
+        ctx.lineTo(MAG_X2, MID_Y - 70);
+        ctx.lineTo(MAG_X2, MID_Y - 30);
+        ctx.lineTo(MAG_X1, MID_Y - 18); // 비대칭(쐐기) → 불균일 자기장
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillText('N', (MAG_X1 + MAG_X2) / 2, MID_Y - 42);
+
+        ctx.fillStyle = '#b91c1c';
+        ctx.fillRect(MAG_X1, MID_Y + 22, MAG_X2 - MAG_X1, 46);
+        ctx.fillStyle = '#fff';
+        ctx.fillText('S', (MAG_X1 + MAG_X2) / 2, MID_Y + 50);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('불균일 자기장 (∂B/∂z)', (MAG_X1 + MAG_X2) / 2, MID_Y + 90);
+
+        // 스크린
+        ctx.fillStyle = '#2a2440';
+        ctx.fillRect(SCREEN_X, MID_Y - 130, 14, 260);
+        ctx.strokeStyle = '#4b3f6b';
+        ctx.strokeRect(SCREEN_X, MID_Y - 130, 14, 260);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('스크린', SCREEN_X + 7, MID_Y - 140);
+
+        // 모델 라벨
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 13px sans-serif';
+        if (state.model === 'quantum') {
+          ctx.fillStyle = '#a78bfa';
+          ctx.fillText('⚛️ 양자: 두 점으로만 갈라짐', 16, 24);
+        } else {
+          ctx.fillStyle = '#9ca3af';
+          ctx.fillText('📉 고전 예측: 연속 띠', 16, 24);
+        }
+
+        // 스크린에 박힌 점들
+        for (let i = 0; i < state.screenHits.length; i++) {
+          const h = state.screenHits[i];
+          ctx.beginPath();
+          ctx.arc(SCREEN_X + 7, h.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = h.spin > 0 ? 'rgba(96,165,250,0.85)' : 'rgba(248,113,113,0.85)';
+          ctx.fill();
+        }
+
+        // 비행 중 입자들
+        ctx.textAlign = 'center';
+        for (let i = 0; i < state.particles.length; i++) {
+          const p = state.particles[i];
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.6, 0, Math.PI * 2);
+          ctx.fillStyle = '#fef3c7';
+          ctx.fill();
+        }
+
+        // 위/아래 검출 표식 (양자 모델일 때 두 점 위치 강조)
+        if (state.model === 'quantum') {
+          const dz = deflection();
+          ctx.fillStyle = 'rgba(96,165,250,0.5)';
+          ctx.fillText('↑', SCREEN_X + 30, MID_Y - dz + 4);
+          ctx.fillStyle = 'rgba(248,113,113,0.5)';
+          ctx.fillText('↓', SCREEN_X + 30, MID_Y + dz + 4);
+        }
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        // 분리 간격 상대값: 기울기 0~10 -> 0.00~10.00 (상대), 정지 시에도 표시
+        document.getElementById('r-gap').textContent =
+          (state.gradient).toFixed(2) + (state.gradient > 0 ? '' : ' (자기장 없음)');
+
+        const total = state.up + state.down;
+        document.getElementById('r-total').textContent = total;
+        const upPct = total ? Math.round((state.up / total) * 100) : 0;
+        const downPct = total ? Math.round((state.down / total) * 100) : 0;
+        document.getElementById('r-up').textContent = state.up + ' (' + upPct + '%)';
+        document.getElementById('r-down').textContent = state.down + ' (' + downPct + '%)';
+
+        if (state.model === 'quantum') {
+          document.getElementById('r-state').textContent = '+ħ/2 (↑) 또는 −ħ/2 (↓) — 두 값만';
+        } else {
+          document.getElementById('r-state').textContent = '연속 (고전 예측: 모든 방향 가능)';
+        }
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      gradSlider.addEventListener('input', () => {
+        state.gradient = Number(gradSlider.value);
+        document.getElementById('gradient-val').textContent = state.gradient.toFixed(1);
+        updateResult();
+        draw();
+      });
+      countSlider.addEventListener('input', () => {
+        state.count = Number(countSlider.value);
+        document.getElementById('count-val').textContent = state.count;
+        updateResult();
+        draw();
+      });
+
+      // 모델 프리셋
+      modelBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          modelBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.model = btn.dataset.model;
+          resetSim(false); // 모델 바꾸면 누적 결과 초기화
+          updateResult();
+          draw();
+        });
+      });
+
+      // ----- 애니메이션 루프 -----
+      function spawnIfNeeded() {
+        // 비행 입자 수를 적당히 유지하면서, 남은 발사 수만큼 순차 투입
+        const flying = state.particles.length;
+        const remaining = state.count - state.fired;
+        if (remaining > 0 && flying < 40) {
+          const batch = Math.min(remaining, 4);
+          for (let i = 0; i < batch; i++) {
+            state.particles.push(makeParticle());
+            state.fired++;
+          }
+        }
+      }
+
+      function step(dt) {
+        const VX = 260; // px/s 수평 속도
+        spawnIfNeeded();
+
+        for (let i = state.particles.length - 1; i >= 0; i--) {
+          const p = state.particles[i];
+          p.x += VX * dt;
+
+          // 자석 구간을 지나는 동안 점진적으로 targetY로 수렴
+          if (p.x > MAG_X1) {
+            const prog = Math.min(1, (p.x - MAG_X1) / (SCREEN_X - MAG_X1));
+            p.y = MID_Y + (p.targetY - MID_Y) * prog;
+          }
+
+          if (p.x >= SCREEN_X) {
+            // 스크린 도달 → 검출
+            state.screenHits.push({ y: p.targetY, spin: p.spin });
+            if (p.spin > 0) state.up++; else state.down++;
+            state.particles.splice(i, 1);
+          }
+        }
+
+        // 모두 발사·검출 완료 시 정지
+        if (state.fired >= state.count && state.particles.length === 0) {
+          state.running = false;
+        }
+      }
+
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        let dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+        if (dt > 0.05) dt = 0.05; // 탭 비활성 등으로 인한 큰 점프 방지
+
+        step(dt);
+        updateResult();
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function fire() {
+        if (state.running) return;
+        // 이미 끝났으면 새 발사를 위해 초기화
+        if (state.fired >= state.count) resetSim(false);
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function pause() {
+        state.running = false;
+        state.lastTs = null;
+      }
+
+      function resetSim(redraw) {
+        state.running = false;
+        state.lastTs = null;
+        state.particles = [];
+        state.screenHits = [];
+        state.fired = 0;
+        state.up = 0;
+        state.down = 0;
+        if (redraw !== false) {
+          updateResult();
+          draw();
+        }
+      }
+
+      fireBtn.addEventListener('click', fire);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '연속이 아니라 정확히 두 값으로만 갈라지는 것이 스핀(각운동량) 양자화의 직접 증거입니다.',
+        '갈라짐 자체는 불균일 자기장의 힘 때문이지만, "딱 두 갈래"라는 사실은 스핀 양자화의 증거입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '고전은 자기 모멘트가 모든 방향을 향할 수 있어 위아래로 퍼진 연속 띠를 예측했습니다.',
+        '고전에서는 μ_z가 연속이라 스크린에 연속적으로 퍼진 띠가 생겨야 합니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

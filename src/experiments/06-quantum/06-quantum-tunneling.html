@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 터널링 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f6f4fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0f0f1a; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f1ecfb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .line { margin: 2px 0; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>양자 터널링</h1>
+    <div class="en">Quantum Tunneling</div>
+    <div class="meta">1928년 · 조지 가모프 (George Gamow) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" aria-label="좌측에서 들어온 파동이 퍼텐셜 장벽에서 일부 반사되고 일부는 장벽 속에서 지수적으로 감쇠한 뒤 우측으로 투과하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="energy">입자 에너지 E: <span id="energy-val">5.0</span> eV</label>
+          <input type="range" id="energy" min="0.5" max="9.5" step="0.1" value="5.0"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="height">장벽 높이 V₀: <span id="height-val">10.0</span> eV</label>
+          <input type="range" id="height" min="1.0" max="20.0" step="0.1" value="10.0"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="width">장벽 두께 L: <span id="width-val">0.50</span> nm</label>
+          <input type="range" id="width" min="0.10" max="2.00" step="0.01" value="0.50"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="line">투과확률 T: <strong id="r-trans">—</strong></div>
+        <div class="line">반사확률 R: <strong id="r-refl">—</strong></div>
+        <div class="line">에너지 비율 E / V₀: <strong id="r-ratio">—</strong></div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 좌측에서 들어온 파동의 일부는 장벽에서 <strong>반사</strong>되고,
+        나머지는 장벽 속에서 <strong>지수적으로 감쇠</strong>한 뒤 우측으로 약하게 <strong>새어 나간다(터널링)</strong>.
+        <strong>장벽 두께 L을 늘리거나 높이 V₀를 높이면</strong> 투과확률이 지수적으로 급감한다.
+        고전역학에서는 E &lt; V₀이면 입자가 결코 장벽을 넘지 못하지만, 양자역학에서는 0이 아닌 확률로 통과한다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>고전역학에서 불가능한 장벽 통과가 양자역학에서는 가능함을 이해한다.</li>
+        <li>파동함수가 장벽 속에서 지수적으로 감쇠하며 일부가 반대편으로 새어 나감을 안다.</li>
+        <li>투과확률 공식 T ≈ exp(−2κL) 에서 두께 L과 높이 V₀의 영향을 설명한다.</li>
+        <li>터널링이 알파 붕괴와 주사터널현미경(STM)의 원리임을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>고전적으로 입자가 자기 에너지 E보다 높은 퍼텐셜 장벽(높이 V₀ &gt; E)을 만나면 결코 넘을 수 없다.
+        그러나 양자역학에서 입자는 파동함수 ψ로 기술되며, 이 파동함수는 장벽 안쪽에서 0이 되는 대신
+        <strong>지수적으로 감쇠</strong>한다. 장벽이 충분히 얇으면 파동함수가 완전히 사라지기 전에 반대편에 도달하고,
+        그곳에서 다시 진동하는 파동으로 이어진다. 즉 입자가 장벽 <em>너머</em>에서 발견될 확률이 0이 아니다.</p>
+        <p>장벽 안에서의 감쇠율은 κ = √(2m(V₀−E)) / ħ 로 정해진다. V₀−E(에너지 부족분)가 클수록,
+        장벽 두께 L이 클수록 투과확률이 지수적으로 작아진다. 이것이 "터널을 뚫고 지나간다"는 뜻의 <strong>양자 터널링</strong>이다.</p>
+      </div>
+
+      <div class="formula-box">
+        T ≈ exp( −2 κ L )
+        <br>
+        κ = √( 2 m ( V₀ − E ) ) / ħ
+        <br>
+        R = 1 − T &nbsp; (E &lt; V₀)
+      </div>
+
+      <!-- SVG 다이어그램: 입사파 → 장벽 속 지수 감쇠 → 투과파 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+           aria-label="입사하는 파동이 퍼텐셜 장벽 속에서 지수적으로 감쇠하고 일부가 반대편으로 투과하는 다이어그램">
+        <!-- 기준선 -->
+        <line x1="20" y1="150" x2="400" y2="150" stroke="#cbd5e0" stroke-width="1"/>
+        <!-- 퍼텐셜 장벽 (직사각형) -->
+        <rect x="190" y="50" width="70" height="100" fill="#ede9fb" stroke="#6B46C1" stroke-width="2"/>
+        <text x="200" y="44" font-size="11" fill="#6B46C1">장벽 V₀</text>
+        <!-- 에너지 E 수준선 -->
+        <line x1="20" y1="110" x2="400" y2="110" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="24" y="106" font-size="11" fill="#d97706">E</text>
+        <!-- 입사파 (좌측 진동) -->
+        <path d="M20 90 Q35 70 50 90 T80 90 T110 90 T140 90 T170 90"
+              fill="none" stroke="#8b63e0" stroke-width="2"/>
+        <text x="60" y="64" font-size="11" fill="#8b63e0">입사파</text>
+        <!-- 장벽 속 지수 감쇠 -->
+        <path d="M190 90 C210 95 230 102 260 112" fill="none" stroke="#6B46C1" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="196" y="138" font-size="10" fill="#6B46C1">지수 감쇠</text>
+        <!-- 투과파 (우측, 작은 진폭) -->
+        <path d="M260 112 Q272 104 284 112 T308 112 T332 112 T356 112 T380 112"
+              fill="none" stroke="#16a34a" stroke-width="2"/>
+        <text x="300" y="98" font-size="11" fill="#16a34a">투과파</text>
+        <!-- 두께 L 표시 -->
+        <line x1="190" y1="166" x2="260" y2="166" stroke="#6b7280" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="218" y="180" font-size="11" fill="#6b7280">L</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "입자가 에너지를 잠깐 빌려서 장벽을 '뛰어넘는다'"고 생각하기 쉽다.
+        실제로는 입자가 장벽 꼭대기를 넘는 것이 아니라, 파동함수가 장벽 속에서 감쇠하면서도 <em>0이 되기 전에</em>
+        반대편에 도달하는 것이다. 또 "장벽을 통과한 입자는 에너지를 잃는다"는 오해도 흔하지만,
+        터널링한 입자의 에너지 E는 변하지 않는다. 변하는 것은 통과할 <em>확률</em>일 뿐이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 장벽 두께 L을 늘리면 양자 터널링 투과확률 T는 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="correct"> 지수적으로 급감한다 (T ≈ e^(−2κL))</label>
+          <label><input type="radio" name="q1" value="wrong"> 선형으로 조금 늘어난다</label>
+          <label><input type="radio" name="q1" value="wrong"> 두께와 무관하게 일정하다</label>
+        </div>
+        <div class="q">
+          <p>2. 입자 에너지 E가 장벽 높이 V₀보다 작을 때(E &lt; V₀), 고전역학과 양자역학의 차이는?</p>
+          <label><input type="radio" name="q2" value="wrong"> 둘 다 통과할 수 없다</label>
+          <label><input type="radio" name="q2" value="correct"> 고전은 불가능하지만 양자는 0이 아닌 확률로 통과한다</label>
+          <label><input type="radio" name="q2" value="wrong"> 둘 다 반드시 통과한다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 조지 가모프 (George Gamow, 1904~1968)</h3>
+        <p>러시아(현 우크라이나) 태생의 이론물리학자로, 1928년 새로 정립된 양자역학을 이용해
+        알파 붕괴를 설명했다. 원자핵 안의 알파 입자가 핵력이 만드는 높은 퍼텐셜 장벽을 고전적으로는
+        결코 넘을 수 없음에도 방출되는 이유를, <strong>장벽을 터널링하는 확률</strong>로 정량적으로 풀어냈다.
+        후일 빅뱅 우주론의 핵합성(원소의 기원)과 DNA 유전 부호 연구에도 기여했으며,
+        대중 과학서 저술가로도 유명하다. 같은 시기 거니(Gurney)와 콘던(Condon)도 독립적으로 같은 결론에 이르렀다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1896년 — 베크렐이 방사능 발견, 이후 알파·베타·감마선이 구분됨</li>
+          <li>1925~1926년 — 하이젠베르크·슈뢰딩거가 양자역학(행렬역학·파동역학)을 정립</li>
+          <li>1928년 — 가모프(및 거니·콘던)가 양자 터널링으로 알파 붕괴를 설명</li>
+          <li>1957년 — 에사키가 반도체 터널 다이오드에서 터널링 전류를 실증</li>
+          <li>1981년 — 비니히·로러가 주사터널현미경(STM) 발명, 원자를 직접 영상화</li>
+          <li>1986년 — STM 공로로 비니히·로러 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 양자 터널링은 고전역학으로는 절대 불가능한 현상이
+        양자 세계에서는 일상적임을 보여준 결정적 사례다. 알파 붕괴의 반감기, 항성 내부의 핵융합(태양이 빛나는 이유),
+        반도체 터널 다이오드, 원자를 보고 조작하는 주사터널현미경(STM), 플래시 메모리의 동작까지
+        현대 물리학과 기술 곳곳의 토대가 되었다. 추상적 파동함수가 실제 자연 현상을 정확히 예측한다는 사실을
+        가장 극적으로 입증한 양자역학의 승리 중 하나다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (단위: E eV, V0 eV, L nm) -----
+      const DEFAULTS = { E: 5.0, V0: 10.0, L: 0.50 };
+      const state = { E: DEFAULTS.E, V0: DEFAULTS.V0, L: DEFAULTS.L };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 물리 계산 -----
+      // κ = √(2 m (V0 − E)) / ħ.  E, V0 [eV] → [J], 결과 κ [1/m]
+      // T ≈ exp(−2 κ L),  L [nm] → [m]
+      const M_E = 9.10938356e-31;   // 전자 질량 (kg)
+      const HBAR = 1.054571817e-34; // ħ (J·s)
+      const EV = 1.602176634e-19;   // 1 eV (J)
+
+      // 감쇠 상수 κ (1/m). E ≥ V0 이면 0 반환(장벽 위, 별도 처리)
+      function kappa() {
+        const dE = (state.V0 - state.E) * EV; // J
+        if (dE <= 0) return 0;
+        return Math.sqrt(2 * M_E * dE) / HBAR;
+      }
+
+      // 투과확률 T (0~1)
+      function transmission() {
+        if (state.E >= state.V0) {
+          // E ≥ V0: 고전적으로 통과. 근사적으로 매우 높은 투과(부분 반사 무시).
+          return 1;
+        }
+        const k = kappa();           // 1/m
+        const Lm = state.L * 1e-9;   // m
+        const exponent = -2 * k * Lm;
+        // 수치 안정성: 매우 작은 값은 0에 가깝게
+        return Math.exp(exponent);
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0f0f1a';
+        ctx.fillRect(0, 0, W, H);
+
+        const baseY = H - 60;        // 퍼텐셜/파동 기준선
+        const maxBarH = baseY - 40;  // 장벽 최대 높이(px)
+        const vMax = 20;             // V0 슬라이더 최대(eV)
+
+        // --- 장벽 기하 ---
+        // 장벽 두께 L(0.1~2.0 nm)을 화면 폭에 매핑
+        const barCenterX = W * 0.5;
+        const minBarW = 24, maxBarW = 200;
+        const barW = minBarW + (maxBarW - minBarW) * ((state.L - 0.10) / (2.00 - 0.10));
+        const barLeft = barCenterX - barW / 2;
+        const barRight = barCenterX + barW / 2;
+        const barH = maxBarH * (state.V0 / vMax);
+        const barTop = baseY - barH;
+
+        // 에너지 E 수준선 높이
+        const eY = baseY - maxBarH * (state.E / vMax);
+
+        // --- 기준선 ---
+        ctx.strokeStyle = '#2a2a40';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, baseY); ctx.lineTo(W, baseY); ctx.stroke();
+
+        // --- 퍼텐셜 장벽 ---
+        ctx.fillStyle = 'rgba(107, 70, 193, 0.30)';
+        ctx.strokeStyle = '#8b63e0';
+        ctx.lineWidth = 2;
+        ctx.fillRect(barLeft, barTop, barW, barH);
+        ctx.strokeRect(barLeft, barTop, barW, barH);
+        ctx.fillStyle = '#c4b5fd';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('V₀ = ' + state.V0.toFixed(1) + ' eV', barLeft, barTop - 8);
+        ctx.fillText('L = ' + state.L.toFixed(2) + ' nm', barLeft, baseY + 18);
+
+        // --- 에너지 E 수준선 ---
+        ctx.strokeStyle = '#f59e0b';
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, eY); ctx.lineTo(W, eY); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('E = ' + state.E.toFixed(1) + ' eV', 8, eY - 6);
+
+        // --- 파동 ---
+        const T = transmission();
+        const ampIncident = 18;                 // 입사파 진폭(px)
+        const ampTrans = ampIncident * Math.sqrt(Math.max(T, 1e-6)); // 진폭 ∝ √T
+        const waveCenter = eY;                  // 파동은 에너지 수준 근처에서 진동
+        const k = 0.18;                         // 화면상 파수(시각화용)
+        const phase = state.phase;
+
+        // 입사 + 반사 영역(장벽 왼쪽): 진폭 살짝 변동(정상파 느낌)
+        ctx.strokeStyle = '#8b63e0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = 4; x <= barLeft; x++) {
+          const env = 1 + 0.25 * Math.sin(0.12 * x); // 반사 간섭에 의한 약한 변조
+          const y = waveCenter - ampIncident * env * Math.sin(k * x + phase);
+          if (x === 4) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // 장벽 내부: 지수 감쇠 (e^{-κ'(x-barLeft)})
+        // 화면상 감쇠율을 실제 T와 일치시키기 위해, barRight에서 진폭이 ampTrans가 되도록 결정
+        const decayK = (ampTrans > 0 && ampIncident > 0)
+          ? -Math.log(Math.max(ampTrans / ampIncident, 1e-6)) / Math.max(barW, 1)
+          : 0.2;
+        ctx.strokeStyle = '#a78bfa';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = barLeft; x <= barRight; x++) {
+          const decay = ampIncident * Math.exp(-decayK * (x - barLeft));
+          const y = waveCenter - decay * Math.sin(k * x + phase);
+          if (x === barLeft) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        // 감쇠 포락선(점선)
+        ctx.strokeStyle = 'rgba(167,139,250,0.4)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = barLeft; x <= barRight; x++) {
+          const decay = ampIncident * Math.exp(-decayK * (x - barLeft));
+          const y = waveCenter - decay;
+          if (x === barLeft) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 투과파(장벽 오른쪽): 진폭 ampTrans로 진동
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = barRight; x <= W - 4; x++) {
+          const y = waveCenter - ampTrans * Math.sin(k * x + phase);
+          if (x === barRight) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // --- 진행 방향 화살표 / 라벨 ---
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('입사파 →', 12, 24);
+        ctx.fillStyle = '#34d399';
+        ctx.fillText('투과파 →  T = ' + (T * 100).toFixed(T < 0.01 ? 4 : 2) + '%', barRight + 6, 24);
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillText('장벽 속 지수 감쇠', barLeft, barTop + 16);
+      }
+
+      // ----- rAF 애니메이션 루프(파동이 흐르도록) -----
+      state.phase = 0;
+      let rafId = null;
+      function loop() {
+        state.phase -= 0.12; // 좌→우 진행
+        draw();
+        rafId = requestAnimationFrame(loop);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const T = transmission();
+        const R = 1 - T;
+        const ratio = state.E / state.V0;
+        const tPct = T * 100;
+        document.getElementById('r-trans').textContent =
+          (tPct < 0.01 ? tPct.toExponential(2) : tPct.toFixed(2)) + ' %'
+          + (state.E >= state.V0 ? ' (E ≥ V₀: 고전적으로도 통과)' : '');
+        document.getElementById('r-refl').textContent = (R * 100).toFixed(2) + ' %';
+        document.getElementById('r-ratio').textContent = ratio.toFixed(2);
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const eSlider = document.getElementById('energy');
+      const vSlider = document.getElementById('height');
+      const lSlider = document.getElementById('width');
+      const eVal = document.getElementById('energy-val');
+      const vVal = document.getElementById('height-val');
+      const lVal = document.getElementById('width-val');
+
+      function syncLabels() {
+        eVal.textContent = state.E.toFixed(1);
+        vVal.textContent = state.V0.toFixed(1);
+        lVal.textContent = state.L.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      eSlider.addEventListener('input', () => {
+        state.E = Number(eSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      vSlider.addEventListener('input', () => {
+        state.V0 = Number(vSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      lSlider.addEventListener('input', () => {
+        state.L = Number(lSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.E = DEFAULTS.E;
+        state.V0 = DEFAULTS.V0;
+        state.L = DEFAULTS.L;
+        eSlider.value = String(DEFAULTS.E);
+        vSlider.value = String(DEFAULTS.V0);
+        lSlider.value = String(DEFAULTS.L);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 두께가 두꺼워지면 T ≈ e^(−2κL)로 지수적으로 급감하며, 고전에서 불가능한 통과가 양자에서는 0이 아닌 확률로 일어납니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 투과확률은 T ≈ exp(−2κL)로 두께·높이에 지수적으로 민감합니다. 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+      // rAF 애니메이션 시작
+      rafId = requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

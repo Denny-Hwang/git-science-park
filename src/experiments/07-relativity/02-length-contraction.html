@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>길이 수축 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #1A365D;
+      --primary-light: #2d5494;
+      --bg: #f3f5f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0c1626; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf0f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🌌 상대성·우주론 (Relativity &amp; Cosmology)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>길이 수축</h1>
+    <div class="en">Length Contraction</div>
+    <div class="meta">1905년 · 알베르트 아인슈타인 (Albert Einstein) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="360" role="img"
+        aria-label="정지 기준 우주선과 빠르게 운동하여 운동 방향으로 짧아진 우주선을 비교하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="velocity">속도 v: <span id="velocity-val">0.60</span> c (광속의 <span id="velocity-pct">60</span>%)</label>
+          <input type="range" id="velocity" min="0" max="0.99" step="0.01" value="0.60"
+            aria-describedby="velocity-val">
+        </div>
+
+        <div class="control-row">
+          <label>속도 프리셋:</label>
+          <div class="btn-row" role="group" aria-label="속도 프리셋">
+            <button type="button" class="btn preset" data-v="0">정지 0c</button>
+            <button type="button" class="btn preset active" data-v="0.6">0.6c</button>
+            <button type="button" class="btn preset" data-v="0.87">0.87c (γ≈2)</button>
+            <button type="button" class="btn preset" data-v="0.99">0.99c</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>로런츠 인자 γ: <strong id="r-gamma">—</strong></div>
+          <div>수축된 길이 L: <strong id="r-length">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>고유 길이 대비: <strong id="r-pct">—</strong></div>
+          <div>속도 v: <strong id="r-vel">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 속도 v를 올리면 아래쪽 우주선이 <em>운동 방향(가로)</em>으로만 납작해집니다.
+        세로 높이는 전혀 변하지 않는다는 점을 확인하세요. 정지 상태(고유 길이 L₀)가 가장 길고,
+        v가 광속 c에 가까워질수록 길이는 0을 향해 급격히 줄어듭니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>운동하는 물체의 길이가 운동 방향으로 줄어 보이는 현상(길이 수축)을 이해한다.</li>
+        <li>로런츠 인자 γ = 1/√(1 − v²/c²) 와 수축식 L = L₀/γ 를 익힌다.</li>
+        <li>운동 방향에 수직인 길이는 변하지 않음을 구분한다.</li>
+        <li>v가 광속 c에 가까워질 때 길이가 0으로 수렴함을 확인한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>특수상대성이론에 따르면, 관측자에 대해 빠르게 움직이는 물체는 <em>운동 방향</em>으로
+        길이가 줄어든 것처럼 측정된다. 물체가 정지해 있을 때 측정한 가장 긴 길이를 <strong>고유 길이</strong>(L₀)라 한다.</p>
+        <p>줄어드는 정도는 로런츠 인자 <em>γ</em>로 결정된다. v가 작을 때는 γ ≈ 1이라 수축이 거의 없지만,
+        v가 광속 c에 가까워지면 γ가 무한히 커져 길이 L = L₀/γ 는 0에 수렴한다. 단, 운동 방향에
+        <strong>수직</strong>인 길이(높이·너비)는 전혀 변하지 않는다.</p>
+      </div>
+
+      <div class="formula-box">
+        γ = 1 / √(1 − v²/c²)<br>
+        L = L₀ / γ = L₀ · √(1 − v²/c²)<br>
+        v → c  ⇒  γ → ∞,  L → 0
+      </div>
+
+      <!-- SVG 다이어그램: 정지 막대 vs 운동 시 수축된 막대 -->
+      <svg width="360" height="200" viewBox="0 0 360 200" role="img"
+        aria-label="정지한 막대의 고유 길이와 운동할 때 운동 방향으로 짧아진 막대를 비교한 다이어그램">
+        <!-- 정지 막대 (고유 길이 L0) -->
+        <text x="20" y="36" font-size="12" fill="#374151">정지 (v = 0)</text>
+        <rect x="20" y="44" width="220" height="34" rx="5" fill="#1A365D"/>
+        <text x="110" y="66" font-size="12" fill="#fff">L₀ (고유 길이)</text>
+        <!-- 치수선 -->
+        <line x1="20" y1="88" x2="240" y2="88" stroke="#9ca3af" stroke-width="1"/>
+        <line x1="20" y1="84" x2="20" y2="92" stroke="#9ca3af" stroke-width="1"/>
+        <line x1="240" y1="84" x2="240" y2="92" stroke="#9ca3af" stroke-width="1"/>
+
+        <!-- 운동 막대 (수축된 길이 L) -->
+        <text x="20" y="128" font-size="12" fill="#374151">운동 (v 큼)  →</text>
+        <rect x="20" y="136" width="120" height="34" rx="5" fill="#2d5494"/>
+        <text x="46" y="158" font-size="12" fill="#fff">L = L₀/γ</text>
+        <line x1="20" y1="180" x2="140" y2="180" stroke="#9ca3af" stroke-width="1"/>
+        <line x1="20" y1="176" x2="20" y2="184" stroke="#9ca3af" stroke-width="1"/>
+        <line x1="140" y1="176" x2="140" y2="184" stroke="#9ca3af" stroke-width="1"/>
+        <!-- 운동 방향 화살표 -->
+        <line x1="150" y1="153" x2="330" y2="153" stroke="#C53030" stroke-width="2"/>
+        <polygon points="330,153 320,148 320,158" fill="#C53030"/>
+        <text x="250" y="146" font-size="11" fill="#C53030">운동 방향</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        가로(운동 방향)만 줄고 세로 높이는 같다. 정지 길이 L₀가 항상 가장 길다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "물체가 실제로 압축되어 부서진다"고 오해하기 쉽다. 길이 수축은
+        물리적 압축이 아니라 <em>서로 다른 기준틀에서 측정한 길이가 다르다</em>는 시공간의 성질이다.
+        또한 모든 방향이 줄어드는 것이 아니라 <em>운동 방향으로만</em> 수축하며, 수직 방향은 불변이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>광속의 87%(v ≈ 0.87c, γ ≈ 2)로 달리는 막대의 길이는 정지 길이에 비해 어떻게 측정될까?</p>
+        <label><input type="radio" name="q1" value="wrong"> 정지 길이의 약 2배로 늘어난다</label>
+        <label><input type="radio" name="q1" value="correct"> 정지 길이의 약 절반으로 줄어든다</label>
+        <label><input type="radio" name="q1" value="wrong"> 길이가 변하지 않는다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>운동 방향에 <strong>수직</strong>인 막대의 너비(높이)는 운동할 때 어떻게 될까?</p>
+        <label><input type="radio" name="q2" value="wrong"> 운동 방향과 똑같이 줄어든다</label>
+        <label><input type="radio" name="q2" value="correct"> 변하지 않는다 (불변)</label>
+        <label><input type="radio" name="q2" value="wrong"> 오히려 늘어난다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 알베르트 아인슈타인 (Albert Einstein, 1879~1955)</h3>
+        <p>독일 출신의 이론물리학자. 1905년 "기적의 해(Annus Mirabilis)"에 특수상대성이론을 비롯한
+        네 편의 혁명적 논문을 발표했다. 빛의 속도가 모든 관성계에서 일정하다는 광속 불변 원리와
+        상대성 원리로부터 시간 팽창과 길이 수축을 유도해, 절대적 시간·공간이라는 뉴턴적 세계관을 무너뜨렸다.</p>
+        <p>길이 수축의 수학적 형태는 헨드릭 로런츠와 조지 피츠제럴드가 에테르 가설 속에서 먼저 제안했지만,
+        아인슈타인은 에테르 없이 시공간 자체의 성질로 이를 재해석해 물리적 의미를 완전히 바꾸었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1887년 — 마이컬슨·몰리 실험, 에테르 바람을 검출하지 못함</li>
+          <li>1889~1892년 — 피츠제럴드·로런츠, 운동 방향 길이 수축 가설 제안 (로런츠 수축)</li>
+          <li>1904년 — 로런츠 변환 완성</li>
+          <li>1905년 — 아인슈타인, 「운동하는 물체의 전기역학에 대하여」로 특수상대성이론 발표</li>
+          <li>1908년 — 민코프스키, 시간과 공간을 통합한 4차원 시공간 정식화</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 길이 수축은 시간 팽창과 함께 절대적 공간이라는 개념을 폐기했다.
+        측정값이 관측자의 운동 상태에 의존한다는 사실은 시공간이 관측자와 무관한 고정된 무대가 아님을 보여준다.
+        오늘날 입자가속기에서 광속에 가깝게 가속된 입자, GPS 위성의 시간 보정 등에서 상대론적 효과가
+        실제로 측정·활용되고 있다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        v: 0.60   // 광속 c 단위의 속도 (0 ~ 0.99)
+      };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const velocitySlider = document.getElementById('velocity');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      function gamma(v) {
+        // v는 c 단위. v>=1 방지를 위해 안전 상한 적용.
+        const vv = Math.min(0.999999, v);
+        return 1 / Math.sqrt(1 - vv * vv);
+      }
+      // 수축 비율 L/L0 = 1/γ = √(1 - v²/c²)
+      function contraction(v) {
+        return 1 / gamma(v);
+      }
+
+      // ----- 애니메이션(rAF): 별 배경 흐름으로 운동감 표현 -----
+      let stars = [];
+      function initStars() {
+        stars = [];
+        for (let i = 0; i < 60; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 1.6 + 0.4
+          });
+        }
+      }
+      initStars();
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 별 배경
+        ctx.fillStyle = '#cbd5e1';
+        for (let i = 0; i < stars.length; i++) {
+          const s = stars[i];
+          ctx.globalAlpha = 0.5 + (s.r / 2) * 0.5;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        const baseLen = 280;   // 고유 길이(px)
+        const shipH = 56;      // 우주선 높이(px, 수직 = 불변)
+        const cx = W / 2;
+        const frac = contraction(state.v);
+
+        // 윗줄: 정지 기준 우주선 (고유 길이)
+        drawShip(cx, 110, baseLen, shipH, '#64748b', '정지 기준 (L₀, 고유 길이)', false);
+
+        // 아랫줄: 운동하는 우주선 (운동 방향으로 수축)
+        drawShip(cx, 250, baseLen * frac, shipH, '#3b82f6', '운동 중 (L = L₀/γ)', true);
+
+        // 길이 비율 표시
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('길이 비율 L/L₀ = ' + (frac * 100).toFixed(1) + '%', cx, 330);
+        ctx.textAlign = 'left';
+      }
+
+      function drawShip(cx, cy, len, h, color, label, moving) {
+        const half = len / 2;
+        const left = cx - half;
+        const top = cy - h / 2;
+
+        // 본체(둥근 우주선: 좌측 둥글게, 우측 뾰족하게)
+        ctx.beginPath();
+        ctx.moveTo(left + 14, top);
+        ctx.lineTo(cx + half - 24, top);
+        ctx.quadraticCurveTo(cx + half, cy, cx + half - 24, top + h); // 앞코(우측)
+        ctx.lineTo(left + 14, top + h);
+        ctx.quadraticCurveTo(left - 6, cy, left + 14, top);           // 뒤꼬리(좌측)
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 창문(가로로 함께 수축되도록 본체 너비 기준 배치)
+        const winCount = 4;
+        ctx.fillStyle = '#0c1626';
+        for (let i = 0; i < winCount; i++) {
+          const wx = left + 24 + ((len - 56) * (i + 0.5)) / winCount;
+          const rad = Math.max(2, Math.min(5, len / 70));
+          ctx.beginPath();
+          ctx.arc(wx, cy, rad, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 운동 화살표
+        if (moving) {
+          ctx.strokeStyle = '#f87171';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx + half + 10, cy);
+          ctx.lineTo(cx + half + 56, cy);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(cx + half + 56, cy);
+          ctx.lineTo(cx + half + 46, cy - 5);
+          ctx.lineTo(cx + half + 46, cy + 5);
+          ctx.closePath();
+          ctx.fillStyle = '#f87171';
+          ctx.fill();
+          ctx.lineWidth = 1;
+        }
+
+        // 라벨
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, cx, top - 10);
+        ctx.textAlign = 'left';
+
+        // 수직 높이(불변) 표시 점선
+        ctx.strokeStyle = 'rgba(226,232,240,0.4)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(left - 16, top);
+        ctx.lineTo(left - 16, top + h);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const g = gamma(state.v);
+        const frac = contraction(state.v);
+        document.getElementById('r-gamma').textContent = g.toFixed(3);
+        document.getElementById('r-length').textContent = frac.toFixed(3) + ' L₀';
+        document.getElementById('r-pct').textContent = (frac * 100).toFixed(1) + '%';
+        document.getElementById('r-vel').textContent = state.v.toFixed(2) + ' c';
+      }
+
+      function syncSliderLabel() {
+        document.getElementById('velocity-val').textContent = state.v.toFixed(2);
+        document.getElementById('velocity-pct').textContent = Math.round(state.v * 100);
+      }
+
+      function syncPresetButtons() {
+        presetBtns.forEach((b) => {
+          b.classList.toggle('active', Math.abs(Number(b.dataset.v) - state.v) < 1e-9);
+        });
+      }
+
+      // ----- 렌더 + 즉시 갱신(rAF) -----
+      let rafId = null;
+      function requestRender() {
+        if (rafId !== null) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          draw();
+        });
+      }
+
+      function refresh() {
+        syncSliderLabel();
+        updateResult();
+        requestRender();
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      velocitySlider.addEventListener('input', () => {
+        state.v = Number(velocitySlider.value);
+        syncPresetButtons();
+        refresh();
+      });
+
+      // 속도 프리셋
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.v = Number(btn.dataset.v);
+          velocitySlider.value = String(state.v);
+          syncPresetButtons();
+          refresh();
+        });
+      });
+
+      // 리셋
+      resetBtn.addEventListener('click', () => {
+        state.v = 0.60;
+        velocitySlider.value = '0.6';
+        syncPresetButtons();
+        refresh();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'γ ≈ 2 이므로 L = L₀/γ ≈ L₀/2, 즉 약 절반으로 수축합니다.',
+        'L = L₀/γ 입니다. γ가 2이면 길이는 1/2로 줄어듭니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '수축은 운동 방향으로만 일어나고, 수직 방향 길이는 불변입니다.',
+        '길이 수축은 운동 방향으로만 일어납니다.');
+
+      // ----- 초기 렌더 -----
+      syncSliderLabel();
+      syncPresetButtons();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>
