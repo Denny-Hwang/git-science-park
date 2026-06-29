@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카르노 기관 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #faf5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fdeaea; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .sub { display: block; margin-top: 6px; font-size: 0.92rem; color: var(--text-muted); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>카르노 기관</h1>
+    <div class="en">Carnot Engine</div>
+    <div class="meta">1824년 · 사디 카르노 (Sadi Carnot) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" aria-label="고온 열원에서 카르노 기관으로 흘러든 열이 일과 버려지는 열로 나뉘는 에너지 흐름 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="th">고온 열원 온도 T<sub>h</sub>: <span id="th-val">800</span> K</label>
+          <input type="range" id="th" min="300" max="1200" step="10" value="800"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="tc">저온 열원 온도 T<sub>c</sub>: <span id="tc-val">300</span> K</label>
+          <input type="range" id="tc" min="100" max="600" step="10" value="300"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        최대 효율 η: <strong>—</strong>
+        <span class="sub" id="result-sub">Q<sub>h</sub> = 100 J 일 때 일 W = — J, 버려지는 열 Q<sub>c</sub> = — J</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 고온 열원에서 들어온 열 Q<sub>h</sub> 중 일부만 일 W로 바뀌고,
+        나머지 Q<sub>c</sub>는 저온 열원으로 버려진다. <strong>T<sub>c</sub>를 낮추거나 T<sub>h</sub>를 높이면</strong>
+        일(W) 화살표가 굵어지며 효율이 커진다. 하지만 T<sub>c</sub> = 0 K가 불가능하므로
+        <strong>효율은 결코 100%에 도달하지 못한다.</strong> 또한 T<sub>c</sub>는 항상 T<sub>h</sub>보다 낮게 유지된다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>열기관이 고온·저온 두 열원 사이에서 작동하며 열의 일부만 일로 바꾼다는 것을 이해한다.</li>
+        <li>카르노 효율 η = 1 − T<sub>c</sub>/T<sub>h</sub> 가 절대온도(K)로 결정됨을 안다.</li>
+        <li>어떤 열기관도 같은 두 온도에서 카르노 효율을 넘을 수 없음(열역학 제2법칙)을 파악한다.</li>
+        <li>효율을 높이는 방법(T<sub>h</sub> ↑, T<sub>c</sub> ↓)과 100%가 불가능한 이유를 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>카르노 기관은 두 등온 과정과 두 단열 과정으로 이루어진 가역 순환(카르노 순환)으로 작동하는
+        <strong>이상적 열기관</strong>이다. 고온 열원(T<sub>h</sub>)에서 열 Q<sub>h</sub>를 흡수해
+        그중 일부를 일 W로 바꾸고, 나머지 열 Q<sub>c</sub>를 저온 열원(T<sub>c</sub>)으로 내보낸다.
+        에너지 보존에 의해 <strong>W = Q<sub>h</sub> − Q<sub>c</sub></strong> 이다.</p>
+        <p>카르노는 가역 기관에서 흡수·방출 열의 비가 온도의 비와 같음(Q<sub>c</sub>/Q<sub>h</sub> = T<sub>c</sub>/T<sub>h</sub>)을
+        보였고, 따라서 효율은 <strong>η = W/Q<sub>h</sub> = 1 − Q<sub>c</sub>/Q<sub>h</sub> = 1 − T<sub>c</sub>/T<sub>h</sub></strong>
+        가 된다. 이는 두 온도만으로 정해지는 <em>이론적 최대 효율</em>로, 실제 어떤 기관도 이를 넘을 수 없다.</p>
+      </div>
+
+      <div class="formula-box">
+        η = 1 − T<sub>c</sub> / T<sub>h</sub>
+        <br>
+        W = Q<sub>h</sub> − Q<sub>c</sub>
+        <br>
+        Q<sub>c</sub> / Q<sub>h</sub> = T<sub>c</sub> / T<sub>h</sub>   (가역 기관)
+      </div>
+
+      <!-- SVG 다이어그램: 고온 열원 → 기관 → 저온 열원 에너지 흐름 -->
+      <svg width="360" height="260" viewBox="0 0 360 260" role="img"
+           aria-label="고온 열원에서 Qh가 기관으로 들어가 일 W를 만들고 Qc가 저온 열원으로 빠지는 에너지 흐름 다이어그램">
+        <!-- 고온 열원 -->
+        <rect x="90" y="14" width="180" height="44" rx="8" fill="#C53030"/>
+        <text x="180" y="41" font-size="13" fill="#fff" text-anchor="middle">고온 열원  T_h</text>
+        <!-- Qh 화살표 (아래로) -->
+        <line x1="150" y1="58" x2="150" y2="100" stroke="#C53030" stroke-width="6"/>
+        <polygon points="150,108 144,96 156,96" fill="#C53030"/>
+        <text x="118" y="86" font-size="12" fill="#C53030">Q_h</text>
+        <!-- 기관 -->
+        <circle cx="180" cy="130" r="32" fill="none" stroke="#1a1a1a" stroke-width="2.5"/>
+        <text x="180" y="135" font-size="13" fill="#1a1a1a" text-anchor="middle">기관</text>
+        <!-- W 화살표 (오른쪽으로) -->
+        <line x1="212" y1="130" x2="300" y2="130" stroke="#16a34a" stroke-width="6"/>
+        <polygon points="308,130 296,124 296,136" fill="#16a34a"/>
+        <text x="248" y="122" font-size="12" fill="#16a34a">일 W</text>
+        <!-- Qc 화살표 (아래로) -->
+        <line x1="150" y1="160" x2="150" y2="200" stroke="#2563eb" stroke-width="6"/>
+        <polygon points="150,208 144,196 156,196" fill="#2563eb"/>
+        <text x="118" y="186" font-size="12" fill="#2563eb">Q_c</text>
+        <!-- 저온 열원 -->
+        <rect x="90" y="208" width="180" height="44" rx="8" fill="#2563eb"/>
+        <text x="180" y="235" font-size="13" fill="#fff" text-anchor="middle">저온 열원  T_c</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "기관을 정교하게 만들면 열을 100% 일로 바꿀 수 있다"고 생각하기 쉽다.
+        그러나 열기관이 일을 하려면 반드시 열을 버릴 저온 열원이 필요하며, 효율이 100%가 되려면
+        T<sub>c</sub> = 0 K(절대영도)여야 하는데 이는 도달할 수 없다. 마찰·열손실이 없는
+        <em>이상적</em> 기관조차도 효율은 1 − T<sub>c</sub>/T<sub>h</sub>로 제한된다(열역학 제2법칙).
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. T<sub>h</sub> = 600 K, T<sub>c</sub> = 300 K인 카르노 기관의 최대 효율은?</p>
+          <label><input type="radio" name="q1" value="wrong"> 25%</label>
+          <label><input type="radio" name="q1" value="correct"> 50%</label>
+          <label><input type="radio" name="q1" value="wrong"> 100%</label>
+        </div>
+        <div class="q">
+          <p>2. 효율을 100%로 만들 수 없는 이유로 옳은 것은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 마찰을 완전히 없앨 수 없어서</label>
+          <label><input type="radio" name="q2" value="correct"> T<sub>c</sub> = 0 K(절대영도)에 도달할 수 없어서</label>
+          <label><input type="radio" name="q2" value="wrong"> 고온 열원의 열이 무한하지 않아서</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 사디 카르노 (Nicolas Léonard Sadi Carnot, 1796~1832)</h3>
+        <p>프랑스의 군인이자 물리학자·공학자로 "열역학의 아버지"라 불린다. 1824년 단 한 권의 저서
+        「불의 동력에 관한 고찰(Réflexions sur la puissance motrice du feu)」을 통해 열기관의
+        최대 효율이 작동 온도에만 의존하며 작동 물질과 무관함을 밝혔다. 당시에는 열을 물질('칼로릭')로
+        보는 열소설이 우세했음에도, 그의 추론은 훗날 정립될 열역학 제2법칙의 토대가 되었다.
+        36세에 콜레라로 요절했고, 그의 업적은 클라우지우스와 켈빈에 의해 재조명되었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1769년 — 제임스 와트가 효율을 개선한 증기기관 특허 (산업혁명의 동력)</li>
+          <li>1824년 — 사디 카르노가 이상적 열기관과 최대 효율의 개념을 제시</li>
+          <li>1834년 — 클라페롱이 카르노의 아이디어를 P–V 도표와 수식으로 정식화</li>
+          <li>1850년 — 클라우지우스가 열역학 제2법칙을 명확히 진술</li>
+          <li>1851년 — 켈빈(윌리엄 톰슨)이 절대온도 척도와 제2법칙을 정립</li>
+          <li>1865년 — 클라우지우스가 '엔트로피' 개념을 도입</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 카르노의 분석은 열기관의 효율에 절대적 상한이 존재함을 처음 보였고,
+        이는 "열은 저절로 차가운 곳에서 뜨거운 곳으로 흐르지 않는다"는 열역학 제2법칙과 엔트로피 개념으로
+        이어졌다. 작동 물질이 아니라 두 온도만으로 효율이 결정된다는 통찰은 절대온도(켈빈) 척도의
+        물리적 근거가 되었으며, 오늘날 발전소·냉장고·엔진 설계의 이론적 기준점으로 남아 있다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (단위: 절대온도 K) -----
+      const DEFAULTS = { th: 800, tc: 300 };
+      const state = { th: DEFAULTS.th, tc: DEFAULTS.tc };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산: 카르노 효율 η = 1 − Tc/Th -----
+      function efficiency() {
+        return 1 - (state.tc / state.th);
+      }
+
+      // ----- 화살표 그리기 보조 함수 (수직: 위→아래 또는 아래→위) -----
+      function drawVArrow(x, y1, y2, width, color, label, labelColor) {
+        const down = y2 > y1;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2 - (down ? 10 : -10));
+        ctx.stroke();
+        // 화살촉
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        const tip = y2;
+        const back = y2 - (down ? 10 : -10);
+        const hw = Math.max(6, width);
+        ctx.moveTo(x, tip);
+        ctx.lineTo(x - hw, back);
+        ctx.lineTo(x + hw, back);
+        ctx.closePath();
+        ctx.fill();
+        if (label) {
+          ctx.fillStyle = labelColor || color;
+          ctx.font = 'bold 13px sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText(label, x + Math.max(12, width) + 4, (y1 + y2) / 2 + 4);
+        }
+      }
+
+      // ----- 수평 화살표 (왼→오른쪽, 일 W) -----
+      function drawHArrow(x1, x2, y, width, color, label) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2 - 10, y);
+        ctx.stroke();
+        ctx.fillStyle = color;
+        const hw = Math.max(6, width);
+        ctx.beginPath();
+        ctx.moveTo(x2, y);
+        ctx.lineTo(x2 - 12, y - hw);
+        ctx.lineTo(x2 - 12, y + hw);
+        ctx.closePath();
+        ctx.fill();
+        if (label) {
+          ctx.fillStyle = color;
+          ctx.font = 'bold 13px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(label, (x1 + x2) / 2, y - hw - 6);
+        }
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, W, H);
+
+        const eta = efficiency();               // 0~1
+        const Qh = 100;                          // 기준 흡수 열(J)
+        const Wv = Qh * eta;                     // 일
+        const Qc = Qh - Wv;                       // 버려지는 열
+
+        // 화살표 폭 = 열/일의 양에 비례 (시각화)
+        const maxW = 34;                         // Qh 기준 최대 폭
+        const wQh = maxW;                        // Qh는 항상 100
+        const wW = Math.max(3, maxW * eta);
+        const wQc = Math.max(3, maxW * (1 - eta));
+
+        const cx = W / 2;
+        const engineY = H / 2;
+        const engineR = 46;
+
+        // --- 고온 열원 (위, 빨강) ---
+        ctx.fillStyle = '#C53030';
+        ctx.fillRect(cx - 150, 26, 300, 56);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('고온 열원  T_h = ' + state.th + ' K', cx, 60);
+
+        // --- 저온 열원 (아래, 파랑) ---
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(cx - 150, H - 82, 300, 56);
+        ctx.fillStyle = '#fff';
+        ctx.fillText('저온 열원  T_c = ' + state.tc + ' K', cx, H - 48);
+
+        // --- Qh 화살표 (고온 → 기관, 아래로) ---
+        drawVArrow(cx, 82, engineY - engineR, wQh, '#C53030',
+                   'Q_h = ' + Qh.toFixed(0) + ' J', '#C53030');
+
+        // --- Qc 화살표 (기관 → 저온, 아래로) ---
+        drawVArrow(cx, engineY + engineR, H - 82, wQc, '#2563eb',
+                   'Q_c = ' + Qc.toFixed(1) + ' J', '#2563eb');
+
+        // --- W 화살표 (기관 → 오른쪽) ---
+        drawHArrow(cx + engineR, cx + engineR + 150, engineY, wW, '#16a34a',
+                   '일 W = ' + Wv.toFixed(1) + ' J');
+
+        // --- 기관 (원) ---
+        ctx.beginPath();
+        ctx.arc(cx, engineY, engineR, 0, Math.PI * 2);
+        ctx.fillStyle = '#fef3c7';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.stroke();
+        ctx.fillStyle = '#1a1a1a';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('카르노', cx, engineY - 4);
+        ctx.fillText('기관', cx, engineY + 16);
+
+        // --- 효율 표기 (오른쪽 위) ---
+        ctx.fillStyle = '#C53030';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('η = ' + (eta * 100).toFixed(1) + ' %', W - 18, engineY - 70);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('η = 1 − T_c/T_h', W - 18, engineY - 50);
+
+        // textAlign 복원
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const eta = efficiency();
+        const Qh = 100, Wv = Qh * eta, Qc = Qh - Wv;
+        document.querySelector('#result strong').textContent = (eta * 100).toFixed(1) + ' %';
+        document.getElementById('result-sub').innerHTML =
+          'Q<sub>h</sub> = 100 J 일 때 일 W = ' + Wv.toFixed(1) +
+          ' J, 버려지는 열 Q<sub>c</sub> = ' + Qc.toFixed(1) + ' J';
+      }
+
+      // ----- 슬라이더 요소 -----
+      const thSlider = document.getElementById('th');
+      const tcSlider = document.getElementById('tc');
+      const thVal = document.getElementById('th-val');
+      const tcVal = document.getElementById('tc-val');
+
+      function syncLabels() {
+        thVal.textContent = state.th;
+        tcVal.textContent = state.tc;
+      }
+
+      // ----- Tc < Th 강제 -----
+      function enforceConstraint(changed) {
+        if (state.tc >= state.th) {
+          if (changed === 'tc') {
+            // Tc를 Th보다 작게 (최소 10K 차이)
+            state.tc = state.th - 10;
+            if (state.tc < Number(tcSlider.min)) state.tc = Number(tcSlider.min);
+            tcSlider.value = String(state.tc);
+          } else {
+            // Th를 Tc보다 크게
+            state.th = state.tc + 10;
+            if (state.th > Number(thSlider.max)) state.th = Number(thSlider.max);
+            thSlider.value = String(state.th);
+          }
+        }
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      thSlider.addEventListener('input', () => {
+        state.th = Number(thSlider.value);
+        enforceConstraint('th');
+        syncLabels(); updateResult(); draw();
+      });
+      tcSlider.addEventListener('input', () => {
+        state.tc = Number(tcSlider.value);
+        enforceConstraint('tc');
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.th = DEFAULTS.th;
+        state.tc = DEFAULTS.tc;
+        thSlider.value = String(DEFAULTS.th);
+        tcSlider.value = String(DEFAULTS.tc);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 η = 1 − 300/600 = 0.5 = 50%, 그리고 T_c = 0 K는 도달할 수 없습니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. η = 1 − T_c/T_h (절대온도 K) 관계를 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

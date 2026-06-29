@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>맥스웰 방정식과 전자기파 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #faf5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #0d1117; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fef2f2; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .spectrum-tag {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.9rem; font-weight: 700;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>맥스웰 방정식과 전자기파</h1>
+    <div class="en">Maxwell's Equations &amp; Electromagnetic Waves</div>
+    <div class="meta">1865년 · 제임스 클러크 맥스웰 (James Clerk Maxwell) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="360" role="img"
+        aria-label="전기장 E와 자기장 B가 서로 수직으로 진동하며 오른쪽으로 전파되는 전자기파 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="freq">진동수 f: <span id="freq-val">5.0</span> ×10¹⁴ Hz</label>
+          <input type="range" id="freq" min="0.5" max="100" step="0.5" value="5.0"
+            aria-describedby="freq-val">
+        </div>
+
+        <div class="control-row">
+          <label for="wave">파장 λ: <span id="wave-val">600</span> nm</label>
+          <input type="range" id="wave" min="3" max="600" step="1" value="600"
+            aria-describedby="wave-val">
+        </div>
+
+        <div class="control-row">
+          <label for="amp">진폭 A: <span id="amp-val">1.00</span></label>
+          <input type="range" id="amp" min="0.2" max="1.5" step="0.05" value="1.0"
+            aria-describedby="amp-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>진공 빛의 속도 c: <strong>2.998 ×10⁸ m/s</strong></div>
+          <div>스펙트럼 영역: <strong id="r-band" class="spectrum-tag">가시광</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>진동수 f: <strong id="r-freq">—</strong></div>
+          <div>파장 λ: <strong id="r-wave">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>검산 c = f·λ: <strong id="r-check">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 전기장 <em>E</em>(빨강, 세로)와 자기장 <em>B</em>(파랑, 깊이 방향)는
+        서로 <strong>수직</strong>이고, 둘 다 진행 방향(가로)과도 수직인 <strong>횡파</strong>입니다.
+        진동수 <em>f</em>를 올리면 파장 <em>λ</em>가 줄어듭니다(c = f·λ가 일정). 어떤 전자기파든 진공에서의
+        속도는 <strong>항상 c</strong>로 동일합니다 — 파장만 달라질 뿐 빛의 속도는 변하지 않습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>변하는 전기장이 자기장을, 변하는 자기장이 전기장을 만들어 서로를 지탱함을 이해한다.</li>
+        <li>전자기파가 E와 B가 서로 수직이고 진행 방향과도 수직인 횡파임을 안다.</li>
+        <li>빛도 전자기파이며 진공 속도가 c = 1/√(μ₀ε₀) ≈ 3×10⁸ m/s임을 이해한다.</li>
+        <li>관계식 c = f·λ로 진동수와 파장이 반비례함을 활용한다.</li>
+        <li>전자기 스펙트럼(전파~감마)이 하나의 연속체임을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>맥스웰은 전기와 자기를 네 개의 방정식으로 통합했다. 그중 두 식(패러데이 법칙·앙페르–맥스웰 법칙)이
+        핵심이다: <em>변하는 자기장은 전기장을 만들고</em>, <em>변하는 전기장은 자기장을 만든다</em>.
+        한쪽이 변하면 다른 쪽이 생겨나고, 그것이 다시 변하면서 처음 것을 되살린다. 이렇게 E와 B가
+        서로를 지탱하며 공간을 스스로 진행하는 것이 <strong>전자기파</strong>다.</p>
+        <p>방정식을 풀면 이 파동의 속도가 매질 상수만으로 정해진다: <em>c = 1/√(μ₀ε₀) ≈ 3×10⁸ m/s</em>.
+        이 값이 당시 측정된 빛의 속도와 정확히 일치했기에 맥스웰은 "빛은 전자기파다"라고 결론지었다.
+        진공에서는 진동수가 달라도 속도는 항상 c로 같으며, 파장만 c = f·λ에 따라 달라진다.</p>
+      </div>
+
+      <div class="formula-box">
+        ∇·E = ρ/ε₀ &nbsp;&nbsp; ∇·B = 0<br>
+        ∇×E = −∂B/∂t &nbsp;&nbsp; ∇×B = μ₀J + μ₀ε₀ ∂E/∂t<br>
+        c = 1 / √(μ₀ε₀) ≈ 3×10⁸ m/s &nbsp;&nbsp; c = f · λ
+      </div>
+
+      <!-- SVG 다이어그램: 서로 수직인 E파와 B파 -->
+      <svg width="380" height="220" viewBox="0 0 380 220" role="img"
+        aria-label="전기장 E는 세로로, 자기장 B는 진행 방향과 수직인 다른 면에서 같은 위상으로 진동하며 오른쪽으로 진행하는 횡파 다이어그램">
+        <!-- 진행 축 -->
+        <line x1="20" y1="110" x2="360" y2="110" stroke="#9ca3af" stroke-width="1.5"/>
+        <polygon points="360,110 350,105 350,115" fill="#9ca3af"/>
+        <text x="330" y="128" font-size="11" fill="#6b7280">진행 방향 (c)</text>
+        <!-- E 파동 (세로, 빨강) -->
+        <path d="M20,110 Q55,40 90,110 T160,110 T230,110 T300,110 T360,110"
+          fill="none" stroke="#C53030" stroke-width="2.5"/>
+        <text x="24" y="34" font-size="13" fill="#C53030" font-weight="bold">E (전기장)</text>
+        <!-- B 파동 (깊이 방향 표현, 파랑) -->
+        <path d="M20,110 Q55,150 90,110 T160,110 T230,110 T300,110 T360,110"
+          fill="none" stroke="#2563eb" stroke-width="2.5" opacity="0.85"/>
+        <text x="24" y="196" font-size="13" fill="#2563eb" font-weight="bold">B (자기장)</text>
+        <!-- 수직 화살표 표시 -->
+        <line x1="55" y1="110" x2="55" y2="64" stroke="#C53030" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="55" y1="110" x2="55" y2="142" stroke="#2563eb" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="150" y="206" font-size="10" fill="#6b7280">E ⊥ B ⊥ 진행 방향 (횡파)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        E와 B는 같은 위상으로 진동하며 서로 수직이다. 둘 다 진행 방향과도 수직인 횡파다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "파장이 긴 빛(전파)이 파장이 짧은 빛(감마선)보다 느리다"는 생각은
+        틀렸다. 진공에서 모든 전자기파의 속도는 <em>똑같이</em> c다. c = f·λ가 일정하므로 파장이 길면
+        진동수가 낮아질 뿐, 속도는 변하지 않는다. 또한 전자기파는 음파처럼 매질(공기)을 필요로 하지
+        않으며 진공에서도 전파된다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>진공에서 파장 λ가 더 긴 전자기파는 진동수 f가 어떻게 되는가? (c = f·λ는 일정)</p>
+        <label><input type="radio" name="q1" value="wrong"> 더 높다</label>
+        <label><input type="radio" name="q1" value="correct"> 더 낮다</label>
+        <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>맥스웰이 "빛은 전자기파다"라고 결론 낸 결정적 근거는?</p>
+        <label><input type="radio" name="q2" value="wrong"> 빛을 거울로 반사시켜 보았기 때문</label>
+        <label><input type="radio" name="q2" value="correct"> 방정식이 예측한 파동 속도 1/√(μ₀ε₀)가 측정된 빛의 속도와 일치했기 때문</label>
+        <label><input type="radio" name="q2" value="wrong"> 빛이 매질 없이도 전파되는 것을 직접 보았기 때문</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 제임스 클러크 맥스웰 (James Clerk Maxwell, 1831~1879)</h3>
+        <p>스코틀랜드 에든버러 출신의 이론물리학자. 패러데이의 직관적 "장(field)" 개념을 수학으로 옮겨
+        전기·자기·빛을 하나의 이론으로 통합했다. 1865년 논문 「전자기장의 동역학 이론」에서 전자기파의
+        존재와 그 속도가 빛의 속도와 같음을 보였다.</p>
+        <p>그는 기체 분자운동론(맥스웰–볼츠만 분포), 토성 고리의 안정성 분석, 세계 최초의 컬러 사진 시연
+        등 폭넓은 업적을 남겼다. 아인슈타인은 맥스웰의 업적을 "뉴턴 이후 물리학이 경험한 가장 깊고 풍요로운
+        변화"라 평했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1820년 — 외르스테드, 전류가 나침반 바늘을 움직임을 발견(전기→자기)</li>
+          <li>1831년 — 패러데이, 전자기 유도 발견(변하는 자기장→전기) 및 "장" 개념 제안</li>
+          <li>1865년 — 맥스웰, 전자기장 방정식으로 전자기파 예측, 빛 = 전자기파 결론</li>
+          <li>1873년 — 『전기와 자기에 관한 논문』 출간, 네 방정식 체계 정리</li>
+          <li>1887년 — 헤르츠, 실험실에서 전파를 발생·검출해 전자기파를 실증</li>
+          <li>1895~1901년 — 마르코니, 전파를 이용한 무선 통신 실현(라디오의 탄생)</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 맥스웰 방정식은 뉴턴 역학에 이은 "두 번째 위대한 통합"으로,
+        전기·자기·빛을 하나의 전자기장 이론으로 묶었다. 전자기파의 예측은 라디오·TV·레이더·무선통신·
+        의료영상 등 현대 문명을 떠받치는 기술의 토대가 되었다. 또한 모든 관찰자에게 빛의 속도가 c로
+        일정하다는 이 이론의 함의는 갈릴레이 상대성과 충돌했고, 그 모순을 해결하려는 시도가
+        아인슈타인의 특수상대성이론(1905)으로 이어졌다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리 상수 -----
+      const C = 2.998e8;            // 진공 빛의 속도 (m/s)
+      // 슬라이더 단위 변환:
+      //   진동수 f: 화면 단위 ×10^14 Hz  (freqUI 0.5~100 -> 0.5e14 ~ 1e16 Hz)
+      //   파장 λ: nm                      (waveUI 3 ~ 600 nm)
+      // c = f·λ 로 두 값을 연동(c 고정). λ(m) = C / f(Hz), f(Hz) = C / λ(m).
+
+      // ----- 상태 -----
+      const state = {
+        freqHz: 5.0e14,   // 실제 진동수 (Hz) — 단일 진실원(source of truth)
+        amp: 1.0,
+        phase: 0,         // 애니메이션 위상
+        running: false,
+        lastTs: null
+      };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const freqSlider = document.getElementById('freq');
+      const waveSlider = document.getElementById('wave');
+      const ampSlider = document.getElementById('amp');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 단위 변환 헬퍼 -----
+      function freqHz() { return state.freqHz; }
+      function waveM() { return C / state.freqHz; }       // 파장 (m)
+      function waveNm() { return waveM() * 1e9; }          // 파장 (nm)
+
+      // ----- 스펙트럼 영역 판정 (파장 m 기준) -----
+      // 경계는 통용되는 근사치. 짧을수록(고진동수) 감마선 쪽.
+      function spectrumBand(lambdaM) {
+        if (lambdaM > 1e-1)   return '전파';        // > 10 cm
+        if (lambdaM > 1e-3)   return '마이크로파';   // 1mm ~ 10cm
+        if (lambdaM > 7e-7)   return '적외선';       // 700nm ~ 1mm
+        if (lambdaM > 4e-7)   return '가시광';       // 400 ~ 700 nm
+        if (lambdaM > 1e-8)   return '자외선';       // 10 ~ 400 nm
+        if (lambdaM > 1e-11)  return 'X선';          // 0.01 ~ 10 nm
+        return '감마';                               // < 0.01 nm
+      }
+
+      // 가시광 파장(nm)을 근사 색으로 변환 (시각화용)
+      function visibleColor(nm) {
+        if (nm < 380 || nm > 750) return '#ff4d4d'; // 가시광 밖이면 기본 적색 톤
+        let r = 0, g = 0, b = 0;
+        if (nm < 440)      { r = -(nm - 440) / 60; b = 1; }
+        else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+        else if (nm < 510) { g = 1; b = -(nm - 510) / 20; }
+        else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+        else if (nm < 645) { r = 1; g = -(nm - 645) / 65; }
+        else               { r = 1; }
+        const to = (v) => Math.round(Math.max(0, Math.min(1, v)) * 255);
+        return 'rgb(' + to(r) + ',' + to(g) + ',' + to(b) + ')';
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const axisY = H / 2;
+        const x0 = 30, x1 = W - 30;
+        const span = x1 - x0;
+        const ampPx = 95 * state.amp;
+
+        // 화면에 표시할 파동 수: 파장이 짧을수록 화면에 더 많은 주기.
+        // λ가 600nm(최대)면 약 1.2주기, 3nm면 약 8주기 정도로 매핑(로그 스케일).
+        const nm = waveNm();
+        const cycles = 0.8 + 7.2 * (Math.log10(600 / nm) / Math.log10(600 / 3));
+        const k = (Math.PI * 2 * cycles) / span; // 화면 파수
+
+        // 진행 축 (가로)
+        ctx.strokeStyle = '#3a4250';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x0, axisY); ctx.lineTo(x1, axisY); ctx.stroke();
+        // 진행 방향 화살표
+        ctx.beginPath();
+        ctx.moveTo(x1, axisY); ctx.lineTo(x1 - 10, axisY - 5); ctx.lineTo(x1 - 10, axisY + 5);
+        ctx.closePath(); ctx.fillStyle = '#3a4250'; ctx.fill();
+
+        const eColor = visibleColor(nm);
+
+        // ----- B 자기장 (깊이 방향: 원근으로 기울여 표현, 파랑) -----
+        ctx.strokeStyle = '#4d9bff';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        for (let x = x0; x <= x1; x++) {
+          const s = Math.sin(k * (x - x0) - state.phase);
+          // 깊이 표현: 수평 성분을 살짝 줄이고(0.35) y에 반영해 비스듬한 면처럼 보이게
+          const yy = axisY - s * ampPx * 0.5;
+          const xx = x + s * ampPx * 0.18; // 살짝 우측으로 밀어 입체감
+          if (x === x0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // ----- E 전기장 (세로, 가시광이면 해당 색) -----
+        ctx.strokeStyle = eColor;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let x = x0; x <= x1; x++) {
+          const s = Math.sin(k * (x - x0) - state.phase);
+          const yy = axisY - s * ampPx;
+          if (x === x0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+
+        // E 벡터 막대(몇 지점)로 "장"임을 강조
+        ctx.strokeStyle = eColor;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.5;
+        for (let x = x0; x <= x1; x += 28) {
+          const s = Math.sin(k * (x - x0) - state.phase);
+          ctx.beginPath();
+          ctx.moveTo(x, axisY);
+          ctx.lineTo(x, axisY - s * ampPx);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        // ----- 파장 λ 표시 (E파 한 주기 길이를 화면에 표기) -----
+        const pxPerCycle = span / cycles;
+        if (pxPerCycle < span * 0.95) {
+          const ly = axisY + ampPx + 22;
+          const lx0 = x0;
+          const lx1 = x0 + pxPerCycle;
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(lx0, ly); ctx.lineTo(lx1, ly); ctx.stroke();
+          // 끝 막대
+          ctx.beginPath();
+          ctx.moveTo(lx0, ly - 5); ctx.lineTo(lx0, ly + 5);
+          ctx.moveTo(lx1, ly - 5); ctx.lineTo(lx1, ly + 5);
+          ctx.stroke();
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = '12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('λ', (lx0 + lx1) / 2, ly - 6);
+          ctx.textAlign = 'left';
+        }
+
+        // ----- 범례 -----
+        ctx.font = '13px sans-serif';
+        ctx.fillStyle = eColor;
+        ctx.fillText('■ E (전기장)', x0, 22);
+        ctx.fillStyle = '#4d9bff';
+        ctx.fillText('■ B (자기장)', x0 + 110, 22);
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'right';
+        ctx.fillText('진행 →  c = ' + (C / 1e8).toFixed(3) + '×10⁸ m/s', x1, 22);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function fmtFreq(hz) {
+        if (hz >= 1e9) return (hz / 1e12).toFixed(3) + ' ×10¹² Hz (THz급)';
+        return hz.toExponential(3) + ' Hz';
+      }
+      function fmtWave(m) {
+        if (m >= 1)     return m.toFixed(3) + ' m';
+        if (m >= 1e-3)  return (m * 1e3).toFixed(2) + ' mm';
+        if (m >= 1e-6)  return (m * 1e6).toFixed(3) + ' µm';
+        if (m >= 1e-9)  return (m * 1e9).toFixed(1) + ' nm';
+        return (m * 1e12).toFixed(2) + ' pm';
+      }
+
+      function updateResult() {
+        const lambdaM = waveM();
+        document.getElementById('r-freq').textContent = fmtFreq(state.freqHz);
+        document.getElementById('r-wave').textContent = fmtWave(lambdaM);
+        // 검산 c = f·λ
+        const product = state.freqHz * lambdaM; // ≈ C
+        document.getElementById('r-check').textContent =
+          (product / 1e8).toFixed(3) + '×10⁸ m/s';
+        // 스펙트럼 영역
+        document.getElementById('r-band').textContent = spectrumBand(lambdaM);
+      }
+
+      // ----- 슬라이더 동기화 (UI 값 ↔ state) -----
+      // 진동수 슬라이더: 화면 단위 ×10^14 Hz
+      function syncFreqSliderFromState() {
+        const ui = state.freqHz / 1e14;
+        freqSlider.value = Math.max(0.5, Math.min(100, ui));
+        document.getElementById('freq-val').textContent = (state.freqHz / 1e14).toFixed(2);
+      }
+      // 파장 슬라이더: nm
+      function syncWaveSliderFromState() {
+        const nm = waveNm();
+        // 슬라이더 범위(3~600nm) 안일 때만 핸들 위치를 반영
+        if (nm >= 3 && nm <= 600) waveSlider.value = Math.round(nm);
+        document.getElementById('wave-val').textContent =
+          nm >= 1000 ? (nm / 1000).toFixed(2) + ' µm' : nm.toFixed(1);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      // 진동수를 바꾸면 → state.freqHz 갱신 → 파장은 c=fλ로 자동 연동 표시
+      freqSlider.addEventListener('input', () => {
+        state.freqHz = Number(freqSlider.value) * 1e14;
+        document.getElementById('freq-val').textContent = Number(freqSlider.value).toFixed(2);
+        syncWaveSliderFromState();
+        updateResult();
+        draw();
+      });
+      // 파장을 바꾸면 → state.freqHz를 f=c/λ로 역산 → 진동수 자동 연동 표시
+      waveSlider.addEventListener('input', () => {
+        const nm = Number(waveSlider.value);
+        document.getElementById('wave-val').textContent = nm.toFixed(1);
+        state.freqHz = C / (nm * 1e-9);
+        syncFreqSliderFromState();
+        updateResult();
+        draw();
+      });
+      ampSlider.addEventListener('input', () => {
+        state.amp = Number(ampSlider.value);
+        document.getElementById('amp-val').textContent = state.amp.toFixed(2);
+        draw();
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        // 위상 진행 속도는 진동수에 비례(고진동수=빠른 진동)하되 보기 좋게 스케일링
+        const speed = 1.5 + 2.0 * Math.log10(state.freqHz / 1e13);
+        state.phase += dt * Math.max(0.8, speed) * 2.2;
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() { state.running = false; }
+      function resetSim() {
+        state.running = false;
+        state.phase = 0;
+        state.lastTs = null;
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'c = f·λ가 일정하므로 λ가 길면 f는 더 낮아집니다.',
+        'c = f·λ는 일정합니다. λ가 커지면 f는 작아져야 합니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '예측 속도 1/√(μ₀ε₀)가 측정된 빛의 속도와 일치한 것이 결정적이었습니다.',
+        '맥스웰의 근거는 직접 관찰이 아니라 이론이 예측한 파동 속도가 빛의 속도와 같았다는 점입니다.');
+
+      // ----- 초기 동기화 & 렌더 -----
+      syncFreqSliderFromState();
+      syncWaveSliderFromState();
+      updateResult();
+      draw();
+      play(); // 처음부터 파동이 진행하도록 자동 재생
+    })();
+  </script>
+</body>
+</html>

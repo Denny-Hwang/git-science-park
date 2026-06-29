@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보일의 법칙 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #4A5568;
+      --primary-light: #647288;
+      --bg: #f5f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef1f6; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .pv { color: #16a34a; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚗️ 18세기 (Precision Era)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>보일의 법칙</h1>
+    <div class="en">Boyle's Law</div>
+    <div class="meta">1662년 · 로버트 보일 (Robert Boyle) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="380" aria-label="실린더 속 기체의 부피를 줄이면 입자가 조밀해지고 압력 게이지가 올라가는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="vol">부피 V (피스톤 위치): <span id="vol-val">5.0</span> L</label>
+          <input type="range" id="vol" min="1" max="10" step="0.1" value="5"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        압력 P: <strong>—</strong> &nbsp;·&nbsp; 부피 V: <strong id="result-v">—</strong>
+        <br>
+        곱 P · V = <span class="pv" id="result-pv">—</span> (온도가 일정하면 항상 같다)
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 피스톤을 눌러 <strong>부피 V를 절반으로 줄이면 압력 P는 정확히 2배</strong>가 된다.
+        부피가 작아질수록 기체 입자가 더 조밀해지고 벽에 부딪히는 횟수가 늘어 압력 게이지 바늘이 올라간다.
+        반대로 부피를 키우면 입자가 흩어지고 압력은 내려간다. 그동안 곱 <strong>P · V</strong>는 늘 일정하게 유지된다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>일정한 온도에서 기체의 압력과 부피가 반비례함(P ∝ 1/V)을 이해한다.</li>
+        <li>P · V = 상수(k)라는 관계식의 의미를 설명한다.</li>
+        <li>부피가 줄면 입자 충돌이 잦아져 압력이 커진다는 입자 모형으로 해석한다.</li>
+        <li>온도·기체 양이 고정되어야 보일의 법칙이 성립함을 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>밀폐된 실린더 속 기체 입자들은 끊임없이 움직이며 벽에 부딪힌다. 이 충돌이 만드는 단위 면적당 힘이 곧 <strong>압력</strong>이다.
+        온도와 기체 양을 고정한 채 피스톤으로 <strong>부피를 줄이면</strong>, 같은 수의 입자가 더 좁은 공간에 갇혀 벽과 더 자주 부딪힌다.
+        그 결과 압력이 커진다.</p>
+        <p>부피를 절반으로 줄이면 충돌 빈도가 두 배가 되어 압력도 두 배가 된다. 즉 압력은 부피에 <strong>반비례</strong>하며,
+        둘의 곱은 항상 일정한 상수 <strong>k</strong>가 된다: <strong>P · V = k</strong>. 이것이 보일의 법칙이다.</p>
+      </div>
+
+      <div class="formula-box">
+        P · V = k  (일정)
+        <br>
+        P ∝ 1 / V
+        <br>
+        P₁ · V₁ = P₂ · V₂
+      </div>
+
+      <!-- SVG 다이어그램: P-V 반비례 곡선 -->
+      <svg width="360" height="240" viewBox="0 0 360 240" role="img"
+           aria-label="부피가 커질수록 압력이 작아지는 P-V 반비례 곡선 그래프">
+        <!-- 축 -->
+        <line x1="50" y1="200" x2="330" y2="200" stroke="#4A5568" stroke-width="2"/>
+        <line x1="50" y1="200" x2="50" y2="20" stroke="#4A5568" stroke-width="2"/>
+        <!-- 축 화살표 -->
+        <polygon points="330,200 322,196 322,204" fill="#4A5568"/>
+        <polygon points="50,20 46,28 54,28" fill="#4A5568"/>
+        <!-- 축 라벨 -->
+        <text x="300" y="222" font-size="13" fill="#4A5568">부피 V</text>
+        <text x="14" y="30" font-size="13" fill="#4A5568">압력 P</text>
+        <!-- 반비례 곡선 P = k/V -->
+        <path d="M 70 40 Q 110 130 170 160 T 320 188"
+              fill="none" stroke="#d97706" stroke-width="2.5"/>
+        <!-- 두 점 P1V1, P2V2 (곱이 같음) -->
+        <circle cx="95" cy="95" r="4" fill="#16a34a"/>
+        <text x="100" y="90" font-size="11" fill="#16a34a">P₁·V₁</text>
+        <circle cx="230" cy="178" r="4" fill="#16a34a"/>
+        <text x="235" y="174" font-size="11" fill="#16a34a">P₂·V₂</text>
+        <text x="180" y="60" font-size="12" fill="#6b7280">P = k / V</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "부피를 줄이면 기체 입자 자체가 작아지거나 사라진다"고 생각하기 쉽다.
+        실제로는 입자의 <em>수와 크기는 그대로</em>이고, 단지 더 좁은 공간에 모여 충돌이 잦아질 뿐이다.
+        또한 보일의 법칙은 <em>온도가 일정할 때만</em> 성립한다. 온도가 바뀌면 압력·부피 관계도 달라진다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 온도가 일정할 때 기체의 부피를 1/2로 줄이면 압력은 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="wrong"> 1/2배가 된다</label>
+          <label><input type="radio" name="q1" value="correct"> 2배가 된다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 보일의 법칙 P · V = k 에서 일정하게 유지되는 것은 무엇인가?</p>
+          <label><input type="radio" name="q2" value="wrong"> 압력 P</label>
+          <label><input type="radio" name="q2" value="wrong"> 부피 V</label>
+          <label><input type="radio" name="q2" value="correct"> 압력과 부피의 곱 P · V</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 로버트 보일 (Robert Boyle, 1627~1691)</h3>
+        <p>아일랜드 출신의 자연철학자·화학자·물리학자로, 근대 화학의 아버지로 불린다.
+        조수 로버트 훅과 함께 진공 펌프를 개량해 기체의 성질을 정밀하게 실험했고,
+        J자형 유리관에 수은을 부어 공기를 가두는 방식으로 압력과 부피의 관계를 정량적으로 측정했다.
+        저서 「회의적 화학자(The Sceptical Chymist)」(1661)에서 연금술의 4원소설을 비판하고
+        실험과 측정에 근거한 근대 화학의 토대를 놓았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1643년 — 토리첼리가 수은 기압계를 발명하여 대기압의 존재를 입증</li>
+          <li>1654년 — 게리케가 마그데부르크 반구 실험으로 진공과 대기압의 힘을 시연</li>
+          <li>1659년 — 보일과 훅이 진공 펌프를 개량해 기체 실험을 시작</li>
+          <li>1662년 — 보일이 압력과 부피의 반비례 관계(보일의 법칙)를 발표</li>
+          <li>1676년 — 마리오트가 독립적으로 같은 관계를 확인(유럽에서 마리오트 법칙으로도 불림)</li>
+          <li>1787년 — 샤를이 온도-부피 관계를 밝혀 이상기체 법칙으로 이어짐</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 보일의 법칙은 기체의 거동을 <em>수식으로 표현한 최초의 정량적 법칙</em> 중 하나로,
+        자연 현상을 측정과 수학으로 다루는 근대 과학의 방법을 보여준 모범 사례다.
+        훗날 샤를의 법칙·게이뤼삭의 법칙과 결합해 이상기체 상태방정식(PV = nRT)으로 발전했고,
+        기체 입자 운동을 다루는 기체 분자 운동론의 출발점이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (V: 부피 L, 상수 k = P·V) -----
+      // 기준점: V = 5 L 일 때 P = 2.0 atm 으로 두면 k = 10.
+      const K = 10;                 // P·V = k (일정) — 온도·기체 양 고정
+      const DEFAULTS = { V: 5 };
+      const state = { V: DEFAULTS.V };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 계산: 압력 P = k / V (atm) -----
+      function pressure() {
+        return K / state.V;
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 실린더 기하 (캔버스 좌표)
+      const CYL = { x: 70, top: 30, w: 200, bottom: 350 }; // 실린더 내부 영역
+      const V_MIN = 1, V_MAX = 10;
+
+      // 입자: 정규화 좌표(0~1) + 속도. 부피에 따라 사용 높이를 매핑한다.
+      const N = 40;
+      const particles = [];
+      function initParticles() {
+        particles.length = 0;
+        for (let i = 0; i < N; i++) {
+          particles.push({
+            x: Math.random(),                 // 0~1 (실린더 폭 내부)
+            y: Math.random(),                 // 0~1 (기체 영역 내부)
+            vx: (Math.random() - 0.5) * 0.018,
+            vy: (Math.random() - 0.5) * 0.018
+          });
+        }
+      }
+      initParticles();
+
+      // 현재 기체 영역의 위쪽 경계(피스톤 면)를 픽셀 y로 환산
+      function pistonY() {
+        // V_MAX 일 때 피스톤이 가장 위(CYL.top 근처), V_MIN 일 때 가장 아래
+        const frac = (state.V - V_MIN) / (V_MAX - V_MIN); // 0~1
+        const usableTop = CYL.top + 40;   // 피스톤 손잡이/막대 여유
+        const minGasHeight = 36;          // 최소 기체 높이
+        const maxTop = CYL.bottom - minGasHeight;
+        return maxTop - frac * (maxTop - usableTop);
+      }
+
+      // ----- 입자 물리 업데이트 -----
+      // 속도는 일정(온도 고정). 부피가 작아지면 같은 속도로 벽 충돌이 더 잦아진다.
+      function stepParticles() {
+        for (const p of particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) { p.x = 0; p.vx = -p.vx; }
+          else if (p.x > 1) { p.x = 1; p.vx = -p.vx; }
+          if (p.y < 0) { p.y = 0; p.vy = -p.vy; }
+          else if (p.y > 1) { p.y = 1; p.vy = -p.vy; }
+        }
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const pY = pistonY();
+        const gasTop = pY + 8;            // 기체 영역 상단(피스톤 아래)
+        const gasBottom = CYL.bottom;
+        const gasH = gasBottom - gasTop;
+
+        // --- 실린더 벽 ---
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#4A5568';
+        ctx.beginPath();
+        ctx.moveTo(CYL.x, CYL.top);
+        ctx.lineTo(CYL.x, CYL.bottom);
+        ctx.lineTo(CYL.x + CYL.w, CYL.bottom);
+        ctx.lineTo(CYL.x + CYL.w, CYL.top);
+        ctx.stroke();
+
+        // --- 기체 영역 배경 (압력이 높을수록 진하게) ---
+        const p = pressure();
+        const shade = Math.min(0.55, 0.12 + (p / (K / V_MIN)) * 0.5);
+        ctx.fillStyle = 'rgba(74, 85, 104, ' + shade.toFixed(3) + ')';
+        ctx.fillRect(CYL.x, gasTop, CYL.w, gasH);
+
+        // --- 기체 입자 ---
+        ctx.fillStyle = '#647288';
+        for (const pt of particles) {
+          const px = CYL.x + 8 + pt.x * (CYL.w - 16);
+          const py = gasTop + 8 + pt.y * (gasH - 16);
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // --- 피스톤 ---
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillRect(CYL.x, pY, CYL.w, 8);
+        ctx.fillStyle = '#6b7280';
+        ctx.fillRect(CYL.x + CYL.w / 2 - 6, pY - 34, 12, 34); // 막대
+        ctx.fillRect(CYL.x + CYL.w / 2 - 26, pY - 44, 52, 12); // 손잡이
+
+        // --- 압력 게이지 (오른쪽) ---
+        const gx = 400, gy = 110, gr = 60;
+        // 다이얼
+        ctx.beginPath();
+        ctx.arc(gx, gy, gr, Math.PI, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#4A5568';
+        ctx.stroke();
+        // 눈금
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i <= 10; i++) {
+          const a = Math.PI + (i / 10) * Math.PI;
+          ctx.beginPath();
+          ctx.moveTo(gx + (gr - 8) * Math.cos(a), gy + (gr - 8) * Math.sin(a));
+          ctx.lineTo(gx + gr * Math.cos(a), gy + gr * Math.sin(a));
+          ctx.stroke();
+        }
+        // 바늘: P 범위 0 ~ Pmax(= K/V_MIN = 10) 를 반원에 매핑
+        const pMax = K / V_MIN;
+        const frac = Math.max(0, Math.min(1, p / pMax));
+        const needleA = Math.PI + frac * Math.PI;
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(gx, gy);
+        ctx.lineTo(gx + (gr - 14) * Math.cos(needleA), gy + (gr - 14) * Math.sin(needleA));
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(gx, gy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#4A5568';
+        ctx.fill();
+        // 게이지 라벨
+        ctx.fillStyle = '#1a1a1a';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('압력 게이지', gx, gy + 26);
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('P = ' + p.toFixed(2) + ' atm', gx, gy + 48);
+
+        // 부피 라벨
+        ctx.fillStyle = '#4A5568';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('V = ' + state.V.toFixed(1) + ' L', CYL.x + CYL.w / 2, CYL.bottom + 22);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- (3') 애니메이션 루프 -----
+      function loop() {
+        stepParticles();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const p = pressure();
+        document.querySelector('#result strong').textContent = p.toFixed(2) + ' atm';
+        document.getElementById('result-v').textContent = state.V.toFixed(1) + ' L';
+        document.getElementById('result-pv').textContent = (p * state.V).toFixed(1);
+      }
+
+      // ----- 슬라이더 -----
+      const volSlider = document.getElementById('vol');
+      const volVal = document.getElementById('vol-val');
+
+      function syncLabels() {
+        volVal.textContent = state.V.toFixed(1);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      volSlider.addEventListener('input', () => {
+        state.V = Number(volSlider.value);
+        syncLabels(); updateResult();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.V = DEFAULTS.V;
+        volSlider.value = String(DEFAULTS.V);
+        syncLabels(); updateResult();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 P·V = k 이므로 V가 1/2이 되면 P는 2배, 그 곱은 항상 일정합니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. P·V = k (일정) 관계를 다시 살펴보세요. 부피와 압력은 반비례합니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

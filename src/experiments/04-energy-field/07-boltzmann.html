@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>볼츠만의 통계역학 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #faf5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #fbf3f3; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fdeced; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>볼츠만의 통계역학</h1>
+    <div class="en">Boltzmann's Statistical Mechanics</div>
+    <div class="meta">1877년 · 루트비히 볼츠만 (Ludwig Boltzmann) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" role="img"
+        aria-label="왼쪽 상자 속에서 무작위로 움직이는 기체 분자와 오른쪽의 속도 분포 히스토그램 및 맥스웰-볼츠만 곡선 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="temp">온도 T: <span id="temp-val">300</span> K</label>
+          <input type="range" id="temp" min="50" max="1200" step="10" value="300"
+            aria-describedby="temp-val">
+        </div>
+
+        <div class="control-row">
+          <label for="mass">분자 질량 m: <span id="mass-val">32</span> u (상대질량)</label>
+          <input type="range" id="mass" min="2" max="80" step="1" value="32"
+            aria-describedby="mass-val">
+        </div>
+
+        <div class="control-row">
+          <label for="count">입자 수 N: <span id="count-val">120</span> 개</label>
+          <input type="range" id="count" min="20" max="300" step="10" value="120"
+            aria-describedby="count-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>온도 T: <strong id="r-temp">300 K</strong></div>
+          <div>최빈 속도 v<sub>p</sub>: <strong id="r-vp">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>평균 속도 v̄ (상대): <strong id="r-vmean">—</strong></div>
+          <div>제곱평균제곱근 v<sub>rms</sub>: <strong id="r-vrms">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 온도 T를 올리면 입자들이 빨라지고(붉게 표시), 오른쪽 속도 분포 곡선이
+        <em>오른쪽으로 넓게</em> 퍼지면서 최빈 속도(점선)가 커집니다. 반대로 분자 질량 m을 키우면 같은 온도에서도
+        분자가 느려져 분포가 왼쪽으로 모입니다. 온도는 분자 운동에너지의 척도임을 직접 확인해 보세요.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>수많은 기체 분자의 속도가 맥스웰-볼츠만 분포를 따름을 이해한다.</li>
+        <li>온도가 높을수록 분포가 오른쪽으로 넓게 퍼지고 최빈 속도가 커짐을 관찰한다.</li>
+        <li>최빈 속도 v<sub>p</sub> = √(2kT/m) 의 의미를 익힌다.</li>
+        <li>엔트로피 S = k·ln W (미시상태 수 W)로 무질서를 정량화함을 이해한다.</li>
+        <li>거시 상태(온도)가 무수한 미시 상태의 통계로 설명됨을 경험한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>기체 한 통 속에는 약 10²³개의 분자가 있고, 분자 하나하나는 충돌하며 끊임없이 속도가 바뀐다.
+        개개의 분자를 추적하는 것은 불가능하지만, <strong>속도의 분포</strong>는 일정한 통계 법칙을 따른다.
+        이것이 맥스웰-볼츠만 속도 분포다.</p>
+        <p>속력 v를 가진 분자의 상대적 비율은 <em>f(v) ∝ v²·exp(−m·v²/(2kT))</em> 로 주어진다. 앞의 v²는
+        빠른 속도일수록 그에 해당하는 방향(3차원 속도 공간의 껍질)이 많아짐을, 뒤의 지수항은 운동에너지가
+        클수록 그런 분자가 드묾을 나타낸다. 두 효과가 경쟁해 하나의 봉우리(최빈 속도)가 생긴다.</p>
+        <p>온도 T는 분자들의 <strong>평균 운동에너지</strong>의 척도다. 온도를 높이면 지수항이 완만해져 빠른
+        분자의 비율이 커지고, 분포 전체가 오른쪽으로 퍼지며 봉우리가 낮고 넓어진다.</p>
+        <p>볼츠만은 더 나아가, 거시 상태(예: 특정 온도)에 대응하는 미시 상태의 수 W가 많을수록 그 상태가
+        "무질서"하며 자연이 그쪽으로 향한다고 보았다. 이를 엔트로피로 정의한 것이 S = k·ln W 이다.</p>
+      </div>
+
+      <div class="formula-box">
+        f(v) ∝ v² · exp( −m·v² / (2kT) )<br>
+        v<sub>p</sub> = √(2kT / m)　(최빈 속도)<br>
+        S = k · ln W　(볼츠만 엔트로피)
+      </div>
+
+      <!-- SVG 다이어그램: 온도에 따른 분포 곡선 비교 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="저온과 고온에서의 맥스웰-볼츠만 속도 분포 곡선 비교. 고온일수록 곡선이 오른쪽으로 낮고 넓게 퍼진다">
+        <line x1="40" y1="190" x2="340" y2="190" stroke="#6b7280" stroke-width="2"/>
+        <line x1="40" y1="190" x2="40" y2="20" stroke="#6b7280" stroke-width="2"/>
+        <text x="300" y="208" font-size="11" fill="#6b7280">속력 v →</text>
+        <text x="6" y="30" font-size="11" fill="#6b7280">f(v)</text>
+        <!-- 저온: 좁고 높은 봉우리 (왼쪽) -->
+        <path d="M40,190 C70,190 78,40 100,40 C122,40 135,150 175,180 C210,188 270,190 340,190"
+          fill="none" stroke="#2563eb" stroke-width="2.5"/>
+        <!-- 고온: 넓고 낮은 봉우리 (오른쪽) -->
+        <path d="M40,190 C90,188 120,95 175,95 C215,95 235,150 270,175 C300,188 320,190 340,190"
+          fill="none" stroke="#C53030" stroke-width="2.5"/>
+        <line x1="100" y1="40" x2="100" y2="190" stroke="#2563eb" stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="175" y1="95" x2="175" y2="190" stroke="#C53030" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="78" y="34" font-size="11" fill="#2563eb">저온</text>
+        <text x="178" y="90" font-size="11" fill="#C53030">고온</text>
+        <text x="86" y="204" font-size="10" fill="#2563eb">v_p(저)</text>
+        <text x="160" y="204" font-size="10" fill="#C53030">v_p(고)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        온도가 높아지면 최빈 속도(점선)가 커지고, 봉우리가 낮아지며 분포가 오른쪽으로 넓게 퍼진다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "같은 온도의 기체에서는 모든 분자가 같은 속도로 움직인다"고 오해하기 쉽다.
+        실제로는 매우 느린 분자부터 아주 빠른 분자까지 넓은 범위로 <em>분포</em>해 있다. 온도는 개별 분자의 속도가
+        아니라 <strong>평균 운동에너지</strong>를 나타낼 뿐이다. 또 "엔트로피=쓰레기·더러움"이 아니라, 같은 거시
+        상태를 만드는 미시 배열의 수(W)의 로그라는 점도 자주 혼동된다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>기체의 온도를 높이면 분자들의 속도 분포는 어떻게 변하는가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 더 느린 쪽으로 좁게 모인다</label>
+        <label><input type="radio" name="q1" value="correct"> 더 빠른 쪽으로 넓게 퍼지고 최빈 속도가 커진다</label>
+        <label><input type="radio" name="q1" value="wrong"> 변하지 않는다 (모든 분자가 동일 속도)</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>볼츠만의 엔트로피 식 S = k·ln W 에서 W는 무엇을 뜻하는가?</p>
+        <label><input type="radio" name="q2" value="wrong"> 기체가 한 일의 양</label>
+        <label><input type="radio" name="q2" value="correct"> 하나의 거시 상태에 대응하는 미시 상태의 수</label>
+        <label><input type="radio" name="q2" value="wrong"> 분자 1개의 운동에너지</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 루트비히 볼츠만 (Ludwig Boltzmann, 1844~1906)</h3>
+        <p>오스트리아 빈 출신의 물리학자로, 열과 기체의 거동을 수많은 원자·분자의 통계적 운동으로 설명하는
+        통계역학을 정립했다. 맥스웰의 속도 분포를 일반화하고, 엔트로피를 미시 상태의 수와 연결한 식
+        S = k·ln W 를 제시했다. 이 식은 그의 묘비에 새겨져 있다.</p>
+        <p>당시 원자의 실재를 의심하는 마흐(Mach)·오스트발트(Ostwald) 등 에너지론자들과 격렬히 논쟁했고,
+        깊은 우울 속에서 1906년 스스로 생을 마감했다. 몇 년 뒤 페랭의 브라운 운동 실험으로 원자의 실재가
+        확증되며 그의 이론이 옳았음이 입증되었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1860년 — 맥스웰, 기체 분자 속도 분포(맥스웰 분포) 제안</li>
+          <li>1872년 — 볼츠만, H-정리 발표 (분포가 평형으로 향함을 통계적으로 설명)</li>
+          <li>1877년 — 엔트로피와 확률(미시상태 수)의 관계 정립, S = k·ln W 사상의 토대</li>
+          <li>1900~1906년 — 원자 실재성을 둘러싼 에너지론자들과의 논쟁 격화</li>
+          <li>1909년 — 페랭의 브라운 운동 실험으로 원자·분자의 실재 확증</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 볼츠만은 거시적 열현상(온도·엔트로피)을 원자·분자의 통계적 운동으로
+        환원함으로써 열역학 제2법칙에 미시적·확률적 기초를 부여했다. "자연은 확률이 높은(미시상태가 많은)
+        상태로 향한다"는 통찰은 통계물리학의 출발점이 되었고, 훗날 정보 엔트로피·양자통계로 이어졌다.
+        원자론이 의심받던 시대에 보이지 않는 입자들의 통계로 세상을 설명한, 현대 물리학의 주춧돌이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리/시각화 상수 -----
+      // k(볼츠만 상수)·실제 단위 대신, 화면 시뮬레이션에 맞춘 무차원 스케일을 사용한다.
+      // v_p = sqrt(2kT/m) 형태를 그대로 유지하되, K_SIM 으로 픽셀 속도로 환산.
+      const K_SIM = 0.0009;     // 무차원 볼츠만 계수(시뮬레이션 스케일)
+      const SPEED_PX = 0.95;    // 속도 -> 픽셀/프레임 환산
+
+      // ----- 상태 -----
+      const state = {
+        T: 300,        // 온도 K
+        m: 32,         // 분자 상대질량 u
+        N: 120,        // 입자 수
+        running: false
+      };
+
+      let particles = [];
+      let rafId = null;
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const tempSlider = document.getElementById('temp');
+      const massSlider = document.getElementById('mass');
+      const countSlider = document.getElementById('count');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // 박스(입자) 영역 / 분포 그래프 영역
+      const BOX = { x: 10, y: 10, w: 300, h: 380 };
+      const PLOT = { x: 340, y: 10, w: 290, h: 380 };
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리량(시뮬레이션 스케일) -----
+      // 최빈 속도 v_p = sqrt(2kT/m)
+      function vp() { return Math.sqrt((2 * K_SIM * state.T) / state.m); }
+      // 평균 속도 v̄ = sqrt(8kT/(πm)) = vp * sqrt(4/π)
+      function vmean() { return Math.sqrt((8 * K_SIM * state.T) / (Math.PI * state.m)); }
+      // rms 속도 v_rms = sqrt(3kT/m) = vp * sqrt(3/2)
+      function vrms() { return Math.sqrt((3 * K_SIM * state.T) / state.m); }
+
+      // 맥스웰-볼츠만 속도 분포(정규화 전 형태): f(v) ∝ v^2 exp(-m v^2/(2kT))
+      function mb(v) {
+        const a = state.m / (2 * K_SIM * state.T);
+        return v * v * Math.exp(-a * v * v);
+      }
+
+      // 분포에서 무작위 속력 표본 추출(기각 표본법)
+      function sampleSpeed() {
+        const vmax = vp() * 3.5;            // 사실상 분포 꼬리 끝
+        const fmax = mb(vp());              // 봉우리에서 최대
+        for (let i = 0; i < 200; i++) {
+          const v = Math.random() * vmax;
+          if (Math.random() * fmax <= mb(v)) return v;
+        }
+        return vp();
+      }
+
+      // ----- 입자 초기화 -----
+      function initParticles() {
+        particles = [];
+        for (let i = 0; i < state.N; i++) {
+          const speed = sampleSpeed();
+          const theta = Math.random() * Math.PI * 2;
+          particles.push({
+            x: BOX.x + 6 + Math.random() * (BOX.w - 12),
+            y: BOX.y + 6 + Math.random() * (BOX.h - 12),
+            vx: Math.cos(theta) * speed,
+            vy: Math.sin(theta) * speed,
+            r: 3
+          });
+        }
+      }
+
+      // 속도에 따른 색(느림=파랑, 빠름=빨강)
+      function speedColor(speed) {
+        const t = Math.max(0, Math.min(1, speed / (vp() * 2.2)));
+        const r = Math.round(40 + t * 197);
+        const g = Math.round(90 - t * 60);
+        const b = Math.round(220 - t * 180);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      }
+
+      // ----- 물리 업데이트(한 프레임) -----
+      function step() {
+        for (const p of particles) {
+          p.x += p.vx * SPEED_PX;
+          p.y += p.vy * SPEED_PX;
+          if (p.x < BOX.x + p.r) { p.x = BOX.x + p.r; p.vx = Math.abs(p.vx); }
+          if (p.x > BOX.x + BOX.w - p.r) { p.x = BOX.x + BOX.w - p.r; p.vx = -Math.abs(p.vx); }
+          if (p.y < BOX.y + p.r) { p.y = BOX.y + p.r; p.vy = Math.abs(p.vy); }
+          if (p.y > BOX.y + BOX.h - p.r) { p.y = BOX.y + BOX.h - p.r; p.vy = -Math.abs(p.vy); }
+        }
+      }
+
+      // ----- (3) draw(): state/particles만 읽어 다시 그린다 -----
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // --- 왼쪽: 입자 박스 ---
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(BOX.x, BOX.y, BOX.w, BOX.h);
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(BOX.x, BOX.y, BOX.w, BOX.h);
+
+        for (const p of particles) {
+          const speed = Math.hypot(p.vx, p.vy);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = speedColor(speed);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#374151';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('기체 분자 (느림 파랑 · 빠름 빨강)', BOX.x + 6, BOX.y + BOX.h + 0);
+
+        // --- 오른쪽: 속도 히스토그램 + 분포 곡선 ---
+        drawPlot();
+
+        // 최빈 속도 텍스트
+        ctx.fillStyle = '#C53030';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('T = ' + state.T + ' K', PLOT.x + 6, PLOT.y + 16);
+      }
+
+      function drawPlot() {
+        const baseY = PLOT.y + PLOT.h - 24;
+        const plotW = PLOT.w;
+        const plotH = PLOT.h - 50;
+
+        // 축
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(PLOT.x, PLOT.y + 24); ctx.lineTo(PLOT.x, baseY); // y축
+        ctx.lineTo(PLOT.x + plotW, baseY); // x축
+        ctx.stroke();
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('속력 v →', PLOT.x + plotW - 56, baseY + 16);
+        ctx.fillText('비율', PLOT.x + 2, PLOT.y + 20);
+
+        // x축 속도 범위는 질량/온도 무관하게 고정 스케일을 쓰면 비교가 어려우므로
+        // "현재 분포가 잘 보이도록" 충분히 넓은 고정 vMaxAxis 사용.
+        const vMaxAxis = Math.sqrt((2 * K_SIM * 1200) / 2) * 3.2; // 최대 온도/최소 질량 기준
+        const toX = (v) => PLOT.x + (v / vMaxAxis) * plotW;
+
+        // 히스토그램(실제 입자 표본에서 집계)
+        const bins = 24;
+        const counts = new Array(bins).fill(0);
+        for (const p of particles) {
+          const s = Math.hypot(p.vx, p.vy);
+          let idx = Math.floor((s / vMaxAxis) * bins);
+          if (idx < 0) idx = 0;
+          if (idx >= bins) idx = bins - 1;
+          counts[idx]++;
+        }
+        const maxCount = Math.max(1, ...counts);
+        const binW = plotW / bins;
+        ctx.fillStyle = 'rgba(197,48,48,0.28)';
+        for (let i = 0; i < bins; i++) {
+          const h = (counts[i] / maxCount) * plotH;
+          ctx.fillRect(PLOT.x + i * binW + 1, baseY - h, binW - 2, h);
+        }
+
+        // 이론 분포 곡선 f(v)
+        let fmax = 0;
+        const samples = 120;
+        const vals = [];
+        for (let i = 0; i <= samples; i++) {
+          const v = (i / samples) * vMaxAxis;
+          const f = mb(v);
+          vals.push(f);
+          if (f > fmax) fmax = f;
+        }
+        if (fmax <= 0) fmax = 1;
+        ctx.strokeStyle = '#C53030';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let i = 0; i <= samples; i++) {
+          const v = (i / samples) * vMaxAxis;
+          const y = baseY - (vals[i] / fmax) * plotH;
+          if (i === 0) ctx.moveTo(toX(v), y);
+          else ctx.lineTo(toX(v), y);
+        }
+        ctx.stroke();
+
+        // 최빈 속도 점선
+        const xvp = toX(vp());
+        if (xvp <= PLOT.x + plotW) {
+          ctx.strokeStyle = '#1d4ed8';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(xvp, baseY); ctx.lineTo(xvp, PLOT.y + 26);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#1d4ed8';
+          ctx.font = '11px sans-serif';
+          ctx.fillText('최빈 v_p', Math.min(xvp + 4, PLOT.x + plotW - 50), PLOT.y + 36);
+        }
+      }
+
+      // ----- 결과 박스 갱신 -----
+      function updateResult() {
+        document.getElementById('r-temp').textContent = state.T + ' K';
+        // 화면 단위(픽셀/프레임 스케일)를 상대값으로 표시
+        const scale = 1000; // 보기 좋은 상대 단위
+        document.getElementById('r-vp').textContent = (vp() * scale).toFixed(1) + ' (상대)';
+        document.getElementById('r-vmean').textContent = (vmean() * scale).toFixed(1) + ' (상대)';
+        document.getElementById('r-vrms').textContent = (vrms() * scale).toFixed(1) + ' (상대)';
+      }
+
+      // ----- (2) 슬라이더 이벤트: input 시 즉시 갱신 -----
+      tempSlider.addEventListener('input', () => {
+        state.T = Number(tempSlider.value);
+        document.getElementById('temp-val').textContent = state.T;
+        rescaleSpeeds();
+        updateResult();
+        draw();
+      });
+      massSlider.addEventListener('input', () => {
+        state.m = Number(massSlider.value);
+        document.getElementById('mass-val').textContent = state.m;
+        rescaleSpeeds();
+        updateResult();
+        draw();
+      });
+      countSlider.addEventListener('input', () => {
+        state.N = Number(countSlider.value);
+        document.getElementById('count-val').textContent = state.N;
+        initParticles();
+        updateResult();
+        draw();
+      });
+
+      // 온도/질량 변경 시: 기존 입자의 속력 분포를 새 분포로 재표본(방향 유지하며 속력 재추출)
+      function rescaleSpeeds() {
+        for (const p of particles) {
+          const theta = Math.atan2(p.vy, p.vx);
+          const s = sampleSpeed();
+          p.vx = Math.cos(theta) * s;
+          p.vy = Math.sin(theta) * s;
+        }
+      }
+
+      // ----- 애니메이션 루프 (requestAnimationFrame) -----
+      function loop() {
+        if (!state.running) return;
+        step();
+        draw();
+        rafId = requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        rafId = requestAnimationFrame(loop);
+      }
+      function pause() {
+        state.running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      function resetSim() {
+        pause();
+        initParticles();
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '온도가 오르면 빠른 분자 비율이 늘어 분포가 오른쪽으로 넓게 퍼지고 최빈 속도가 커집니다.',
+        'v_p = √(2kT/m) 이므로 T가 커지면 최빈 속도도 커집니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'W는 하나의 거시 상태를 만드는 미시 상태의 수이며, 그 로그가 엔트로피입니다.',
+        'S = k·ln W 에서 W는 미시 상태(배열)의 가짓수입니다.');
+
+      // ----- 초기 렌더 -----
+      initParticles();
+      updateResult();
+      draw();
+      play(); // 입자 운동을 바로 보여준다
+    })();
+  </script>
+</body>
+</html>

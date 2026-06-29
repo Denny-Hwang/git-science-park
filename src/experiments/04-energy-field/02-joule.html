@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>줄의 열-일 등가 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #faf5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #fbeeee; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fbeeee; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>줄의 열-일 등가 실험</h1>
+    <div class="en">Joule's Mechanical Equivalent of Heat</div>
+    <div class="meta">1843년 · 제임스 프레스콧 줄 (James Prescott Joule) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="낙하하는 추가 도르래로 물속 회전 날개를 돌려 물의 온도를 올리는 줄의 실험 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="mass">추 질량 m: <span id="mass-val">10.0</span> kg</label>
+          <input type="range" id="mass" min="1" max="20" step="0.5" value="10"
+            aria-describedby="mass-val">
+        </div>
+
+        <div class="control-row">
+          <label for="height">낙하 높이 h: <span id="height-val">2.0</span> m</label>
+          <input type="range" id="height" min="0.5" max="3" step="0.1" value="2.0"
+            aria-describedby="height-val">
+        </div>
+
+        <div class="control-row">
+          <label for="water">물의 양 m<sub>water</sub>: <span id="water-val">0.50</span> kg</label>
+          <input type="range" id="water" min="0.1" max="2" step="0.05" value="0.5"
+            aria-describedby="water-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>한 역학적 일 W: <strong id="r-work">—</strong></div>
+          <div>물의 온도 상승 ΔT: <strong id="r-dt">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>현재 온도: <strong id="r-temp">15.00 °C</strong></div>
+          <div>전달된 열: <strong id="r-heat">0 J</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 추가 내려가면 도르래에 연결된 날개가 물을 휘젓고, 그 마찰로
+        물의 온도계 눈금과 물색이 서서히 올라갑니다. 추가 잃은 역학적 일은 사라지지 않고
+        <em>전부 물의 열(내부에너지)</em>로 바뀝니다. 이것이 <strong>에너지 보존(열역학 제1법칙)</strong>입니다.
+        물의 양을 줄이면 같은 일로도 온도가 더 크게 오릅니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>역학적 일이 열로 변환됨(열-일 등가)을 이해한다.</li>
+        <li>일 W = m·g·h 와 온도 상승 ΔT = W / (m<sub>water</sub>·c) 를 계산한다.</li>
+        <li>물의 비열 c = 4186 J/(kg·K)의 의미를 안다.</li>
+        <li>역학적 열당량(약 4.186 J/cal)과 에너지 보존(열역학 제1법칙)을 연결한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>높이 <em>h</em>에서 질량 <em>m</em>의 추가 떨어질 때 중력이 한 역학적 일은
+        <em>W = m·g·h</em> 이다. 이 추는 도르래로 물속 회전 날개와 연결되어 있어,
+        떨어지는 동안 날개가 물을 휘젓는다. 물의 점성 마찰이 추의 역학적 일을
+        <strong>전부 열로</strong> 바꾼다.</p>
+        <p>물이 흡수한 열 <em>Q</em>는 일 <em>W</em>와 같고(에너지 보존), 이때 물의 온도는
+        <em>ΔT = Q / (m<sub>water</sub>·c)</em> 만큼 오른다. 여기서 <em>c</em>는 물의 비열
+        4186 J/(kg·K)이다. 줄은 이 실험으로 "단위 열량을 만드는 데 필요한 일의 양",
+        즉 <strong>역학적 열당량(약 4.186 J/cal)</strong>을 정밀하게 측정했다.</p>
+      </div>
+
+      <div class="formula-box">
+        W = m · g · h<br>
+        ΔT = W / (m<sub>water</sub> · c)　(c = 4186 J/kg·K)<br>
+        1 cal ≈ 4.186 J　(역학적 열당량)
+      </div>
+
+      <!-- SVG 다이어그램: 추→날개→물의 에너지 변환 -->
+      <svg width="360" height="240" viewBox="0 0 360 240" role="img"
+        aria-label="낙하하는 추의 역학적 일이 도르래와 회전 날개를 거쳐 물의 열로 변환되는 다이어그램">
+        <!-- 지지대 -->
+        <line x1="30" y1="20" x2="30" y2="210" stroke="#9ca3af" stroke-width="3"/>
+        <line x1="30" y1="20" x2="120" y2="20" stroke="#9ca3af" stroke-width="3"/>
+        <!-- 도르래 -->
+        <circle cx="120" cy="30" r="10" fill="none" stroke="#6b7280" stroke-width="3"/>
+        <!-- 줄 + 추 -->
+        <line x1="120" y1="40" x2="120" y2="120" stroke="#374151" stroke-width="1.5"/>
+        <rect x="108" y="120" width="24" height="30" rx="2" fill="#C53030"/>
+        <text x="138" y="138" font-size="11" fill="#C53030">추 m</text>
+        <line x1="120" y1="150" x2="120" y2="180" stroke="#374151" stroke-width="1.5"
+          stroke-dasharray="4 3"/>
+        <text x="138" y="178" font-size="10" fill="#6b7280">낙하 h</text>
+        <!-- 축 (도르래에서 물통으로) -->
+        <line x1="30" y1="30" x2="200" y2="30" stroke="#6b7280" stroke-width="2" opacity="0"/>
+        <!-- 물통 -->
+        <rect x="220" y="90" width="110" height="110" rx="6" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/>
+        <line x1="275" y1="40" x2="275" y2="100" stroke="#374151" stroke-width="2"/>
+        <!-- 회전 날개 -->
+        <circle cx="275" cy="145" r="3" fill="#374151"/>
+        <line x1="255" y1="145" x2="295" y2="145" stroke="#374151" stroke-width="3"/>
+        <line x1="275" y1="125" x2="275" y2="165" stroke="#374151" stroke-width="3"/>
+        <text x="232" y="190" font-size="10" fill="#1e3a8a">물 m_water</text>
+        <text x="250" y="62" font-size="10" fill="#6b7280">회전 날개</text>
+        <!-- 변환 화살표 -->
+        <text x="150" y="100" font-size="22" fill="#d97706">→</text>
+        <text x="120" y="225" font-size="11" fill="#374151">역학적 일 W</text>
+        <text x="245" y="225" font-size="11" fill="#dc2626">열 Q (온도↑)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        추의 역학적 일이 날개의 마찰을 거쳐 물의 열로 변환된다. 에너지는 형태만 바뀔 뿐 보존된다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "물을 휘젓는 일은 그냥 없어진다" 또는 "열은 물체에 담긴 보이지 않는
+        유체(칼로릭)다"라고 생각하기 쉽다. 실제로는 역학적 일이 <em>사라지지 않고</em> 분자의 무질서한
+        운동, 즉 열(내부에너지)로 <strong>그대로 전환</strong>된다. 줄의 실험은 열이 별개의 물질이 아니라
+        에너지의 한 형태임을 증명해 칼로릭설을 무너뜨렸다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>떨어지는 추가 날개를 돌리며 한 역학적 일은 결국 어디로 가는가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 마찰로 완전히 사라져 없어진다</label>
+        <label><input type="radio" name="q1" value="correct"> 물의 열(내부에너지)로 전환된다</label>
+        <label><input type="radio" name="q1" value="wrong"> 다시 추의 위치에너지로 돌아간다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>같은 역학적 일 W를 주었을 때, 물의 온도 상승 ΔT를 더 크게 하려면?
+        (ΔT = W / (m<sub>water</sub>·c))</p>
+        <label><input type="radio" name="q2" value="correct"> 물의 양을 줄인다</label>
+        <label><input type="radio" name="q2" value="wrong"> 물의 양을 늘린다</label>
+        <label><input type="radio" name="q2" value="wrong"> 물의 양과 무관하다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 제임스 프레스콧 줄 (James Prescott Joule, 1818~1889)</h3>
+        <p>영국 맨체스터의 양조장 집안에서 태어난 물리학자다. 정규 대학 교육 대신 화학자 존 돌턴에게
+        배웠고, 가업을 운영하며 독학과 정밀 실험으로 연구를 이어갔다. 전기·역학·열을 잇는 정량 실험에
+        탁월했으며, 미세한 온도 변화를 잡아내는 극도로 정밀한 온도계를 직접 다뤘다.</p>
+        <p>1843년부터 추-날개 장치로 역학적 일이 만드는 열을 반복 측정해 <strong>역학적 열당량</strong>을
+        구했다. 에너지 단위 <strong>줄(J)</strong>은 그의 이름에서 왔다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>18세기 — 라부아지에 등의 칼로릭(열소)설이 열을 보존되는 유체로 설명, 정설로 자리잡음</li>
+          <li>1798년 — 럼퍼드가 대포 천공 실험에서 마찰이 끝없이 열을 만든다고 보고(칼로릭설에 의문)</li>
+          <li>1843년 — 줄, 추-날개(paddle wheel) 실험으로 열-일 등가 측정 시작</li>
+          <li>1845~1850년 — 정밀도를 높여 역학적 열당량 약 4.16 J/cal 발표 (현대값 4.186 J/cal에 근접)</li>
+          <li>1847년 — 헬름홀츠가 에너지 보존 원리를 정식화, 줄의 결과가 핵심 증거로 활용됨</li>
+          <li>1850년대 — 켈빈·클라우지우스가 열역학 제1·제2법칙을 체계화</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 줄의 실험은 "열은 보존되는 물질(칼로릭)"이라는 오래된 관념을
+        무너뜨리고, 열이 <strong>에너지의 한 형태</strong>임을 정량적으로 증명했다. 역학적 일과 열이
+        정확한 비율로 호환된다는 사실은 <strong>에너지 보존 법칙(열역학 제1법칙)</strong>의 실험적 토대가
+        되었고, 이후 열역학이라는 분야 전체를 떠받쳤다. 에너지의 국제 단위 줄(J)이 그의 이름을 따른 것은
+        이 공헌을 기린 것이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리 상수 -----
+      const G = 9.8;          // 중력가속도 m/s^2
+      const C_WATER = 4186;   // 물의 비열 J/(kg·K)
+      const T0 = 15;          // 초기 물 온도 °C
+
+      // ----- 상태 -----
+      const state = {
+        mass: 10,        // kg
+        height: 2.0,     // m
+        water: 0.5,      // kg
+        running: false,
+        progress: 0,     // 0~1 (낙하/가열 진행도)
+        angle: 0,        // 날개 회전각(rad)
+        lastTs: null
+      };
+
+      // 시각화 상수
+      const DURATION = 2.5;   // 애니메이션 총 길이(초)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const massSlider = document.getElementById('mass');
+      const heightSlider = document.getElementById('height');
+      const waterSlider = document.getElementById('water');
+
+      const playBtn = document.getElementById('playBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      function workTotal() {              // 추가 한 전체 역학적 일 W (J)
+        return state.mass * G * state.height;
+      }
+      function deltaTtotal() {            // 전체 온도 상승 ΔT (K = °C)
+        return workTotal() / (state.water * C_WATER);
+      }
+      function currentTemp() {            // 현재 진행도에서의 온도 (°C)
+        return T0 + deltaTtotal() * state.progress;
+      }
+      function currentHeat() {            // 현재까지 전달된 열 (J)
+        return workTotal() * state.progress;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 레이아웃 좌표
+        const beamY = 40;
+        const pulleyX = 360, pulleyR = 16;
+        const standX = 40;
+        // 물통
+        const tankX = 250, tankY = 230, tankW = 200, tankH = 150;
+        // 추 낙하 경로
+        const weightX = pulleyX + pulleyR;
+        const dropTop = beamY + 20;
+        const dropBottom = 360;
+        const weightY = dropTop + (dropBottom - dropTop) * state.progress;
+
+        // --- 지지대(스탠드) ---
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(standX, beamY); ctx.lineTo(standX, 400);
+        ctx.moveTo(standX, beamY); ctx.lineTo(pulleyX, beamY);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // --- 도르래 ---
+        ctx.beginPath();
+        ctx.arc(pulleyX, beamY, pulleyR, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // --- 추의 줄 (도르래 → 추) ---
+        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(weightX, beamY); ctx.lineTo(weightX, weightY);
+        ctx.stroke();
+
+        // --- 추 ---
+        ctx.fillStyle = '#C53030';
+        ctx.fillRect(weightX - 16, weightY, 32, 30);
+        ctx.strokeStyle = '#7f1d1d';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(weightX - 16, weightY, 32, 30);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(state.mass.toFixed(0) + 'kg', weightX, weightY + 19);
+        ctx.textAlign = 'left';
+
+        // --- 축 (도르래 ↔ 물통 날개로 연결되는 가로 줄/축) ---
+        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(standX, beamY - 12); ctx.lineTo(standX, beamY);
+        ctx.stroke();
+        // 도르래에서 물통 중심으로 내려가는 회전축
+        const shaftX = tankX + tankW / 2;
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#9ca3af';
+        ctx.beginPath();
+        ctx.moveTo(shaftX, beamY); ctx.lineTo(shaftX, tankY + 55);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // --- 물통 ---
+        // 물색: 온도에 따라 파랑→붉은 기운
+        const dt = deltaTtotal();
+        const heatFrac = Math.min(1, (deltaTtotal() * state.progress) / 8); // 8°C에서 최대 색
+        const rCol = Math.round(120 + 110 * heatFrac);
+        const gCol = Math.round(180 - 120 * heatFrac);
+        const bCol = Math.round(240 - 180 * heatFrac);
+        ctx.fillStyle = 'rgba(' + rCol + ',' + gCol + ',' + bCol + ',0.85)';
+        ctx.fillRect(tankX, tankY, tankW, tankH);
+        ctx.strokeStyle = '#1e40af';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(tankX, tankY, tankW, tankH);
+        ctx.lineWidth = 1;
+
+        // --- 회전 날개 (paddle) ---
+        const padCx = shaftX, padCy = tankY + 80;
+        ctx.save();
+        ctx.translate(padCx, padCy);
+        ctx.rotate(state.angle);
+        ctx.strokeStyle = '#1f2937';
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 4; i++) {
+          ctx.rotate(Math.PI / 2);
+          ctx.beginPath();
+          ctx.moveTo(0, 0); ctx.lineTo(0, -34);
+          ctx.stroke();
+          ctx.fillStyle = '#374151';
+          ctx.fillRect(-7, -38, 14, 10);
+        }
+        ctx.restore();
+        ctx.lineWidth = 1;
+
+        // --- 온도계 (물통 오른쪽) ---
+        const thX = tankX + tankW + 16, thTop = tankY - 10, thBot = tankY + tankH - 10;
+        const bulbY = thBot + 12;
+        // 관
+        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(thX, thTop); ctx.lineTo(thX, thBot);
+        ctx.stroke();
+        // 구
+        ctx.beginPath();
+        ctx.arc(thX, bulbY, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+        ctx.strokeStyle = '#374151';
+        ctx.stroke();
+        // 수은 기둥(온도에 비례)
+        const tFrac = Math.min(1, (currentTemp() - T0) / Math.max(0.001, dt));
+        const colTop = thBot - (thBot - thTop) * (0.15 + 0.85 * tFrac);
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(thX, bulbY); ctx.lineTo(thX, colTop);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        // 온도 눈금 라벨
+        ctx.fillStyle = '#374151';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(currentTemp().toFixed(2) + '°C', thX - 4, thTop - 6);
+
+        // --- 라벨 ---
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('물 ' + state.water.toFixed(2) + ' kg', tankX + 6, tankY + tankH - 8);
+
+        ctx.fillStyle = '#374151';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('진행: ' + Math.round(state.progress * 100) + '%', 50, 410);
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        document.getElementById('r-work').textContent = Math.round(workTotal()).toLocaleString() + ' J';
+        document.getElementById('r-dt').textContent = deltaTtotal().toFixed(3) + ' °C';
+        updateLiveReadout();
+      }
+      function updateLiveReadout() {
+        document.getElementById('r-temp').textContent = currentTemp().toFixed(2) + ' °C';
+        document.getElementById('r-heat').textContent =
+          Math.round(currentHeat()).toLocaleString() + ' J';
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      massSlider.addEventListener('input', () => {
+        state.mass = Number(massSlider.value);
+        document.getElementById('mass-val').textContent = state.mass.toFixed(1);
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+      heightSlider.addEventListener('input', () => {
+        state.height = Number(heightSlider.value);
+        document.getElementById('height-val').textContent = state.height.toFixed(1);
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+      waterSlider.addEventListener('input', () => {
+        state.water = Number(waterSlider.value);
+        document.getElementById('water-val').textContent = state.water.toFixed(2);
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        state.progress += dt / DURATION;
+        state.angle += dt * 9; // 날개 회전 속도(rad/s)
+
+        if (state.progress >= 1) {
+          state.progress = 1;
+          state.running = false;
+        }
+
+        updateLiveReadout();
+        draw();
+
+        if (state.running) {
+          requestAnimationFrame(loop);
+        }
+      }
+
+      function play() {
+        if (state.running) return;
+        if (state.progress >= 1) { state.progress = 0; state.angle = 0; }
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function resetSim(redraw) {
+        state.running = false;
+        state.progress = 0;
+        state.angle = 0;
+        state.lastTs = null;
+        if (redraw !== false) {
+          updateLiveReadout();
+          draw();
+        }
+      }
+
+      playBtn.addEventListener('click', play);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '역학적 일은 보존되어 물의 내부에너지(열)로 전환됩니다. 이것이 열역학 제1법칙입니다.',
+        '에너지는 사라지지 않습니다. 일은 열로 전환됩니다(에너지 보존).');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'ΔT = W / (m_water·c) 에서 분모의 물의 양이 작을수록 ΔT가 커집니다.',
+        'ΔT = W / (m_water·c) 에서 물의 양은 분모입니다. 분모를 줄여야 ΔT가 커집니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

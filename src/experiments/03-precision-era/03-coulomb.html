@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쿨롱의 법칙 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #4A5568;
+      --primary-light: #647288;
+      --bg: #f5f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #111; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef1f6; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .force-type { font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚗️ 18세기 (Precision Era)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>쿨롱의 법칙</h1>
+    <div class="en">Coulomb's Law</div>
+    <div class="meta">1785년 · 샤를 드 쿨롱 (Charles-Augustin de Coulomb) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="320" aria-label="두 전하가 거리 r만큼 떨어져 서로 힘을 주고받는 시뮬레이션. 같은 부호면 척력, 반대 부호면 인력이 화살표로 표시된다."></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="q1">전하 q₁: <span id="q1-val">+5.0</span> µC</label>
+          <input type="range" id="q1" min="-10" max="10" step="0.1" value="5"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="q2">전하 q₂: <span id="q2-val">+5.0</span> µC</label>
+          <input type="range" id="q2" min="-10" max="10" step="0.1" value="5"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="dist">두 전하 사이 거리 r: <span id="dist-val">1.00</span> m</label>
+          <input type="range" id="dist" min="0.1" max="2.0" step="0.01" value="1.0"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        힘의 크기 F: <strong>—</strong> &nbsp;<span class="force-type" id="force-type">—</span> &nbsp;(F = k·q₁·q₂ / r²)
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 두 전하의 <strong>부호가 같으면</strong>(둘 다 +이거나 둘 다 −) 서로 밀어내고(척력),
+        화살표가 <strong>바깥쪽</strong>을 향한다. <strong>부호가 다르면</strong> 서로 당겨(인력), 화살표가 <strong>마주본다</strong>.
+        거리 r을 <strong>2배로 늘리면</strong> 힘은 <strong>1/4</strong>로 줄고(거리 제곱에 반비례), 전하량을 키우면 힘이 커지면서 화살표가 길어진다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>두 점전하 사이 힘이 F = k·q₁·q₂ / r² 로 주어짐을 이해한다.</li>
+        <li>힘이 거리 r 의 <em>제곱에 반비례</em>함(역제곱 법칙)을 설명한다.</li>
+        <li>전하의 부호가 같으면 척력, 다르면 인력이 작용함을 안다.</li>
+        <li>힘이 두 전하량의 곱에 비례함을 파악한다.</li>
+        <li>중력의 만유인력 법칙과 형태가 같다는 점(역제곱)을 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>정지한 두 점전하 사이에는 전기력이 작용한다. 그 크기는 두 전하량(q₁, q₂)의 곱에 비례하고,
+        둘 사이 거리(r)의 제곱에 반비례한다. 이를 <strong>쿨롱의 법칙</strong>이라 한다.</p>
+        <p>비례상수 <strong>k ≈ 8.99 × 10⁹ N·m²/C²</strong> 는 쿨롱 상수다(진공 기준).
+        힘의 <em>방향</em>은 전하의 부호로 결정된다: 같은 부호끼리는 서로 <strong>밀어내고(척력)</strong>,
+        다른 부호끼리는 서로 <strong>당긴다(인력)</strong>. 두 전하가 받는 힘은 크기가 같고 방향이 반대다(작용–반작용).</p>
+      </div>
+
+      <div class="formula-box">
+        F = k · q₁ · q₂ / r²
+        <br>
+        k ≈ 8.99 × 10⁹ N·m²/C²
+        <br>
+        같은 부호 → 척력 &nbsp;|&nbsp; 다른 부호 → 인력
+      </div>
+
+      <!-- SVG 다이어그램: 두 전하와 거리 r, 서로에게 작용하는 힘 -->
+      <svg width="420" height="180" viewBox="0 0 420 180" role="img"
+           aria-label="거리 r만큼 떨어진 양전하와 음전하가 서로 당기는 인력을 화살표로 나타낸 다이어그램">
+        <!-- 전하 q1 (+) -->
+        <circle cx="110" cy="90" r="26" fill="#dc2626"/>
+        <text x="110" y="97" font-size="22" fill="#fff" text-anchor="middle">+</text>
+        <text x="110" y="138" font-size="12" text-anchor="middle">q₁</text>
+        <!-- 전하 q2 (−) -->
+        <circle cx="310" cy="90" r="26" fill="#2563eb"/>
+        <text x="310" y="98" font-size="24" fill="#fff" text-anchor="middle">−</text>
+        <text x="310" y="138" font-size="12" text-anchor="middle">q₂</text>
+        <!-- 거리 r 표시 -->
+        <line x1="110" y1="48" x2="310" y2="48" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="210" y="42" font-size="13" fill="#6b7280" text-anchor="middle">r</text>
+        <!-- 인력 화살표 (서로 마주봄) -->
+        <line x1="146" y1="90" x2="196" y2="90" stroke="#16a34a" stroke-width="3"/>
+        <polygon points="196,90 186,85 186,95" fill="#16a34a"/>
+        <line x1="274" y1="90" x2="224" y2="90" stroke="#16a34a" stroke-width="3"/>
+        <polygon points="224,90 234,85 234,95" fill="#16a34a"/>
+        <text x="210" y="118" font-size="12" fill="#16a34a" text-anchor="middle">인력 (부호가 다름)</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "거리를 2배로 멀리하면 힘도 절반(1/2)이 된다"고 생각하기 쉽다.
+        실제로는 거리의 <em>제곱</em>에 반비례하므로, 거리를 2배로 하면 힘은 <strong>1/4</strong>이 된다.
+        또 "큰 전하가 작은 전하를 더 세게 민다"는 오해도 있는데, 두 전하가 서로에게 주는 힘은
+        항상 크기가 같다(작용–반작용 법칙).
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 두 전하 사이 거리를 3배로 늘리면 힘은 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="wrong"> 1/3 로 줄어든다</label>
+          <label><input type="radio" name="q1" value="correct"> 1/9 로 줄어든다</label>
+          <label><input type="radio" name="q1" value="wrong"> 9배로 커진다</label>
+        </div>
+        <div class="q">
+          <p>2. 두 전하의 부호가 모두 양(+)일 때 작용하는 힘은?</p>
+          <label><input type="radio" name="q2" value="correct"> 서로 밀어내는 척력</label>
+          <label><input type="radio" name="q2" value="wrong"> 서로 당기는 인력</label>
+          <label><input type="radio" name="q2" value="wrong"> 힘이 작용하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 샤를 드 쿨롱 (Charles-Augustin de Coulomb, 1736~1806)</h3>
+        <p>프랑스의 물리학자·군사 공학자. 본래 요새와 토목 공사를 담당한 공병 장교로, 마찰과 비틀림(torsion)에 관한
+        정밀 측정 연구로 명성을 얻었다. 그는 직접 고안한 <strong>비틀림 저울(torsion balance)</strong>로
+        매우 작은 전기력을 정량적으로 측정하여, 1785년 전기력이 거리의 제곱에 반비례함을 실험으로 입증했다.
+        전하의 단위 <strong>쿨롱(C)</strong> 은 그의 이름에서 따온 것이다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1600년 — 길버트가 「자석에 관하여(De Magnete)」에서 전기·자기 현상을 체계적으로 연구</li>
+          <li>1687년 — 뉴턴이 만유인력의 역제곱 법칙(F ∝ 1/r²)을 제시</li>
+          <li>1767년 — 프리스틀리가 전기력도 역제곱일 것이라 추측(정성적)</li>
+          <li>1785년 — 쿨롱이 비틀림 저울로 전기력의 역제곱 법칙을 정밀하게 측정·발표</li>
+          <li>1830년대~ — 가우스·맥스웰을 거쳐 전자기학의 수학적 기초로 발전</li>
+          <li>1909년 — 밀리컨의 기름방울 실험으로 기본 전하량 e 측정, 쿨롱 법칙의 토대가 정량화됨</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 쿨롱의 법칙은 전기 현상을 <em>정량적·수학적</em>으로 다룬 최초의 성과로,
+        막연한 관찰의 대상이던 전기를 측정 가능한 물리량으로 바꾸었다. 중력의 역제곱 법칙과 같은 형태를 가진다는
+        점은 자연 법칙의 통일성을 보여주는 단서가 되었고, 훗날 가우스 법칙과 맥스웰 방정식으로 이어지는
+        전자기학 전체의 출발점이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상수 -----
+      const K = 8.99e9;            // 쿨롱 상수 N·m²/C²
+      const UC = 1e-6;             // µC → C
+
+      // ----- 상태 (단위: q µC, r m) -----
+      const DEFAULTS = { q1: 5, q2: 5, r: 1.0 };
+      const state = { q1: DEFAULTS.q1, q2: DEFAULTS.q2, r: DEFAULTS.r };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산: 힘의 크기 F (N), 부호 곱 -----
+      // F = k·|q1·q2| / r².  q[µC]→C, r[m].
+      function forceN() {
+        const q1C = state.q1 * UC;
+        const q2C = state.q2 * UC;
+        return (K * Math.abs(q1C * q2C)) / (state.r * state.r); // N
+      }
+      // 부호 곱: >0 같은 부호(척력), <0 다른 부호(인력), 0 이면 힘 없음
+      function signProduct() {
+        return Math.sign(state.q1) * Math.sign(state.q2);
+      }
+
+      // ----- 전하 시각화: 색·반지름 -----
+      // +면 빨강, −면 파랑, 전하량 클수록 크게(절댓값 0~10 → 14~34px)
+      function chargeColor(q) {
+        if (q > 0) return '#dc2626';   // 양전하 빨강
+        if (q < 0) return '#2563eb';   // 음전하 파랑
+        return '#9ca3af';              // 0 회색
+      }
+      function chargeRadius(q) {
+        return 14 + (Math.abs(q) / 10) * 20; // 14 ~ 34
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, W, H);
+
+        const cy = H / 2;
+        // 두 전하의 화면상 위치: 거리 r(0.1~2.0 m)을 화면 간격에 매핑
+        const minSep = 120, maxSep = 440;
+        const rNorm = (state.r - 0.1) / (2.0 - 0.1);       // 0~1
+        const sep = minSep + rNorm * (maxSep - minSep);     // px
+        const x1 = W / 2 - sep / 2;
+        const x2 = W / 2 + sep / 2;
+
+        const r1 = chargeRadius(state.q1);
+        const r2 = chargeRadius(state.q2);
+        const sp = signProduct();
+
+        // --- 거리 r 점선 + 라벨 ---
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(x1, cy - Math.max(r1, r2) - 26);
+        ctx.lineTo(x2, cy - Math.max(r1, r2) - 26);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('r = ' + state.r.toFixed(2) + ' m', W / 2, cy - Math.max(r1, r2) - 32);
+
+        // --- 힘 화살표 (전하 그리기 전에 배경처럼) ---
+        // 화살표 길이를 힘 크기(로그 스케일)에 비례, 화면 범위로 클램프
+        const F = forceN();
+        let arrowLen = 0;
+        if (F > 0 && sp !== 0) {
+          // 로그 스케일: 매우 넓은 힘 범위를 적당한 픽셀로
+          const lg = Math.log10(F + 1);          // F는 보통 1e-3 ~ 1e1 N
+          arrowLen = Math.max(18, Math.min(90, 18 + lg * 40));
+        }
+
+        function drawForceArrow(x, dir, len) {
+          // dir: +1 오른쪽, -1 왼쪽. x는 화살표 시작점(전하 가장자리)
+          const yy = cy;
+          const ex = x + dir * len;
+          ctx.strokeStyle = '#facc15';
+          ctx.fillStyle = '#facc15';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(x, yy);
+          ctx.lineTo(ex, yy);
+          ctx.stroke();
+          // 화살촉
+          ctx.beginPath();
+          ctx.moveTo(ex, yy);
+          ctx.lineTo(ex - dir * 11, yy - 7);
+          ctx.lineTo(ex - dir * 11, yy + 7);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        if (arrowLen > 0) {
+          if (sp > 0) {
+            // 척력: 화살표 바깥쪽 (q1은 왼쪽, q2는 오른쪽)
+            drawForceArrow(x1 - r1 - 4, -1, arrowLen);
+            drawForceArrow(x2 + r2 + 4, +1, arrowLen);
+          } else {
+            // 인력: 화살표 안쪽으로 마주봄 (q1은 오른쪽, q2는 왼쪽)
+            drawForceArrow(x1 + r1 + 4, +1, arrowLen);
+            drawForceArrow(x2 - r2 - 4, -1, arrowLen);
+          }
+        }
+
+        // --- 전하 q1 ---
+        function drawCharge(x, q, r) {
+          ctx.beginPath();
+          ctx.arc(x, cy, r, 0, Math.PI * 2);
+          ctx.fillStyle = chargeColor(q);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          // 부호 기호
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold ' + Math.round(r * 1.1) + 'px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const symbol = q > 0 ? '+' : (q < 0 ? '−' : '0');
+          ctx.fillText(symbol, x, cy + 1);
+          ctx.textBaseline = 'alphabetic';
+        }
+        drawCharge(x1, state.q1, r1);
+        drawCharge(x2, state.q2, r2);
+
+        // --- 전하 라벨 ---
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('q₁ = ' + state.q1.toFixed(1) + ' µC', x1, cy + Math.max(r1, r2) + 28);
+        ctx.fillText('q₂ = ' + state.q2.toFixed(1) + ' µC', x2, cy + Math.max(r1, r2) + 28);
+
+        // --- 힘 종류 라벨 ---
+        ctx.font = 'bold 14px sans-serif';
+        if (sp > 0) { ctx.fillStyle = '#fca5a5'; ctx.fillText('척력 (밀어냄)', W / 2, H - 14); }
+        else if (sp < 0) { ctx.fillStyle = '#86efac'; ctx.fillText('인력 (당김)', W / 2, H - 14); }
+        else { ctx.fillStyle = '#9ca3af'; ctx.fillText('힘 없음 (전하 0)', W / 2, H - 14); }
+
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const F = forceN();
+        const sp = signProduct();
+        const strongEl = document.querySelector('#result strong');
+        const typeEl = document.getElementById('force-type');
+        // 지수 표기
+        strongEl.textContent = F.toExponential(2) + ' N';
+        if (sp > 0) { typeEl.textContent = '척력'; typeEl.style.color = '#dc2626'; }
+        else if (sp < 0) { typeEl.textContent = '인력'; typeEl.style.color = '#2563eb'; }
+        else { typeEl.textContent = '힘 없음'; typeEl.style.color = '#6b7280'; }
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const q1Slider = document.getElementById('q1');
+      const q2Slider = document.getElementById('q2');
+      const rSlider = document.getElementById('dist');
+      const q1ValEl = document.getElementById('q1-val');
+      const q2ValEl = document.getElementById('q2-val');
+      const rValEl = document.getElementById('dist-val');
+
+      function fmtCharge(q) {
+        return (q > 0 ? '+' : '') + q.toFixed(1);
+      }
+      function syncLabels() {
+        q1ValEl.textContent = fmtCharge(state.q1);
+        q2ValEl.textContent = fmtCharge(state.q2);
+        rValEl.textContent = state.r.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      q1Slider.addEventListener('input', () => {
+        state.q1 = Number(q1Slider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      q2Slider.addEventListener('input', () => {
+        state.q2 = Number(q2Slider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      rSlider.addEventListener('input', () => {
+        state.r = Number(rSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.q1 = DEFAULTS.q1;
+        state.q2 = DEFAULTS.q2;
+        state.r = DEFAULTS.r;
+        q1Slider.value = String(DEFAULTS.q1);
+        q2Slider.value = String(DEFAULTS.q2);
+        rSlider.value = String(DEFAULTS.r);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 힘은 거리의 제곱에 반비례하므로 거리 3배면 1/9, 같은 부호끼리는 척력입니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. F = k·q₁·q₂ / r² (거리 제곱에 반비례) 와 부호 규칙(같으면 척력)을 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

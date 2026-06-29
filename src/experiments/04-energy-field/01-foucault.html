@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>푸코의 진자 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #faf5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #fff5f5; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fef2f2; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>푸코의 진자</h1>
+    <div class="en">Foucault Pendulum</div>
+    <div class="meta">1851년 · 레옹 푸코 (Léon Foucault) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="위에서 내려다본 푸코 진자. 진동면이 지구 자전 때문에 천천히 회전하며 바깥쪽 핀을 차례로 쓰러뜨린다"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="latitude">위도 (latitude): <span id="latitude-val">48</span>°</label>
+          <input type="range" id="latitude" min="0" max="90" step="1" value="48"
+            aria-describedby="latitude-val">
+          <div class="btn-row" role="group" aria-label="대표 위도 프리셋">
+            <button type="button" class="btn preset" data-lat="0">🌴 적도 0°</button>
+            <button type="button" class="btn preset" data-lat="37">🇰🇷 서울 37°</button>
+            <button type="button" class="btn preset active" data-lat="48">🗼 파리 48°</button>
+            <button type="button" class="btn preset" data-lat="90">❄️ 북극 90°</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="amplitude">진동 진폭 (amplitude): <span id="amplitude-val">85</span> %</label>
+          <input type="range" id="amplitude" min="20" max="100" step="1" value="85"
+            aria-describedby="amplitude-val">
+        </div>
+
+        <div class="control-row">
+          <label for="speed">시간 배속 (speed): <span id="speed-val">3000</span>×</label>
+          <input type="range" id="speed" min="200" max="8000" step="100" value="3000"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>진동면 회전 주기: <strong id="r-period">—</strong></div>
+          <div>시간당 회전각: <strong id="r-rate">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>경과 (모의) 시간: <strong id="r-elapsed">0.0 h</strong></div>
+          <div>현재 진동면 각도: <strong id="r-angle">0.0°</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 진자는 같은 직선을 따라 왕복하지만, 그 <em>진동면(swing plane)</em>이
+        지구 자전 때문에 시계 방향(북반구)으로 천천히 돌아갑니다. 위도를 <strong>0°(적도)</strong>로 내리면
+        진동면이 전혀 회전하지 않고, <strong>90°(극)</strong>로 올리면 정확히 24시간에 한 바퀴 돕니다.
+        진동면이 돌면서 바깥 원의 핀을 차례로 쓰러뜨리는 것을 지켜보세요.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>푸코 진자의 진동면이 회전하는 이유가 진자가 아닌 <em>지구의 자전</em>임을 이해한다.</li>
+        <li>진동면 회전 각속도가 위도의 사인(sin)에 비례함을 안다.</li>
+        <li>회전 주기 T = 24h / sin(위도) 와 시간당 회전각 = 15° × sin(위도) 를 계산한다.</li>
+        <li>적도(0°)와 극(90°)에서 진동면 거동이 어떻게 다른지 설명한다.</li>
+        <li>관성계와 회전하는 지구(비관성계)의 관점 차이를 인식한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>매단 진자는 한 번 흔들리기 시작하면 외부에서 옆으로 미는 힘이 없는 한 <strong>같은 진동면</strong>을
+        유지하려 한다(각운동량 보존). 그런데 우리가 서 있는 지구가 그 아래에서 자전하고 있기 때문에,
+        지면에 고정된 관찰자에게는 마치 진동면이 스스로 천천히 도는 것처럼 보인다.</p>
+        <p>지구 자전의 효과는 위도에 따라 달라진다. 극(90°)에서는 지면이 진자의 연직축 둘레로 하루에 한 바퀴
+        그대로 돌므로 진동면도 24시간에 한 바퀴 회전한다. 적도(0°)에서는 진자축 둘레의 회전 성분이 0이라
+        진동면이 전혀 돌지 않는다. 일반 위도 φ에서는 <strong>sin φ</strong> 만큼의 성분만 작용한다.</p>
+      </div>
+
+      <div class="formula-box">
+        ω(진동면) = 15°/h × sin(φ)<br>
+        T(한 바퀴) = 24 h / sin(φ)<br>
+        φ = 위도 (latitude)
+      </div>
+
+      <!-- SVG 다이어그램: 위도에 따른 진동면 회전 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="지구 단면 위 적도와 극, 임의 위도에서 진동면 회전 성분이 sin(위도)에 비례함을 보여주는 다이어그램">
+        <circle cx="120" cy="120" r="80" fill="#fff5f5" stroke="#C53030" stroke-width="2"/>
+        <!-- 자전축 -->
+        <line x1="120" y1="20" x2="120" y2="220" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text x="125" y="32" font-size="10" fill="#6b7280">자전축</text>
+        <!-- 적도선 -->
+        <line x1="40" y1="120" x2="200" y2="120" stroke="#9ca3af" stroke-width="1"/>
+        <text x="150" y="135" font-size="9" fill="#9ca3af">적도</text>
+        <!-- 극 진자 (회전 빠름) -->
+        <circle cx="120" cy="40" r="5" fill="#C53030"/>
+        <text x="130" y="44" font-size="10" fill="#C53030">극: 24h/바퀴</text>
+        <!-- 임의 위도 진자 -->
+        <circle cx="177" cy="64" r="5" fill="#e05a5a"/>
+        <text x="186" y="68" font-size="10" fill="#e05a5a">위도 φ</text>
+        <!-- 적도 진자 (회전 없음) -->
+        <circle cx="200" cy="120" r="5" fill="#9ca3af"/>
+        <text x="150" y="158" font-size="10" fill="#9ca3af">적도: 회전 없음</text>
+        <!-- 오른쪽: 그래프 sin 곡선 -->
+        <line x1="250" y1="190" x2="350" y2="190" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="250" y1="190" x2="250" y2="40" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="252" y="38" font-size="9" fill="#6b7280">회전속도</text>
+        <text x="318" y="204" font-size="9" fill="#6b7280">위도 →</text>
+        <path d="M250 190 Q300 188 320 130 Q335 80 348 50" fill="none" stroke="#C53030" stroke-width="2"/>
+        <text x="296" y="120" font-size="10" fill="#C53030">∝ sin φ</text>
+        <text x="245" y="204" font-size="9" fill="#6b7280">0°</text>
+        <text x="338" y="204" font-size="9" fill="#6b7280">90°</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        진동면 회전 속도는 적도에서 0, 극에서 최대(24시간에 한 바퀴)이며 sin(위도)에 비례한다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "진자가 스스로 옆으로 도는 힘을 받는다"고 생각하기 쉽다. 실제로 진자의
+        진동면은 (이상적으로는) 우주에 대해 거의 고정되어 있고, <em>도는 것은 우리가 발 딛고 선 지구</em>다.
+        또한 적도에서는 푸코 진자가 회전하지 않는데, 이는 진자가 멈춰서가 아니라 그 위치에서 진자축 둘레의
+        자전 성분(sin 0° = 0)이 없기 때문이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>푸코 진자의 진동면이 가장 빨리(가장 짧은 주기로) 도는 곳은 어디일까?</p>
+        <label><input type="radio" name="q1" value="wrong"> 적도 (위도 0°)</label>
+        <label><input type="radio" name="q1" value="wrong"> 위도 45° 부근</label>
+        <label><input type="radio" name="q1" value="correct"> 극지방 (위도 90°)</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>위도 30°에서 진동면이 한 바퀴 도는 데 걸리는 시간은? (T = 24h / sin φ, sin 30° = 0.5)</p>
+        <label><input type="radio" name="q2" value="wrong"> 12 시간</label>
+        <label><input type="radio" name="q2" value="wrong"> 24 시간</label>
+        <label><input type="radio" name="q2" value="correct"> 48 시간</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 레옹 푸코 (Jean Bernard Léon Foucault, 1819~1868)</h3>
+        <p>프랑스의 물리학자로 원래 의학을 공부했으나 실험 물리로 방향을 바꾸었다. 회전 거울 방식으로
+        빛의 속도를 정밀 측정했고, 자이로스코프(gyroscope)라는 이름을 붙이고 그 원리로도 지구 자전을
+        증명했다. 1851년에는 거대한 진자를 매달아, 망원경이나 천체 관측 없이 <strong>지상에서 직접</strong>
+        지구의 자전을 눈으로 보여주는 실험에 성공했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1543년 — 코페르니쿠스, 지동설(태양 중심설) 제기. 그러나 자전의 직접 증거는 부족했다.</li>
+          <li>1851년 2월 — 푸코, 파리 자택 지하실에서 2m 진자로 진동면 회전을 처음 관측.</li>
+          <li>1851년 3월 — 파리 팡테옹(Panthéon)에 길이 67m, 추 28kg의 대형 진자를 설치해 공개 시연.</li>
+          <li>1852년 — 푸코, 자이로스코프를 발명하여 또 다른 방식으로 지구 자전을 입증.</li>
+          <li>이후 — 세계 각지 과학관·대학에 푸코 진자가 설치되어 지구 자전의 상징이 됨.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 코페르니쿠스 이후 300년 동안 지구 자전은 천문 관측으로 추론할 수
+        있을 뿐 지상 실험으로 직접 보이기는 어려웠다. 푸코 진자는 누구나 두 눈으로 진동면이 천천히 도는
+        것을 보게 함으로써 지구가 자전한다는 사실을 <strong>실험실 안에서 증명</strong>했다. 이는 회전하는
+        기준계에서 나타나는 효과(코리올리 효과)를 가시화한 대표 사례로, 고전역학의 비관성계 이해를 넓혔다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        latitude: 48,      // 위도 (도)
+        amplitude: 85,     // 진폭 (%)
+        speed: 3000,       // 시간 배속 (실제 1초 = speed초의 모의시간)
+        running: false,
+        simHours: 0,       // 모의 경과 시간 (시)
+        swingPhase: 0,     // 진자 왕복 위상 (rad)
+        lastTs: null
+      };
+
+      // 시각화 상수
+      const SWING_PERIOD = 2.0; // 진자 한 번 왕복(보이는) 주기 (실초)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const latSlider = document.getElementById('latitude');
+      const ampSlider = document.getElementById('amplitude');
+      const speedSlider = document.getElementById('speed');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      // 진동면 회전 각속도 = 15°/h × sin(위도)  (북반구는 시계방향 = +)
+      function rotationRateDegPerHour() {
+        return 15 * Math.sin(state.latitude * Math.PI / 180);
+      }
+      // 한 바퀴(360°) 도는 데 걸리는 시간(시). 적도(0°)는 무한대.
+      function rotationPeriodHours() {
+        const s = Math.sin(state.latitude * Math.PI / 180);
+        if (s <= 1e-6) return Infinity;
+        return 24 / s;
+      }
+      // 현재 진동면 각도(도, 0~360). 모의시간 × 시간당 회전각.
+      function planeAngleDeg() {
+        return (rotationRateDegPerHour() * state.simHours) % 360;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      const PIN_COUNT = 24;
+
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const cx = W / 2, cy = H / 2 + 6;
+        const dialR = 165;                 // 눈금판(핀 원) 반지름
+        const swingR = dialR * (state.amplitude / 100); // 진동 반진폭(px)
+
+        // 눈금판(바닥 원)
+        ctx.beginPath();
+        ctx.arc(cx, cy, dialR, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 눈금(30도마다)
+        ctx.strokeStyle = '#f0d6d6';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 12; i++) {
+          const a = i * Math.PI / 6;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + dialR * Math.cos(a), cy + dialR * Math.sin(a));
+          ctx.stroke();
+        }
+
+        // 진동면 현재 각도(라디안). 북반구 시계방향: 화면상 +각도로 회전.
+        const ang = planeAngleDeg() * Math.PI / 180;
+        const dx = Math.cos(ang), dy = Math.sin(ang);
+
+        // 바깥 핀: 진동면 직선이 지나간(쓰러진) 핀은 색을 바꿔 표시
+        for (let i = 0; i < PIN_COUNT; i++) {
+          const pa = i * (2 * Math.PI / PIN_COUNT);
+          const px = cx + dialR * Math.cos(pa);
+          const py = cy + dialR * Math.sin(pa);
+          // 진동면 직선(양방향)과의 각도차로 "현재 정렬"/"이미 쓸림" 판정
+          // 진동면 방향과 핀 방향의 정렬도(0~1)
+          const align = Math.abs(Math.cos(pa - ang));
+          const knockedThisPass = align > 0.985;
+          ctx.beginPath();
+          ctx.arc(px, py, knockedThisPass ? 6 : 4, 0, Math.PI * 2);
+          if (knockedThisPass) {
+            ctx.fillStyle = '#C53030';
+          } else {
+            ctx.fillStyle = '#cbb';
+          }
+          ctx.fill();
+        }
+
+        // 진동면 직선(현재 위치): 추가 진폭에 따라 왕복
+        const swing = Math.cos(state.swingPhase); // -1~1
+        const bobOffset = swing * swingR;
+
+        // 진동 직선(전체 경로) — 흐리게
+        ctx.strokeStyle = 'rgba(197,48,48,0.25)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - dx * swingR, cy - dy * swingR);
+        ctx.lineTo(cx + dx * swingR, cy + dy * swingR);
+        ctx.stroke();
+
+        // 중심점
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#9ca3af';
+        ctx.fill();
+
+        // 진자 추(현재 위치)
+        const bx = cx + dx * bobOffset;
+        const by = cy + dy * bobOffset;
+        // 추를 매단 줄(중심에서 추까지 강조)
+        ctx.strokeStyle = '#C53030';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(bx, by);
+        ctx.stroke();
+        // 추
+        ctx.beginPath();
+        ctx.arc(bx, by, 10, 0, Math.PI * 2);
+        ctx.fillStyle = '#C53030';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 진동면 각도 표시
+        ctx.fillStyle = '#374151';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('위도 ' + state.latitude + '°', 12, 22);
+        ctx.fillText('진동면 ' + planeAngleDeg().toFixed(1) + '°', 12, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText('모의 ' + state.simHours.toFixed(1) + ' h', W - 12, 22);
+        if (state.latitude === 0) {
+          ctx.fillStyle = '#C53030';
+          ctx.fillText('적도: 회전 없음', W - 12, 40);
+        }
+        ctx.textAlign = 'left';
+
+        // 상단 안내(위에서 본 시점)
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('▲ 위에서 내려다본 진자 (바닥 눈금판 + 바깥 핀)', cx, H - 8);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const elPeriod = document.getElementById('r-period');
+        const elRate = document.getElementById('r-rate');
+        const T = rotationPeriodHours();
+        if (!isFinite(T)) {
+          elPeriod.textContent = '∞ (회전 안 함)';
+        } else {
+          elPeriod.textContent = T.toFixed(1) + ' h';
+        }
+        elRate.textContent = rotationRateDegPerHour().toFixed(2) + ' °/h';
+        updateLiveReadout();
+      }
+
+      function updateLiveReadout() {
+        document.getElementById('r-elapsed').textContent = state.simHours.toFixed(1) + ' h';
+        document.getElementById('r-angle').textContent = planeAngleDeg().toFixed(1) + '°';
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      latSlider.addEventListener('input', () => {
+        state.latitude = Number(latSlider.value);
+        document.getElementById('latitude-val').textContent = state.latitude;
+        // 슬라이더가 프리셋과 맞지 않으면 프리셋 활성 해제
+        presetBtns.forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.lat) === state.latitude);
+        });
+        updateResult();
+        draw();
+      });
+      ampSlider.addEventListener('input', () => {
+        state.amplitude = Number(ampSlider.value);
+        document.getElementById('amplitude-val').textContent = state.amplitude;
+        draw();
+      });
+      speedSlider.addEventListener('input', () => {
+        state.speed = Number(speedSlider.value);
+        document.getElementById('speed-val').textContent = state.speed;
+      });
+
+      // 위도 프리셋
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.latitude = Number(btn.dataset.lat);
+          latSlider.value = String(state.latitude);
+          document.getElementById('latitude-val').textContent = state.latitude;
+          updateResult();
+          draw();
+        });
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dtReal = (ts - state.lastTs) / 1000; // 실제 경과초
+        state.lastTs = ts;
+
+        // 진자 왕복(시각용): 일정 주기로 흔들림
+        state.swingPhase += (2 * Math.PI / SWING_PERIOD) * dtReal;
+        if (state.swingPhase > 2 * Math.PI) state.swingPhase -= 2 * Math.PI;
+
+        // 모의 시간 진행: 실초 × 배속 → 시간 단위(초→시: /3600)
+        state.simHours += (dtReal * state.speed) / 3600;
+
+        updateLiveReadout();
+        draw();
+
+        if (state.running) {
+          requestAnimationFrame(loop);
+        }
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function pause() {
+        state.running = false;
+      }
+
+      function resetSim(redraw) {
+        state.running = false;
+        state.simHours = 0;
+        state.swingPhase = 0;
+        state.lastTs = null;
+        if (redraw !== false) {
+          updateLiveReadout();
+          draw();
+        }
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '극(90°)에서는 sin 90° = 1 로 회전이 최대이며 24시간에 한 바퀴 돕니다.',
+        '회전 속도는 sin(위도)에 비례하므로 위도가 높을수록 빨라집니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'T = 24 / sin 30° = 24 / 0.5 = 48 시간.',
+        'T = 24h / sin φ 에 sin 30° = 0.5 를 대입해 보세요.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>헤르츠의 전자기파 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #faf5f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 620px; height: auto; display: block; margin: 0 auto;
+      background: #1a1224; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fff1f1; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>헤르츠의 전자기파 실험</h1>
+    <div class="en">Hertz's Electromagnetic Waves</div>
+    <div class="meta">1887년 · 하인리히 헤르츠 (Heinrich Hertz) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="620" height="380" role="img"
+        aria-label="왼쪽 송신기에서 발생한 전자기파가 물결처럼 퍼져 오른쪽 수신기 고리에 도달하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="txfreq">송신 주파수 f<sub>송</sub>: <span id="txfreq-val">50</span> MHz</label>
+          <input type="range" id="txfreq" min="20" max="100" step="1" value="50"
+            aria-describedby="txfreq-val">
+        </div>
+
+        <div class="control-row">
+          <label for="rxtune">수신기 공진 튜닝 f<sub>수</sub>: <span id="rxtune-val">50</span> MHz</label>
+          <input type="range" id="rxtune" min="20" max="100" step="1" value="50"
+            aria-describedby="rxtune-val">
+        </div>
+
+        <div class="control-row">
+          <label for="dist">송수신 거리 d: <span id="dist-val">5.0</span> m</label>
+          <input type="range" id="dist" min="1" max="12" step="0.1" value="5.0"
+            aria-describedby="dist-val">
+        </div>
+
+        <div class="control-row">
+          <label for="power">송신 출력 P: <span id="power-val">70</span> %</label>
+          <input type="range" id="power" min="10" max="100" step="1" value="70"
+            aria-describedby="power-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>공진 일치도: <strong id="r-match">—</strong></div>
+          <div>수신 신호 세기: <strong id="r-signal">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>파장 λ = c/f: <strong id="r-lambda">—</strong></div>
+          <div>수신 불꽃: <strong id="r-spark">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 송신 주파수와 수신기 공진 튜닝을 <em>똑같이</em> 맞추면(공진)
+        수신 고리의 간극에서 불꽃이 가장 강하게 튑니다. 두 주파수를 어긋나게 하거나 거리를 멀리하면
+        수신 불꽃이 급격히 약해집니다. 눈에 보이지 않는 파동이 공간을 건너 전달된다는 사실 —
+        바로 이것이 무선통신(라디오)의 출발점입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>전하의 진동(가속)이 전자기파를 만들어 공간으로 퍼져 나감을 이해한다.</li>
+        <li>송·수신 주파수가 일치할 때(공진) 에너지 전달이 최대가 됨을 안다.</li>
+        <li>파장·주파수·빛의 속력 관계 λ = c/f 를 익힌다.</li>
+        <li>거리에 따라 신호 세기가 약해지는 까닭(역제곱적 감쇠)을 안다.</li>
+        <li>이 실험이 맥스웰의 이론을 실증하고 무선통신의 토대가 되었음을 이해한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>맥스웰은 변화하는 전기장이 자기장을, 변화하는 자기장이 다시 전기장을 만들며
+        이 둘이 서로를 유도하면서 빛의 속력 <em>c</em>로 공간을 전파하는 파동 —
+        <strong>전자기파</strong>가 존재한다고 이론적으로 예측했다(1865).</p>
+        <p>헤르츠는 유도코일과 불꽃 간극으로 된 <strong>송신기</strong>에서 전하를 빠르게 진동·방전시켜
+        전자기파를 발생시키고, 멀리 떨어진 <strong>수신기 고리</strong>(작은 간극)에서 유도된 불꽃을
+        관찰함으로써 이 파동의 존재를 실험으로 입증했다(1887). 수신은 송신기와 수신기의
+        <strong>공진 주파수가 일치</strong>할 때 최대가 되고, 거리가 멀수록 약해진다.</p>
+      </div>
+
+      <div class="formula-box">
+        λ = c / f<br>
+        c = 3 × 10⁸ m/s (빛 = 전자기파의 속력)<br>
+        수신 세기 ∝ 공진일치 × 출력 / 거리²
+      </div>
+
+      <!-- SVG 다이어그램: 송신기 → 전자기파 → 수신기 -->
+      <svg width="380" height="180" viewBox="0 0 380 180" role="img"
+        aria-label="왼쪽 송신기에서 전자기파가 동심원으로 퍼져 오른쪽 수신기 고리에 도달하는 다이어그램">
+        <!-- 송신기 -->
+        <line x1="30" y1="40" x2="30" y2="140" stroke="#374151" stroke-width="3"/>
+        <circle cx="30" cy="40" r="6" fill="#C53030"/>
+        <circle cx="30" cy="140" r="6" fill="#C53030"/>
+        <text x="14" y="160" font-size="11" fill="#374151">송신기</text>
+        <!-- 불꽃 간극 -->
+        <line x1="26" y1="86" x2="34" y2="86" stroke="#f59e0b" stroke-width="2"/>
+        <line x1="26" y1="94" x2="34" y2="94" stroke="#f59e0b" stroke-width="2"/>
+        <!-- 동심원 파동 -->
+        <path d="M 30 40 A 60 50 0 0 1 30 140" fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.8"/>
+        <path d="M 30 30 A 95 60 0 0 1 30 150" fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.55"/>
+        <path d="M 30 22 A 135 68 0 0 1 30 158" fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.35"/>
+        <text x="150" y="30" font-size="11" fill="#2563eb">전자기파 (속력 c)</text>
+        <!-- 수신기 고리 -->
+        <circle cx="320" cy="90" r="26" fill="none" stroke="#374151" stroke-width="3"/>
+        <line x1="320" y1="62" x2="320" y2="70" stroke="#f59e0b" stroke-width="2"/>
+        <circle cx="320" cy="90" r="3" fill="#f59e0b"/>
+        <text x="300" y="160" font-size="11" fill="#374151">수신기 고리</text>
+        <text x="278" y="58" font-size="10" fill="#f59e0b">유도 불꽃</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        송신기의 진동 방전이 전자기파를 만들고, 공진하는 수신 고리의 간극에 불꽃이 유도된다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "수신기와 송신기가 전선으로 연결돼 있어야 신호가 전달된다"고
+        오해하기 쉽다. 헤르츠 실험의 핵심은 <em>아무런 연결 없이</em> 빈 공간을 건너 에너지가
+        전달된다는 것이다. 또한 헤르츠는 이를 단지 맥스웰 이론의 증명으로만 보았고
+        "쓸모는 없다"고 여겼으나, 곧 마르코니가 이를 무선전신으로 실용화했다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>헤르츠의 실험이 입증한 것은 무엇인가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 전류는 도선을 통해서만 흐른다</label>
+        <label><input type="radio" name="q1" value="correct"> 맥스웰이 예측한 전자기파가 실제로 존재한다</label>
+        <label><input type="radio" name="q1" value="wrong"> 빛은 입자로만 이루어져 있다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>수신기에서 불꽃(신호)이 가장 강하게 유도되는 조건은?</p>
+        <label><input type="radio" name="q2" value="wrong"> 송·수신 주파수가 크게 다르고 거리가 멀 때</label>
+        <label><input type="radio" name="q2" value="correct"> 송·수신 주파수가 일치(공진)하고 거리가 가까울 때</label>
+        <label><input type="radio" name="q2" value="wrong"> 송신 출력이 0일 때</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 하인리히 헤르츠 (Heinrich Rudolf Hertz, 1857~1894)</h3>
+        <p>독일의 물리학자로 헬름홀츠의 제자였다. 카를스루에 공과대학 교수 시절인 1886~1889년,
+        유도코일과 불꽃 간극을 이용한 일련의 실험으로 맥스웰이 예측한 전자기파의 존재를 처음으로
+        실험적으로 증명했다. 그는 전자기파가 반사·굴절·간섭·편광되며 빛과 같은 속력으로 전파됨을
+        보여, 빛이 곧 전자기파임을 확증했다.</p>
+        <p>주파수의 SI 단위 <strong>헤르츠(Hz)</strong>는 그의 이름에서 따왔다. 정작 그는 이 발견의
+        실용적 가치를 묻는 질문에 "전혀 쓸모가 없다(Nichts, glaube ich)"고 답했지만, 불과 몇 년 뒤
+        무선통신 혁명의 토대가 되었다. 36세에 혈관 질환으로 요절했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1865년 — 맥스웰, 전자기 방정식으로 전자기파의 존재와 광속 전파를 이론적으로 예측</li>
+          <li>1879년 — 베를린 과학 아카데미, 전자기파 검증 실험에 현상금 공모</li>
+          <li>1886년 — 헤르츠, 송신기 불꽃 방전이 떨어진 수신 고리에 불꽃을 유도함을 우연히 관찰</li>
+          <li>1887~1888년 — 정상파·반사·굴절·속력 측정으로 전자기파 존재를 확정적으로 입증</li>
+          <li>1895~1901년 — 마르코니, 헤르츠파를 이용해 무선전신을 실용화 (대서양 횡단 통신)</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 순수한 수학적 예측이었던 맥스웰의 전자기파를 눈에 보이는
+        실험으로 끌어내어, 빛과 전기·자기가 하나의 현상임을 확정했다. 이로써 19세기 물리학을 떠받친
+        전자기학이 완성되었다. 동시에 헤르츠가 만든 전자기파는 라디오·텔레비전·레이더·휴대전화·Wi-Fi로
+        이어지는 무선통신 문명 전체의 출발점이 되었으며, 그가 실험 중 발견한 광전효과는 훗날
+        아인슈타인의 양자 가설로 이어졌다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        txfreq: 50,    // 송신 주파수 (MHz)
+        rxtune: 50,    // 수신기 공진 튜닝 (MHz)
+        dist: 5.0,     // 송수신 거리 (m)
+        power: 70,     // 송신 출력 (%)
+        running: false,
+        t: 0,          // 애니메이션 누적 시각(s)
+        lastTs: null
+      };
+
+      const C = 3e8; // 빛의 속력 (m/s)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const txfreqSlider = document.getElementById('txfreq');
+      const rxtuneSlider = document.getElementById('rxtune');
+      const distSlider = document.getElementById('dist');
+      const powerSlider = document.getElementById('power');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      // 공진 일치도: 송·수신 주파수 차이를 가우스형으로 평가 (0~1)
+      function resonanceMatch() {
+        const df = state.txfreq - state.rxtune;
+        const sigma = 9; // MHz, 공진 폭(Q값 반영)
+        return Math.exp(-(df * df) / (2 * sigma * sigma));
+      }
+
+      // 거리 감쇠: 역제곱 (기준거리 1 m 정규화)
+      function distanceFactor() {
+        const d = Math.max(0.5, state.dist);
+        return 1 / (d * d);
+      }
+
+      // 수신 신호 세기 (상대값 0~1): 공진 × 출력 × 거리감쇠
+      function signalStrength() {
+        const raw = resonanceMatch() * (state.power / 100) * distanceFactor();
+        return Math.max(0, Math.min(1, raw));
+      }
+
+      // 파장 λ = c / f  (f: MHz → Hz)
+      function wavelength() {
+        return C / (state.txfreq * 1e6); // m
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        // 배경 (어두운 공간)
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#1a1224';
+        ctx.fillRect(0, 0, W, H);
+
+        const txX = 70;                 // 송신기 x
+        const txY = H / 2;
+        const rxX = txX + mapDistToPx(); // 수신기 x
+        const rxY = H / 2;
+
+        const match = resonanceMatch();
+        const signal = signalStrength();
+
+        // ----- 전파되는 동심원(물결) -----
+        // 파동은 송신기에서 바깥으로 퍼진다. 위상 = t * speed - r 형태.
+        const speedPx = 90;     // px/s (시각화용)
+        const ringGap = 46;     // 파면 간격(px) — 주파수에 따라 약간 변화
+        const gap = ringGap * (60 / state.txfreq) + 18;
+        const maxR = Math.hypot(W, H);
+        const phase = (state.t * speedPx) % gap;
+
+        for (let r = phase; r < maxR; r += gap) {
+          if (r < 4) continue;
+          const fade = Math.max(0, 1 - r / (maxR * 0.85));
+          const alpha = 0.55 * fade * (0.4 + 0.6 * (state.power / 100));
+          ctx.beginPath();
+          ctx.arc(txX, txY, r, -Math.PI * 0.78, Math.PI * 0.78);
+          ctx.strokeStyle = 'rgba(96,165,250,' + alpha.toFixed(3) + ')';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // ----- 송신기 -----
+        drawTransmitter(txX, txY);
+
+        // ----- 수신기 -----
+        drawReceiver(rxX, rxY, signal);
+
+        // ----- 거리/파장 안내 -----
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        // 거리 화살표
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(txX, H - 30); ctx.lineTo(rxX, H - 30); ctx.stroke();
+        ctx.fillText('d = ' + state.dist.toFixed(1) + ' m', (txX + rxX) / 2, H - 36);
+        ctx.textAlign = 'left';
+
+        // 공진 상태 배지
+        ctx.font = 'bold 13px sans-serif';
+        if (match > 0.85) {
+          ctx.fillStyle = '#34d399';
+          ctx.fillText('● 공진 (주파수 일치)', 14, 24);
+        } else if (match > 0.4) {
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillText('● 부분 공진', 14, 24);
+        } else {
+          ctx.fillStyle = '#f87171';
+          ctx.fillText('● 비공진 (주파수 어긋남)', 14, 24);
+        }
+      }
+
+      // 거리(m) → 캔버스 픽셀 간격으로 매핑 (1~12 m → 약 110~480 px)
+      function mapDistToPx() {
+        const minPx = 110, maxPx = 480;
+        const f = (state.dist - 1) / (12 - 1);
+        return minPx + f * (maxPx - minPx);
+      }
+
+      function drawTransmitter(x, y) {
+        // 두 도체 막대 + 불꽃 간극
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x, y - 46); ctx.lineTo(x, y - 8); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y + 8); ctx.lineTo(x, y + 46); ctx.stroke();
+        // 끝단 구
+        ctx.fillStyle = '#C53030';
+        ctx.beginPath(); ctx.arc(x, y - 46, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y + 46, 7, 0, Math.PI * 2); ctx.fill();
+
+        // 불꽃 간극에서 스파크 애니메이션 (출력에 비례한 빈도)
+        const sparkOn = (Math.floor(state.t * 14) % 2 === 0) || !state.running;
+        if (sparkOn && state.running) {
+          drawSpark(x, y, 7 + (state.power / 100) * 6, '#fde68a');
+        } else {
+          // 정지 시 미세 표시
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x - 4, y - 3); ctx.lineTo(x + 4, y + 3); ctx.stroke();
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('송신기', x, y + 66);
+        ctx.fillText(state.txfreq + ' MHz', x, y + 80);
+        ctx.textAlign = 'left';
+      }
+
+      function drawReceiver(x, y, signal) {
+        // 수신 고리 (간극 있는 원)
+        const R = 26;
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(x, y, R, -Math.PI * 0.42, Math.PI * 0.42, false); // 위쪽 간극을 남김(시작/끝)
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x, y, R, Math.PI * 0.58, Math.PI * 1.42, false);
+        ctx.stroke();
+
+        // 간극 양 끝 (위쪽)
+        const gx1 = x + R * Math.cos(-Math.PI * 0.42), gy1 = y + R * Math.sin(-Math.PI * 0.42);
+        const gx2 = x + R * Math.cos(Math.PI * 0.42),  gy2 = y + R * Math.sin(Math.PI * 0.42);
+        ctx.fillStyle = '#9ca3af';
+        ctx.beginPath(); ctx.arc(gx1, gy1, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(gx2, gy2, 3, 0, Math.PI * 2); ctx.fill();
+
+        // 수신 불꽃: 신호 세기 + 진동(애니메이션)에 따라 깜빡임
+        const gapMidX = (gx1 + gx2) / 2;
+        const gapMidY = (gy1 + gy2) / 2;
+        const flicker = (Math.sin(state.t * 40) * 0.5 + 0.5);
+        const intensity = signal * (state.running ? (0.5 + 0.5 * flicker) : 1);
+        if (signal > 0.04 && (state.running ? flicker > 0.25 : true)) {
+          drawSpark(gapMidX, gapMidY - 2, 4 + intensity * 12, '#fef08a');
+          // 발광 헤일로
+          ctx.beginPath();
+          ctx.arc(gapMidX, gapMidY - 2, 6 + intensity * 10, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(253,224,71,' + (0.25 * intensity).toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('수신기', x, y + 56);
+        ctx.fillText(state.rxtune + ' MHz', x, y + 70);
+        ctx.textAlign = 'left';
+      }
+
+      // 작은 번개형 스파크
+      function drawSpark(x, y, size, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.6;
+        const rays = 5;
+        for (let i = 0; i < rays; i++) {
+          const a = (Math.PI * 2 * i) / rays + state.t * 6;
+          const len = size * (0.6 + Math.random() * 0.6);
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          const midA = a + 0.3;
+          ctx.lineTo(x + Math.cos(a) * len * 0.5, y + Math.sin(a) * len * 0.5);
+          ctx.lineTo(x + Math.cos(midA) * len, y + Math.sin(midA) * len);
+          ctx.stroke();
+        }
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(x, y, 1.8, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const match = resonanceMatch();
+        const signal = signalStrength();
+        const lambda = wavelength();
+
+        document.getElementById('r-match').textContent = (match * 100).toFixed(0) + ' %';
+        document.getElementById('r-signal').textContent = (signal * 100).toFixed(1) + ' (상대값)';
+        document.getElementById('r-lambda').textContent = lambda.toFixed(2) + ' m';
+
+        let sparkTxt;
+        if (signal > 0.5) sparkTxt = '강한 불꽃 ⚡⚡';
+        else if (signal > 0.15) sparkTxt = '약한 불꽃 ⚡';
+        else if (signal > 0.03) sparkTxt = '미약한 불꽃';
+        else sparkTxt = '불꽃 없음';
+        document.getElementById('r-spark').textContent = sparkTxt;
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      txfreqSlider.addEventListener('input', () => {
+        state.txfreq = Number(txfreqSlider.value);
+        document.getElementById('txfreq-val').textContent = state.txfreq;
+        updateResult();
+        draw();
+      });
+      rxtuneSlider.addEventListener('input', () => {
+        state.rxtune = Number(rxtuneSlider.value);
+        document.getElementById('rxtune-val').textContent = state.rxtune;
+        updateResult();
+        draw();
+      });
+      distSlider.addEventListener('input', () => {
+        state.dist = Number(distSlider.value);
+        document.getElementById('dist-val').textContent = state.dist.toFixed(1);
+        updateResult();
+        draw();
+      });
+      powerSlider.addEventListener('input', () => {
+        state.power = Number(powerSlider.value);
+        document.getElementById('power-val').textContent = state.power;
+        updateResult();
+        draw();
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+        state.t += dt;
+        draw();
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() {
+        state.running = false;
+      }
+      function resetSim() {
+        state.running = false;
+        state.t = 0;
+        state.lastTs = null;
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '헤르츠는 맥스웰이 수식으로만 예측했던 전자기파의 존재를 실험으로 증명했습니다.',
+        '헤르츠 실험은 전선 없이 공간을 건너는 전자기파의 존재를 보였습니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '송·수신 공진이 맞고 거리가 가까울수록 수신 불꽃이 강합니다.',
+        '공진 일치와 가까운 거리에서 수신 신호가 최대가 됩니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

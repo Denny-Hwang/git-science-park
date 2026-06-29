@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>패러데이의 전자기 유도 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #C53030;
+      --primary-light: #e05a5a;
+      --bg: #fbf5f4;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #fff5f4; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fff5f4; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔥 19세기 (Energy &amp; Field)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>패러데이의 전자기 유도</h1>
+    <div class="en">Faraday's Electromagnetic Induction</div>
+    <div class="meta">1831년 · 마이클 패러데이 (Michael Faraday) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="막대자석이 코일 안팎을 왕복하고 검류계 바늘이 자속 변화에 따라 흔들리는 전자기 유도 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="speed">자석 이동 속도: <span id="speed-val">1.0</span> ×</label>
+          <input type="range" id="speed" min="0.2" max="3" step="0.1" value="1.0"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="control-row">
+          <label for="turns">코일 감은 수 N: <span id="turns-val">200</span> 회</label>
+          <input type="range" id="turns" min="20" max="500" step="10" value="200"
+            aria-describedby="turns-val">
+        </div>
+
+        <div class="control-row">
+          <label for="strength">자석 세기 B: <span id="strength-val">1.0</span> T</label>
+          <input type="range" id="strength" min="0.2" max="2" step="0.1" value="1.0"
+            aria-describedby="strength-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>유도 기전력 EMF: <strong id="r-emf">0.00 V</strong></div>
+          <div>전류 방향: <strong id="r-dir">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>자속 변화율 dΦ/dt: <strong id="r-dphi">0.00</strong></div>
+          <div>자석 상태: <strong id="r-motion">정지</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 전류는 자속이 <em>변할 때만</em> 생깁니다.
+        자석이 코일 안팎으로 움직이는 동안 검류계 바늘이 흔들리지만, 자석이 끝에서 잠깐 멈추면
+        자속이 변하지 않아 전류는 <strong>0</strong>이 됩니다. 자석을 빠르게 움직이거나(속도 ↑),
+        감은 수 N을 늘리거나, 자석을 더 세게(B ↑) 하면 유도 기전력이 커집니다.
+        자석이 들어갈 때와 나올 때 전류 방향이 <em>반대</em>인 것도 확인하세요(렌츠 법칙).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>코일을 통과하는 자속 Φ가 변할 때만 기전력이 유도됨을 이해한다.</li>
+        <li>패러데이 법칙 EMF = −N·dΦ/dt 의 각 항(감은 수, 자속 변화율)의 의미를 익힌다.</li>
+        <li>유도 전류의 방향이 변화를 방해하는 쪽으로 흐른다는 렌츠 법칙을 이해한다.</li>
+        <li>속도·감은 수·자석 세기가 유도 기전력 크기에 미치는 영향을 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>코일을 관통하는 <em>자기 선속(자속) Φ</em>가 시간에 따라 변하면, 코일 양 끝에 전압(기전력, EMF)이
+        유도되어 회로에 전류가 흐른다. 핵심은 자속의 <strong>변화</strong>다. 자석이 코일에 대해 정지해 있으면
+        아무리 강한 자석이라도 자속이 변하지 않으므로 유도 전류는 <strong>0</strong>이다.</p>
+        <p>자속의 변화가 빠를수록(자석을 빨리 움직일수록), 코일의 감은 수 N이 많을수록, 자석이 셀수록
+        유도 기전력이 커진다. 유도 전류의 <em>방향</em>은 자속의 변화를 방해하는 쪽으로 정해진다(렌츠 법칙).
+        자석이 들어올 때와 빠져나갈 때 전류 방향이 서로 반대가 되는 이유다.</p>
+      </div>
+
+      <div class="formula-box">
+        EMF = −N · dΦ/dt<br>
+        Φ = B · A<br>
+        (N: 감은 수, Φ: 자속, B: 자기장, A: 코일 면적)
+      </div>
+
+      <!-- SVG 다이어그램: 코일을 통과하는 자석과 유도 전류 -->
+      <svg width="360" height="200" viewBox="0 0 360 200" role="img"
+        aria-label="막대자석이 코일을 향해 움직일 때 자속이 증가하며 검류계가 반응하는 다이어그램">
+        <!-- 코일 (감은선) -->
+        <g stroke="#C53030" stroke-width="2.5" fill="none">
+          <ellipse cx="200" cy="60" rx="10" ry="26"/>
+          <ellipse cx="216" cy="60" rx="10" ry="26"/>
+          <ellipse cx="232" cy="60" rx="10" ry="26"/>
+          <ellipse cx="248" cy="60" rx="10" ry="26"/>
+        </g>
+        <!-- 코일에서 검류계로 가는 도선 -->
+        <path d="M200 86 L200 130 L250 130" stroke="#374151" stroke-width="2" fill="none"/>
+        <path d="M248 86 L300 86 L300 130 L290 130" stroke="#374151" stroke-width="2" fill="none"/>
+        <!-- 검류계 -->
+        <circle cx="270" cy="150" r="22" fill="#fff" stroke="#374151" stroke-width="2"/>
+        <line x1="270" y1="150" x2="282" y2="136" stroke="#C53030" stroke-width="2.5"/>
+        <text x="263" y="184" font-size="10" fill="#374151">G</text>
+        <!-- 막대자석 (N극이 코일을 향함) -->
+        <rect x="60" y="48" width="40" height="24" fill="#C53030"/>
+        <rect x="100" y="48" width="40" height="24" fill="#2B6CB0"/>
+        <text x="74" y="65" font-size="13" fill="#fff" font-weight="bold">N</text>
+        <text x="114" y="65" font-size="13" fill="#fff" font-weight="bold">S</text>
+        <!-- 운동 방향 화살표 -->
+        <line x1="145" y1="36" x2="180" y2="36" stroke="#16a34a" stroke-width="2.5"/>
+        <polygon points="180,36 172,32 172,40" fill="#16a34a"/>
+        <text x="150" y="28" font-size="10" fill="#16a34a">자석 이동</text>
+        <!-- 자기력선 -->
+        <path d="M140 60 C160 60 175 60 188 60" stroke="#6b7280" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+        <text x="190" y="115" font-size="10" fill="#6b7280">Φ 증가 → EMF 유도</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        자석이 코일에 다가가면 코일을 통과하는 자속 Φ가 증가하고, 그 변화에 비례한 기전력이 유도된다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "강한 자석을 코일 속에 넣어두기만 해도 전류가 계속 흐른다"고 생각하기 쉽다.
+        하지만 자석이 코일 안에서 <em>정지</em>해 있으면 자속이 변하지 않으므로 유도 전류는 0이다.
+        전류를 만드는 것은 자석의 세기 자체가 아니라 자속의 <strong>변화(움직임)</strong>다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>코일 속에 자석을 넣은 뒤 그대로 가만히 잡고 있으면 유도 전류는?</p>
+        <label><input type="radio" name="q1" value="wrong"> 자석이 셀수록 큰 전류가 계속 흐른다</label>
+        <label><input type="radio" name="q1" value="wrong"> 감은 수에 비례한 일정한 전류가 흐른다</label>
+        <label><input type="radio" name="q1" value="correct"> 0이다 (자속이 변하지 않으므로)</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>유도 기전력 EMF를 크게 하려면 어떻게 해야 할까? (가장 옳은 것)</p>
+        <label><input type="radio" name="q2" value="wrong"> 자석을 코일 안에 멈춰 둔다</label>
+        <label><input type="radio" name="q2" value="correct"> 자석을 더 빠르게 움직이고 감은 수 N을 늘린다</label>
+        <label><input type="radio" name="q2" value="wrong"> 코일의 감은 수를 줄인다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 마이클 패러데이 (Michael Faraday, 1791~1867)</h3>
+        <p>영국의 물리학자·화학자로, 정규 교육을 거의 받지 못하고 제본소 견습공으로 일하다 독학으로
+        과학자가 되었다. 험프리 데이비의 조수로 출발해 왕립연구소에서 평생 연구했다. 수학에 약했지만
+        뛰어난 실험 직관으로 전자기 유도, 전기분해 법칙, 패러데이 효과 등을 발견했다.</p>
+        <p>그는 자기와 전기를 잇는 보이지 않는 <em>장(field)</em> 개념을 도입했고, 이는 훗날 맥스웰이
+        전자기학을 수학적으로 완성하는 토대가 되었다. 발전기·변압기·전동기의 원리가 모두 그의
+        전자기 유도 발견에서 비롯되었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1820년 — 외르스테드, 전류가 자침을 움직임을 발견 (전기→자기)</li>
+          <li>1820년대 — 앙페르·비오·사바르 등이 전류와 자기장의 관계를 정량화</li>
+          <li>1831년 — 패러데이, 코일과 자석 실험으로 전자기 유도 발견 (자기→전기)</li>
+          <li>1834년 — 렌츠, 유도 전류의 방향에 관한 법칙(렌츠 법칙) 발표</li>
+          <li>1865년 — 맥스웰, 전자기 방정식으로 패러데이의 장 개념을 수식화</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 외르스테드가 "전기로 자기를 만들 수 있다"는 것을 보인 뒤,
+        패러데이는 그 반대인 "자기로 전기를 만들 수 있다"는 것을 증명했다. 이 발견은 전기를 대량으로
+        생산하는 발전기의 원리가 되어 19세기 후반 전기 문명을 열었다. 또한 그가 도입한 '장(field)'
+        개념은 근대 물리학에서 힘을 이해하는 근본 틀이 되어 맥스웰 전자기학과 이후 장 이론으로 이어졌다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        speed: 1.0,        // 자석 이동 속도 배율
+        turns: 200,        // 코일 감은 수 N
+        strength: 1.0,     // 자석 세기 B (T)
+        running: false,
+        phase: 0,          // 자석 왕복 위상(라디안). sin으로 위치 결정
+        lastTs: null,
+        emf: 0,            // 현재 유도 기전력(상대값/V)
+        dphi: 0            // 현재 자속 변화율
+      };
+
+      // 시각화/물리 상수
+      const COIL_CX = 300;       // 코일 중심 x(px)
+      const COIL_CY = 200;       // 코일 중심 y(px)
+      const MAG_TRAVEL = 150;    // 자석 왕복 진폭(px)
+      const BASE_OMEGA = 1.4;    // 기본 각속도(rad/s), speed로 배율
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const speedSlider = document.getElementById('speed');
+      const turnsSlider = document.getElementById('turns');
+      const strengthSlider = document.getElementById('strength');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      // 자석 위치를 sin(phase)로 두면 코일 통과 위치(자석 중심 - 코일 중심)가 주기적으로 변한다.
+      // 자속 Φ ∝ B / (1 + (거리/scale)^2)  : 자석이 코일에 가까울수록 자속이 큼(가우시안 유사).
+      // dΦ/dt 는 자석 속도 v 와 위치에 따른 자속 기울기의 곱.
+      // EMF = -N · dΦ/dt (패러데이 법칙). 표시는 상대 스케일로 정규화.
+      const FLUX_SCALE = 60;     // 자속 거리 감쇠 스케일(px)
+      const EMF_NORM = 0.012;    // 표시용 정규화 계수
+
+      function magnetOffset() {
+        // 코일 중심 기준 자석 중심의 px 변위 (-MAG_TRAVEL ~ +MAG_TRAVEL)
+        return MAG_TRAVEL * Math.sin(state.phase);
+      }
+      function magnetVelocity() {
+        // d(offset)/dt = MAG_TRAVEL * omega * cos(phase)
+        const omega = BASE_OMEGA * state.speed;
+        return MAG_TRAVEL * omega * Math.cos(state.phase);
+      }
+      function fluxAt(offset) {
+        // 거리(코일 중심으로부터)가 작을수록 자속 큼. B(자석 세기)에 비례.
+        const d = offset;
+        return state.strength / (1 + (d * d) / (FLUX_SCALE * FLUX_SCALE));
+      }
+      function fluxGradient(offset) {
+        // dΦ/d(offset) = B * d/dd [ 1/(1+(d/s)^2) ] = B * (-2 d / s^2) / (1+(d/s)^2)^2
+        const s2 = FLUX_SCALE * FLUX_SCALE;
+        const denom = (1 + (offset * offset) / s2);
+        return state.strength * (-2 * offset / s2) / (denom * denom);
+      }
+      // 현재 EMF(상대값) 계산: EMF = -N * dΦ/dt = -N * (dΦ/d_offset) * (d_offset/dt)
+      function computeEMF() {
+        const offset = magnetOffset();
+        const v = magnetVelocity();
+        const dphi = fluxGradient(offset) * v;       // dΦ/dt (px 기반 상대량)
+        const emf = -state.turns * dphi * EMF_NORM;  // 패러데이 법칙
+        state.dphi = dphi;
+        state.emf = emf;
+        return emf;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const offset = magnetOffset();
+        const emf = state.emf;
+
+        // 코일 그리기 (세로 원통, 가로로 다가오는 자석)
+        drawCoil(COIL_CX, COIL_CY);
+
+        // 막대자석: 코일 중심에서 왼쪽으로 (offset 만큼 변위, 음수면 더 가까움 표현)
+        const magCx = COIL_CX - 130 + offset; // 자석 중심 x
+        drawMagnet(magCx, COIL_CY);
+
+        // 자석 운동 방향 화살표
+        const v = state.running ? magnetVelocity() : 0;
+        if (Math.abs(v) > 4) {
+          drawMotionArrow(magCx, COIL_CY - 55, v);
+        }
+
+        // 검류계(galvanometer): 바늘이 emf 에 비례해 좌우로 흔들림
+        drawGalvanometer(110, 80, emf);
+
+        // 도선 (코일 → 검류계)
+        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(COIL_CX - 20, COIL_CY + 50);
+        ctx.lineTo(COIL_CX - 20, 130);
+        ctx.lineTo(150, 130);
+        ctx.lineTo(150, 110);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(COIL_CX + 20, COIL_CY + 50);
+        ctx.lineTo(COIL_CX + 20, 150);
+        ctx.lineTo(70, 150);
+        ctx.lineTo(70, 110);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 상단 정보
+        ctx.fillStyle = '#374151';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('N = ' + state.turns + ' 회   |   B = ' + state.strength.toFixed(1) + ' T', 16, 24);
+        if (!state.running) {
+          ctx.fillStyle = '#6b7280';
+          ctx.fillText('▶ 재생을 눌러 자석을 움직이세요', 16, 410);
+        }
+      }
+
+      function drawCoil(cx, cy) {
+        ctx.strokeStyle = '#C53030';
+        ctx.lineWidth = 3;
+        // 코일 원통(세로 타원 여러 개 = 감은선)
+        for (let i = -2; i <= 2; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx + i * 18, cy, 14, 50, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.lineWidth = 1;
+      }
+
+      function drawMagnet(cx, cy) {
+        const w = 110, h = 36;
+        const left = cx - w / 2;
+        // N극(빨강, 코일을 향하는 오른쪽 절반)과 S극(파랑, 왼쪽 절반)
+        ctx.fillStyle = '#2B6CB0';
+        ctx.fillRect(left, cy - h / 2, w / 2, h);
+        ctx.fillStyle = '#C53030';
+        ctx.fillRect(left + w / 2, cy - h / 2, w / 2, h);
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(left, cy - h / 2, w, h);
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('S', left + w * 0.25, cy + 6);
+        ctx.fillText('N', left + w * 0.75, cy + 6);
+        ctx.textAlign = 'left';
+      }
+
+      function drawMotionArrow(x, y, v) {
+        const dir = v < 0 ? -1 : 1; // v<0: offset 감소(왼쪽), 화면상 자석이 코일에서 멀어지는 방향
+        const len = 34;
+        ctx.strokeStyle = '#16a34a';
+        ctx.fillStyle = '#16a34a';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x - dir * len / 2, y);
+        ctx.lineTo(x + dir * len / 2, y);
+        ctx.stroke();
+        ctx.beginPath();
+        const tip = x + dir * len / 2;
+        ctx.moveTo(tip, y);
+        ctx.lineTo(tip - dir * 8, y - 5);
+        ctx.lineTo(tip - dir * 8, y + 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.lineWidth = 1;
+      }
+
+      function drawGalvanometer(cx, cy, emf) {
+        const r = 34;
+        // 본체
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // 눈금(중앙 0, 좌우 +/-)
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 1;
+        for (let a = -1; a <= 1; a += 0.5) {
+          const ang = -Math.PI / 2 + a * (Math.PI / 3);
+          ctx.beginPath();
+          ctx.moveTo(cx + (r - 6) * Math.cos(ang), cy + (r - 6) * Math.sin(ang));
+          ctx.lineTo(cx + r * Math.cos(ang), cy + r * Math.sin(ang));
+          ctx.stroke();
+        }
+        // 바늘: emf 에 비례해 좌우 편향 (최대 ±60도)
+        const maxEmf = 6; // 정규화 가정 최대치
+        let frac = Math.max(-1, Math.min(1, emf / maxEmf));
+        const needleAng = -Math.PI / 2 + frac * (Math.PI / 3);
+        ctx.strokeStyle = Math.abs(emf) < 0.05 ? '#9ca3af' : '#C53030';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + (r - 8) * Math.cos(needleAng), cy + (r - 8) * Math.sin(needleAng));
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        // 라벨
+        ctx.fillStyle = '#374151';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('검류계 G', cx, cy + r + 16);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '10px sans-serif';
+        ctx.fillText('−', cx - r + 4, cy + 4);
+        ctx.fillText('+', cx + r - 4, cy + 4);
+        ctx.fillText('0', cx, cy - r + 12);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        // 정지 상태에서는 자속 변화가 없으므로 EMF·dΦ/dt 모두 0
+        const shownEmf = state.running ? state.emf : 0;
+        const shownDphi = state.running ? state.dphi : 0;
+
+        document.getElementById('r-emf').textContent = Math.abs(shownEmf).toFixed(2) + ' V';
+        document.getElementById('r-dphi').textContent = shownDphi.toFixed(3);
+
+        const dirEl = document.getElementById('r-dir');
+        const motionEl = document.getElementById('r-motion');
+        if (!state.running || Math.abs(shownEmf) < 0.05) {
+          dirEl.textContent = '없음 (전류 0)';
+          motionEl.textContent = state.running ? '순간 정지' : '정지';
+        } else {
+          dirEl.textContent = shownEmf > 0 ? '시계 방향 ↻' : '반시계 방향 ↺';
+          motionEl.textContent = magnetVelocity() < 0 ? '코일에서 멀어짐' : '코일로 다가감';
+        }
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      speedSlider.addEventListener('input', () => {
+        state.speed = Number(speedSlider.value);
+        document.getElementById('speed-val').textContent = state.speed.toFixed(1);
+        computeEMF();
+        updateResult();
+        draw();
+      });
+      turnsSlider.addEventListener('input', () => {
+        state.turns = Number(turnsSlider.value);
+        document.getElementById('turns-val').textContent = state.turns;
+        computeEMF();
+        updateResult();
+        draw();
+      });
+      strengthSlider.addEventListener('input', () => {
+        state.strength = Number(strengthSlider.value);
+        document.getElementById('strength-val').textContent = state.strength.toFixed(1);
+        computeEMF();
+        updateResult();
+        draw();
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000; // 실제 경과초
+        state.lastTs = ts;
+
+        const omega = BASE_OMEGA * state.speed;
+        state.phase += omega * dt;
+        if (state.phase > Math.PI * 1000) state.phase -= Math.PI * 1000; // 오버플로 방지
+
+        computeEMF();
+        updateResult();
+        draw();
+
+        if (state.running) {
+          requestAnimationFrame(loop);
+        }
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() {
+        state.running = false;
+        // 정지하면 변화가 없으므로 전류 0 표시
+        state.emf = 0;
+        state.dphi = 0;
+        updateResult();
+        draw();
+      }
+      function resetSim() {
+        state.running = false;
+        state.phase = 0;
+        state.lastTs = null;
+        state.emf = 0;
+        state.dphi = 0;
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '자속이 변하지 않으면 dΦ/dt = 0 이므로 EMF = 0 입니다.',
+        '전류를 만드는 것은 자석의 세기가 아니라 자속의 "변화"입니다. 정지하면 0이에요.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'EMF = −N·dΦ/dt 이므로 속도(변화율)와 감은 수 N이 클수록 커집니다.',
+        '패러데이 법칙 EMF = −N·dΦ/dt 의 각 항을 떠올려 보세요.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

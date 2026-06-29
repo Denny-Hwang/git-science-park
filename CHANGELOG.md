@@ -52,16 +52,28 @@
   - `02-scientific-revolution/04-galileo-telescope` — 갈릴레오의 망원경 관측 (배율 M=f_대물/f_접안, 목성 4대 위성).
   - `02-scientific-revolution/06-newton-cannon` — 뉴턴의 대포 사고실험 (발사 속도 → 추락/원궤도/타원/탈출).
   - `02-scientific-revolution/07-newton-gravitation` — 뉴턴의 만유인력 법칙 (F=G·m₁m₂/r², 역제곱).
+- **Phase 3 실험 11종 추가** (`03-precision-era`·`04-energy-field` 카테고리 완성) — 동일한 3탭·Canvas 규격:
+  - `03-precision-era/01-boyle` — 보일의 법칙 (P·V=일정, P∝1/V).
+  - `03-precision-era/02-cavendish` — 캐번디시의 중력 상수 측정 (비틀림 저울, F=G·Mm/r²).
+  - `03-precision-era/03-coulomb` — 쿨롱의 법칙 (F=k·q₁q₂/r², 인력/척력).
+  - `03-precision-era/04-volta` — 볼타의 전지 (총 전압 = 셀 수 × 셀당 기전력).
+  - `04-energy-field/01-foucault` — 푸코의 진자 (진동면 회전주기 = 24h/sin(위도)).
+  - `04-energy-field/02-joule` — 줄의 열-일 등가 (W=mgh → ΔT, 4.186 J/cal).
+  - `04-energy-field/03-carnot` — 카르노 기관 (η = 1 − Tc/Th).
+  - `04-energy-field/04-faraday` — 패러데이의 전자기 유도 (EMF = −N·dΦ/dt, 렌츠).
+  - `04-energy-field/05-maxwell` — 맥스웰 방정식 (전자기파, c=f·λ=1/√(μ₀ε₀)).
+  - `04-energy-field/06-hertz` — 헤르츠의 전자기파 (공진·거리에 따른 수신, 무선의 토대).
+  - `04-energy-field/07-boltzmann` — 볼츠만의 통계역학 (맥스웰-볼츠만 분포, S=k·ln W).
 - 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 전 페이지의 탭 전환·슬라이더 반응·콘솔 에러를 자동 점검.
 
 ### Changed
 
-- `src/data/experiments.json`: 구현 완료한 12개 실험(id 1–11, 16)의 `status`를 `ready`로 전환 — `01-ancient`(4/4)·`02-scientific-revolution`(7/7) 카테고리 100% 완료.
-- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 41개는 "준비중" 비활성 유지).
+- `src/data/experiments.json`: 구현 완료한 23개 실험(id 1–23)의 `status`를 `ready`로 전환 — `01-ancient`(4/4)·`02-scientific-revolution`(7/7)·`03-precision-era`(5/5)·`04-energy-field`(7/7) 카테고리 100% 완료.
+- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 30개는 "준비중" 비활성 유지).
 
 ### 예정 (Planned)
 
-- 남은 41개 실험의 인터랙티브 페이지 단계적 구현 (ROADMAP Phase 3 이후).
+- 남은 30개 실험의 인터랙티브 페이지 단계적 구현 — `05-atomic`(9)·`06-quantum`(7)·`07-relativity`(7)·`08-modern`(7).
 - Canvas 공통 유틸리티·레이아웃 셸(shell) 추출로 중복 축소.
 
 ---

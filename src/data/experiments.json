@@ -294,7 +294,7 @@
         "기체",
         "반비례"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 13,
@@ -313,7 +313,7 @@
         "G",
         "미세 측정"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 14,
@@ -332,7 +332,7 @@
         "역제곱",
         "비틀림 저울"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 15,
@@ -351,7 +351,7 @@
         "전기화학",
         "배터리"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 16,
@@ -389,7 +389,7 @@
         "진동면",
         "위도"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 18,
@@ -408,7 +408,7 @@
         "줄",
         "일"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 19,
@@ -427,7 +427,7 @@
         "엔트로피",
         "열기관"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 20,
@@ -446,7 +446,7 @@
         "기전력",
         "발전기"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 21,
@@ -465,7 +465,7 @@
         "빛의 속도",
         "장"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 22,
@@ -484,7 +484,7 @@
         "무선",
         "빛의 속도"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 23,
@@ -503,7 +503,7 @@
         "미시상태",
         "확률"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 24,

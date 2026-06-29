@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캐번디시의 중력 상수 측정 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #4A5568;
+      --primary-light: #647288;
+      --bg: #f5f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .quiz-box button:focus-visible, .quiz-box label:focus-within, .controls .btn:focus-visible {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0f1115; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef1f6; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .row { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚗️ 18세기 (Precision Era)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>캐번디시의 중력 상수 측정</h1>
+    <div class="en">Cavendish Experiment</div>
+    <div class="meta">1798년 · 헨리 캐번디시 (Henry Cavendish) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" aria-label="위에서 본 비틀림 저울 시뮬레이션: 중앙에 매달린 막대 양끝의 작은 납공과 양옆의 큰 납공, 인력으로 비틀린 막대"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="bigM">큰 납공 질량 M: <span id="bigM-val">158</span> kg</label>
+          <input type="range" id="bigM" min="10" max="300" step="1" value="158" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="gap">두 공 사이 거리 r: <span id="gap-val">0.23</span> m</label>
+          <input type="range" id="gap" min="0.05" max="1.00" step="0.01" value="0.23" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="smallM">작은 납공 질량 m: <span id="smallM-val">0.73</span> kg</label>
+          <input type="range" id="smallM" min="0.1" max="3.0" step="0.01" value="0.73" aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="row">
+          <span>인력 F: <strong id="r-force">—</strong></span>
+          <span>비틀림 편향각: <strong id="r-angle">—</strong></span>
+        </div>
+        <div class="row" style="margin-top:4px;">
+          <span>산출된 G: <strong id="r-g">—</strong></span>
+          <span style="color:var(--text-muted);font-size:0.92rem;">(참값 G = 6.674×10⁻¹¹)</span>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 인력 F는 어마어마하게 작다(나노뉴턴 수준!). 그래서 캐번디시는
+        머리카락처럼 가는 줄에 막대를 매달아 이 미세한 힘을 <strong>비틀림 각도</strong>로 증폭해 읽었다.
+        <strong>거리 r을 두 배로 늘리면 인력은 1/4로</strong> 줄어든다(역제곱). M이나 m을 키우면 인력과
+        편향각이 함께 커진다. 막대가 큰 공 쪽으로 살짝 끌려가 비틀리는 모습을 확인하라.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>만유인력 법칙 F = G·M·m / r² 에서 각 변수가 인력에 주는 영향을 설명한다.</li>
+        <li>거리 r에 대해 인력이 역제곱(1/r²)으로 변함을 이해한다.</li>
+        <li>비틀림 저울이 아주 작은 힘을 비틀림 각으로 증폭해 측정하는 원리를 안다.</li>
+        <li>측정된 인력으로 중력 상수 G와 지구 질량을 어떻게 구하는지 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>두 질량 사이에는 만유인력이 작용한다. 그 크기는 두 질량의 곱에 비례하고 거리의 제곱에 반비례한다:
+        <strong>F = G·M·m / r²</strong>. 여기서 G는 모든 물체에 공통인 <strong>중력 상수</strong>다.</p>
+        <p>문제는 일상적인 물체끼리의 인력이 너무 작아 직접 잴 수 없다는 점이다. 캐번디시는 가벼운 막대
+        양끝에 작은 납공(m)을 매달아 가는 금속선(섬유)에 걸고, 그 옆에 무거운 납공(M)을 가져다 두었다.
+        미세한 인력이 막대를 비틀면, 비틀림선이 원래대로 돌아가려는 <strong>복원 토크</strong>와 균형을 이룬다.
+        평형에서 비틀림 각 θ는 인력 F에 비례하므로, 거울에 비친 빛점의 이동으로 θ를 정밀하게 읽어
+        F를 역산할 수 있다.</p>
+        <p>F를 알면 F = G·M·m / r² 에서 <strong>G</strong>를 구할 수 있고, 지표면 중력가속도 g와
+        지구 반지름 R로부터 <strong>지구 질량 M⊕ = g·R² / G</strong> 까지 계산된다. 캐번디시의 원래
+        목표가 바로 "지구의 무게 달기"였다.</p>
+      </div>
+
+      <div class="formula-box">
+        F = G · M · m / r²
+        <br>
+        비틀림 평형: κ · θ = F · L  →  θ ∝ F
+        <br>
+        지구 질량: M⊕ = g · R² / G
+      </div>
+
+      <!-- SVG 다이어그램: 위에서 본 비틀림 저울 -->
+      <svg width="420" height="240" viewBox="0 0 420 240" role="img"
+           aria-label="위에서 본 비틀림 저울 다이어그램: 중앙 비틀림선에 매달린 막대 양끝의 작은 공과 양옆 큰 공, 인력 화살표">
+        <!-- 비틀림선(중심) -->
+        <circle cx="210" cy="120" r="5" fill="#9ca3af"/>
+        <text x="200" y="100" font-size="11" fill="#6b7280">비틀림선</text>
+        <!-- 막대(살짝 비틀린 모습) -->
+        <line x1="120" y1="138" x2="300" y2="102" stroke="#cbd5e0" stroke-width="3"/>
+        <!-- 작은 공 m (막대 양끝) -->
+        <circle cx="120" cy="138" r="9" fill="#647288"/>
+        <circle cx="300" cy="102" r="9" fill="#647288"/>
+        <text x="104" y="162" font-size="11" fill="#4A5568">m</text>
+        <text x="296" y="92" font-size="11" fill="#4A5568">m</text>
+        <!-- 큰 공 M (옆) -->
+        <circle cx="120" cy="80" r="20" fill="#4A5568"/>
+        <circle cx="300" cy="160" r="20" fill="#4A5568"/>
+        <text x="116" y="55" font-size="12" fill="#4A5568">M</text>
+        <text x="296" y="195" font-size="12" fill="#4A5568">M</text>
+        <!-- 인력 화살표 (작은 공 → 큰 공) -->
+        <line x1="120" y1="129" x2="120" y2="103" stroke="#dc2626" stroke-width="2"/>
+        <line x1="120" y1="103" x2="116" y2="111" stroke="#dc2626" stroke-width="2"/>
+        <line x1="120" y1="103" x2="124" y2="111" stroke="#dc2626" stroke-width="2"/>
+        <line x1="300" y1="111" x2="300" y2="138" stroke="#dc2626" stroke-width="2"/>
+        <line x1="300" y1="138" x2="296" y2="130" stroke="#dc2626" stroke-width="2"/>
+        <line x1="300" y1="138" x2="304" y2="130" stroke="#dc2626" stroke-width="2"/>
+        <text x="126" y="120" font-size="11" fill="#dc2626">F</text>
+        <!-- 거리 r 표시 -->
+        <line x1="120" y1="100" x2="120" y2="129" stroke="#6b7280" stroke-width="0" />
+        <text x="338" y="120" font-size="11" fill="#6b7280">r = M와 m 중심 거리</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "캐번디시 실험은 G를 잰 것이 아니라 지구 무게를 잰 것"이라거나, 그
+        반대로 "G를 직접 측정한 것"이라며 다투기 쉽다. 사실 캐번디시 본인은 G라는 상수를 명시적으로 쓰지
+        않고 <em>지구의 평균 밀도</em>를 구했다. 다만 그가 측정한 인력으로부터 오늘날의 G와 지구 질량이
+        곧바로 계산되므로, 현대적으로는 "최초로 G를 측정 가능하게 한 실험"이라 부른다. 또 하나, 인력은
+        질량이 클수록 강해지지만 <em>거리가 핵심</em>이라 r를 조금만 줄여도 인력이 급격히 커진다(역제곱).
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 큰 납공을 두 배 멀리(거리 r을 2배) 놓으면 두 공 사이 인력은 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="wrong"> 1/2 로 준다</label>
+          <label><input type="radio" name="q1" value="correct"> 1/4 로 준다 (F ∝ 1/r²)</label>
+          <label><input type="radio" name="q1" value="wrong"> 2배가 된다</label>
+        </div>
+        <div class="q">
+          <p>2. 캐번디시가 머리카락처럼 가는 비틀림선을 사용한 이유로 가장 알맞은 것은?</p>
+          <label><input type="radio" name="q2" value="correct"> 인력이 너무 작아, 약한 복원력으로 큰 비틀림 각을 얻어 측정하려고</label>
+          <label><input type="radio" name="q2" value="wrong"> 막대가 무거워 튼튼한 줄이 필요해서</label>
+          <label><input type="radio" name="q2" value="wrong"> 줄이 가늘수록 인력 자체가 커지므로</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 헨리 캐번디시 (Henry Cavendish, 1731~1810)</h3>
+        <p>영국의 화학자·물리학자로, 극도로 내성적이고 은둔적인 성격으로 유명했다. 막대한 부를 물려받았으나
+        오로지 연구에만 몰두했고, 많은 결과를 발표하지 않아 사후에야 진가가 알려진 것도 많다. 수소("가연성 공기")를
+        분리해 그 성질을 규명했고, 물이 원소가 아닌 화합물임을 밝히는 데 기여했다. 1798년, 67세에 존 미첼이 고안하고
+        남긴 비틀림 저울 장치를 정교하게 개량해 두 납공 사이의 인력을 측정하는 "지구 무게 달기(weighing the Earth)"
+        실험을 수행했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1687년 — 뉴턴이 「프린키피아」에서 만유인력 법칙을 제시(상수 G의 값은 미지)</li>
+          <li>1772년경 — 존 미첼(John Michell)이 비틀림 저울 장치를 설계(완성 전 사망)</li>
+          <li>1797~1798년 — 캐번디시가 장치를 물려받아 개량하고 미세 인력을 측정</li>
+          <li>1798년 — 「지구 밀도를 결정하는 실험」 논문 발표, 지구 평균 밀도 약 5.45배 산출</li>
+          <li>1873년 — 코르뉘 등 후대 학자들이 결과로부터 G ≈ 6.7×10⁻¹¹ 형태로 정리</li>
+          <li>현재 — G = 6.674×10⁻¹¹ N·m²/kg² (가장 정밀도가 낮은 기본 상수 중 하나)</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 캐번디시 실험은 실험실 안의 평범한 물체 사이에서 만유인력을 직접
+        측정한 최초의 실험이다. 그 결과로 지구의 질량과 밀도, 나아가 태양과 행성의 질량까지 계산할 수 있게
+        되었다. 비틀림 저울로 나노뉴턴급 미세 힘을 재는 정밀 측정의 전범을 세웠고, 이 방식은 곧 쿨롱의
+        전기력 측정 등으로 이어졌다. 무게를 알 수 없던 지구를 "저울에 올린" 사건으로 평가된다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 -----
+      const G_TRUE = 6.674e-11; // N·m²/kg² (참값)
+
+      // ----- 상태 (단위: M kg, r m, m kg) -----
+      const DEFAULTS = { M: 158, r: 0.23, m: 0.73 };
+      const state = { M: DEFAULTS.M, r: DEFAULTS.r, m: DEFAULTS.m };
+
+      // 비틀림 저울 보정 상수: F[N] → 표시용 편향각[도] (시각화·읽기용 임의 스케일).
+      // 실제 캐번디시 장치에서 인력이 수십 nN일 때 비틀림이 수 mrad 수준임을 반영해
+      // 화면에서 잘 보이도록 잡은 데모용 비례계수.
+      const ANGLE_PER_NEWTON = 4.0e8; // deg per N
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산 -----
+      // 만유인력 F = G·M·m / r²
+      function attractionForce() {
+        return (G_TRUE * state.M * state.m) / (state.r * state.r);
+      }
+      // 비틀림 편향각(표시용, 도)
+      function deflectionDeg() {
+        return attractionForce() * ANGLE_PER_NEWTON;
+      }
+
+      // 힘을 보기 좋은 지수표기 문자열로 (예: 1.23×10⁻⁸ N)
+      function formatForce(F) {
+        if (F === 0) return '0 N';
+        const exp = Math.floor(Math.log10(F));
+        const mant = F / Math.pow(10, exp);
+        const sup = String(exp).replace('-', '⁻')
+          .replace(/[0-9]/g, (d) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(d)]);
+        return mant.toFixed(2) + '×10' + sup + ' N';
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 (위에서 본 비틀림 저울) -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0f1115';
+        ctx.fillRect(0, 0, W, H);
+
+        const cx = W / 2, cy = H / 2;
+        const barHalf = 150;     // 막대 절반 길이(픽셀)
+        const smallR = 11;       // 작은 공 반지름(픽셀)
+
+        // 큰 공 위치: r에 따라 막대 양끝 작은 공 근처에 배치(가까울수록 안쪽).
+        // r(0.05~1.0 m)을 픽셀 오프셋(가까움)으로 매핑: r 작을수록 큰 공이 더 가까이.
+        const bigR = 14 + (state.M / 300) * 26;   // M에 따라 큰 공 크기
+        const rNorm = (state.r - 0.05) / (1.0 - 0.05); // 0~1
+        const bigOffset = 26 + rNorm * 70;        // 작은 공과 큰 공 중심 간 화면 거리(px)
+
+        // 비틀림 각(시각화): 편향각을 화면 회전으로 변환(과장 스케일, 최대 약 14도)
+        const defDeg = deflectionDeg();
+        const visAngle = Math.max(-0.25, Math.min(0.25, defDeg * 0.012)); // rad
+
+        // 중심 비틀림선 표식
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#9ca3af';
+        ctx.fill();
+
+        // 막대 끝 작은 공의 회전된 위치
+        const ca = Math.cos(visAngle), sa = Math.sin(visAngle);
+        const end1 = { x: cx - barHalf * ca, y: cy - barHalf * sa };
+        const end2 = { x: cx + barHalf * ca, y: cy + barHalf * sa };
+
+        // 막대
+        ctx.strokeStyle = '#cbd5e0';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(end1.x, end1.y);
+        ctx.lineTo(end2.x, end2.y);
+        ctx.stroke();
+
+        // 큰 공은 회전과 무관하게 고정 위치(장치는 고정, 막대만 비틀림)에 두되,
+        // 막대 비틀림이 없을 때 작은 공 옆에 오도록 기준 위치를 잡는다.
+        const base1 = { x: cx - barHalf, y: cy };
+        const base2 = { x: cx + barHalf, y: cy };
+        const bigPos1 = { x: base1.x, y: base1.y - bigOffset };
+        const bigPos2 = { x: base2.x, y: base2.y + bigOffset };
+
+        // 큰 공 M
+        [bigPos1, bigPos2].forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, bigR, 0, Math.PI * 2);
+          ctx.fillStyle = '#4A5568';
+          ctx.fill();
+          ctx.strokeStyle = '#647288';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+
+        // 작은 공 m (막대 끝, 회전 반영)
+        [end1, end2].forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, smallR, 0, Math.PI * 2);
+          ctx.fillStyle = '#647288';
+          ctx.fill();
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+
+        // 인력 화살표: 작은 공 → 가까운 큰 공
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 2;
+        const drawForceArrow = (from, to) => {
+          const dx = to.x - from.x, dy = to.y - from.y;
+          const len = Math.hypot(dx, dy) || 1;
+          const ux = dx / len, uy = dy / len;
+          const tipX = from.x + ux * (len - bigR - 2);
+          const tipY = from.y + uy * (len - bigR - 2);
+          ctx.beginPath();
+          ctx.moveTo(from.x + ux * smallR, from.y + uy * smallR);
+          ctx.lineTo(tipX, tipY);
+          ctx.stroke();
+          // 화살촉
+          const ah = 6;
+          ctx.beginPath();
+          ctx.moveTo(tipX, tipY);
+          ctx.lineTo(tipX - ux * ah - uy * ah * 0.6, tipY - uy * ah + ux * ah * 0.6);
+          ctx.moveTo(tipX, tipY);
+          ctx.lineTo(tipX - ux * ah + uy * ah * 0.6, tipY - uy * ah - ux * ah * 0.6);
+          ctx.stroke();
+        };
+        drawForceArrow(end1, bigPos1);
+        drawForceArrow(end2, bigPos2);
+
+        // 라벨
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('M', bigPos1.x - bigR - 16, bigPos1.y + 4);
+        ctx.fillText('M', bigPos2.x + bigR + 6, bigPos2.y + 4);
+        ctx.fillText('m', end1.x - smallR - 16, end1.y + 4);
+        ctx.fillText('m', end2.x + smallR + 4, end2.y + 4);
+
+        // 비틀림 각 주석
+        ctx.fillStyle = '#facc15';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('비틀림 편향각 θ = ' + defDeg.toFixed(3) + '°', 14, 24);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('(위에서 본 비틀림 저울 · 빨간 화살표 = 만유인력 F)', 14, H - 12);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const F = attractionForce();
+        const defDeg = deflectionDeg();
+        // 데모에서 G는 참값으로 두므로 역산 G는 참값이 그대로 나온다(검증용).
+        const gCalc = (F * state.r * state.r) / (state.M * state.m);
+        document.getElementById('r-force').textContent = formatForce(F);
+        document.getElementById('r-angle').textContent = defDeg.toFixed(3) + '°';
+        document.getElementById('r-g').textContent = gCalc.toExponential(3).replace('e', '×10^') + ' N·m²/kg²';
+      }
+
+      // ----- 슬라이더 요소 -----
+      const bigMSlider = document.getElementById('bigM');
+      const gapSlider = document.getElementById('gap');
+      const smallMSlider = document.getElementById('smallM');
+      const bigMVal = document.getElementById('bigM-val');
+      const gapVal = document.getElementById('gap-val');
+      const smallMVal = document.getElementById('smallM-val');
+
+      function syncLabels() {
+        bigMVal.textContent = state.M;
+        gapVal.textContent = state.r.toFixed(2);
+        smallMVal.textContent = state.m.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      bigMSlider.addEventListener('input', () => {
+        state.M = Number(bigMSlider.value);
+        syncLabels(); updateResult(); requestDraw();
+      });
+      gapSlider.addEventListener('input', () => {
+        state.r = Number(gapSlider.value);
+        syncLabels(); updateResult(); requestDraw();
+      });
+      smallMSlider.addEventListener('input', () => {
+        state.m = Number(smallMSlider.value);
+        syncLabels(); updateResult(); requestDraw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.M = DEFAULTS.M;
+        state.r = DEFAULTS.r;
+        state.m = DEFAULTS.m;
+        bigMSlider.value = String(DEFAULTS.M);
+        gapSlider.value = String(DEFAULTS.r);
+        smallMSlider.value = String(DEFAULTS.m);
+        syncLabels(); updateResult(); requestDraw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 인력은 거리 제곱에 반비례(2배 멀면 1/4)하고, 가는 비틀림선은 약한 복원력으로 미세 인력을 큰 각으로 증폭합니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. F = G·M·m / r² 의 역제곱과 비틀림 저울의 증폭 원리를 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- requestAnimationFrame 기반 그리기 스케줄러 -----
+      let rafId = null;
+      function requestDraw() {
+        if (rafId !== null) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          draw();
+        });
+      }
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      requestDraw();
+    })();
+  </script>
+</body>
+</html>
