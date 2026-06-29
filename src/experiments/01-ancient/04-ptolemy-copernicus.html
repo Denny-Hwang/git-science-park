@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>천동설 vs 지동설 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #b5703a;
+      --bg: #f7f5f2;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 540px; height: auto; display: block; margin: 0 auto;
+      background: #0b1026; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.mode { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.mode.active { background: var(--primary); color: #fff; }
+    .btn.mode:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fff7ed; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .badge-state {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.9rem; font-weight: 700; color: #fff;
+    }
+    .badge-prograde { background: #16a34a; }
+    .badge-retrograde { background: #dc2626; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.05rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🏛️ 고대 (Ancient)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>천동설 vs 지동설</h1>
+    <div class="en">Ptolemy vs Copernicus — 행성의 겉보기 역행운동</div>
+    <div class="meta">150년경 · 1543년 · 프톨레마이오스 (Ptolemy) · 코페르니쿠스 (Copernicus) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="540" height="440" role="img"
+        aria-label="화성의 겉보기 역행운동을 천동설과 지동설 두 모형으로 비교하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>모형 선택</label>
+          <div class="btn-row" role="group" aria-label="우주 모형 선택">
+            <button type="button" class="btn mode active" id="modeHelio">☀️ 지동설 (코페르니쿠스)</button>
+            <button type="button" class="btn mode" id="modeGeo">🌍 천동설 (프톨레마이오스)</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="time">시간 (공전 진행): <span id="time-val">0.00</span> 년</label>
+          <input type="range" id="time" min="0" max="6.28" step="0.01" value="0"
+            aria-describedby="time-val">
+        </div>
+
+        <div class="control-row">
+          <label for="speed">애니메이션 속도: <span id="speed-val">1.0</span>×</label>
+          <input type="range" id="speed" min="0.2" max="3" step="0.1" value="1.0"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="showSight" checked>
+            <label for="showSight">지구→화성 시선과 겉보기 경로 표시</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>현재 모형: <strong id="r-mode">지동설</strong></div>
+          <div>화성의 겉보기 운동: <span id="r-state" class="badge-state badge-prograde">순행</span></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>경과 시간: <strong id="r-time">0.00 년</strong></div>
+          <div>겉보기 경도 변화율: <strong id="r-rate">— °/년</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 화성이 잠시 <em>뒤로(서쪽으로)</em> 움직이는 구간이 보입니다.
+        지동설 모형에서 보면, 이는 화성이 실제로 뒤로 도는 것이 아니라 <strong>안쪽의 더 빠른 지구가
+        바깥의 화성을 추월</strong>할 때 생기는 겉보기 현상입니다(별 배경에 그려지는 고리 모양이 그 증거).
+        천동설 모형으로 바꾸면, 프톨레마이오스가 같은 역행을 <strong>주전원(epicycle)</strong>이라는
+        보조 원으로 인위적으로 재현했음을 볼 수 있습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>외행성(화성)의 겉보기 <em>역행운동(retrograde)</em>이 무엇인지 이해한다.</li>
+        <li>지동설: 지구가 화성을 추월할 때 역행이 <strong>겉보기 현상</strong>으로 나타남을 설명한다.</li>
+        <li>천동설: 프톨레마이오스가 주전원(epicycle)으로 역행을 재현한 방식을 이해한다.</li>
+        <li>두 모형이 같은 관측(역행)을 어떻게 다르게 설명하는지 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념 — 역행운동(Retrograde Motion)</h3>
+        <p>행성은 보통 별 배경에 대해 동쪽으로 천천히 이동한다(<strong>순행, prograde</strong>).
+        그런데 화성·목성 같은 외행성은 한 해에 한 번꼴로 며칠~몇 주 동안 거꾸로 서쪽으로 이동했다가
+        다시 동쪽으로 가는 것처럼 보인다. 이것이 <strong>역행</strong>이며, 하늘에 고리(loop) 모양 자취를 남긴다.</p>
+        <p><strong>지동설(코페르니쿠스, 1543):</strong> 지구와 화성은 모두 태양을 공전한다. 안쪽 궤도의 지구가
+        더 빠르므로 두 행성이 같은 쪽에 정렬(충, opposition)할 무렵 지구가 화성을 추월한다. 달리는 차에서
+        느린 옆 차가 잠시 뒤로 가 보이는 것처럼, 화성은 <strong>실제로는 계속 앞으로 가지만</strong> 지구에서
+        보면 잠깐 뒤로 가 보인다.</p>
+        <p><strong>천동설(프톨레마이오스, 150년경):</strong> 지구가 우주 중심에 고정되어 있다고 보았으므로,
+        역행을 설명하려면 행성이 큰 원(주원, deferent) 위의 한 점을 중심으로 도는 작은 원(주전원, epicycle)
+        위에서 한 번 더 돈다고 가정해야 했다. 주전원 위에서 행성이 지구 쪽으로 돌아올 때 역행이 나타난다.</p>
+      </div>
+
+      <div class="formula-box">
+        겉보기 경도 λ = atan2( y<sub>화성</sub> − y<sub>지구</sub>,&nbsp; x<sub>화성</sub> − x<sub>지구</sub> )<br>
+        dλ/dt &lt; 0  →  역행(retrograde) · dλ/dt &gt; 0  →  순행(prograde)<br>
+        지구 공전주기 ≈ 1년 &lt; 화성 공전주기 ≈ 1.88년 (안쪽이 더 빠름)
+      </div>
+
+      <!-- SVG 다이어그램: 지동설에서의 추월에 의한 역행 -->
+      <svg width="360" height="240" viewBox="0 0 360 240" role="img"
+        aria-label="태양을 중심으로 지구가 화성을 추월하며 시선이 별 배경에서 뒤로 휘어지는 역행 다이어그램">
+        <!-- 별 배경(먼 천구) -->
+        <line x1="20" y1="28" x2="340" y2="28" stroke="#9ca3af" stroke-width="1.5"/>
+        <text x="140" y="20" font-size="11" fill="#6b7280">먼 별들(천구 배경)</text>
+        <!-- 태양 -->
+        <circle cx="180" cy="170" r="10" fill="#f59e0b"/>
+        <text x="172" y="196" font-size="11" fill="#b45309">태양</text>
+        <!-- 지구 궤도(안쪽) / 화성 궤도(바깥) -->
+        <ellipse cx="180" cy="170" rx="55" ry="22" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <ellipse cx="180" cy="170" rx="105" ry="42" fill="none" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <!-- 지구 세 위치(추월하며 이동) -->
+        <circle cx="140" cy="158" r="5" fill="#2563eb"/>
+        <circle cx="180" cy="148" r="5" fill="#2563eb"/>
+        <circle cx="220" cy="158" r="5" fill="#2563eb"/>
+        <!-- 화성 세 위치(느리게 이동) -->
+        <circle cx="160" cy="132" r="6" fill="#dc2626"/>
+        <circle cx="180" cy="128" r="6" fill="#dc2626"/>
+        <circle cx="200" cy="132" r="6" fill="#dc2626"/>
+        <!-- 시선(지구→화성→천구) : 가운데가 뒤로 휘어짐 -->
+        <line x1="140" y1="158" x2="100" y2="28" stroke="#16a34a" stroke-width="1.3"/>
+        <line x1="180" y1="148" x2="180" y2="28" stroke="#16a34a" stroke-width="1.3"/>
+        <line x1="220" y1="158" x2="260" y2="28" stroke="#16a34a" stroke-width="1.3"/>
+        <!-- 천구상 겉보기 자취(고리): 1→3 사이에서 되돌아옴 -->
+        <text x="86" y="44" font-size="10" fill="#16a34a">①</text>
+        <text x="176" y="44" font-size="10" fill="#16a34a">②</text>
+        <text x="256" y="44" font-size="10" fill="#16a34a">③</text>
+        <text x="42" y="120" font-size="10" fill="#2563eb">지구</text>
+        <text x="232" y="118" font-size="10" fill="#dc2626">화성</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        지구가 ①→②→③로 화성을 추월하는 동안, 천구에 투영된 화성의 위치가 잠시 뒤로 되돌아간다(겉보기 역행).
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "역행 때 화성이 실제로 멈췄다가 뒤로 갔다가 다시 앞으로 간다."
+        화성은 자기 궤도를 <em>한 방향으로 계속</em> 공전할 뿐이다. 뒤로 가 보이는 것은 더 빠른 지구가 화성을
+        추월하면서 생기는 <em>겉보기(상대운동) 효과</em>다. 천동설은 이 효과를 설명하지 못해 주전원이라는
+        복잡한 보조 원을 도입해야 했다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>화성의 역행은 실제로 화성이 자기 궤도에서 뒤로 움직이는 것인가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 그렇다 — 화성이 잠시 거꾸로 공전한다</label>
+        <label><input type="radio" name="q1" value="correct"> 아니다 — 지구의 추월로 생기는 겉보기 현상이다</label>
+        <label><input type="radio" name="q1" value="wrong"> 화성의 자전 때문에 생긴다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>천동설(프톨레마이오스)이 화성의 역행을 설명하기 위해 도입한 보조 장치는?</p>
+        <label><input type="radio" name="q2" value="wrong"> 타원 궤도(ellipse)</label>
+        <label><input type="radio" name="q2" value="correct"> 주전원(epicycle)</label>
+        <label><input type="radio" name="q2" value="wrong"> 만유인력(gravity)</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 클라우디오스 프톨레마이오스 (Claudius Ptolemy, 100년경~170년경)</h3>
+        <p>알렉산드리아에서 활동한 그리스-로마계 천문학자. 저서 『알마게스트(Almagest)』에서 지구를
+        우주 중심에 둔 천동설(지구중심설)을 집대성했다. 행성의 역행을 설명하기 위해 주전원(epicycle)·
+        이심원(eccentric)·이퀀트(equant) 등을 정교하게 결합했고, 이 체계는 약 1,400년간 표준으로 군림했다.</p>
+        <h3 style="margin-top:10px;">과학자: 니콜라우스 코페르니쿠스 (Nicolaus Copernicus, 1473~1543)</h3>
+        <p>폴란드의 천문학자·성직자. 임종 직전인 1543년 출간한 『천구의 회전에 관하여(De revolutionibus
+        orbium coelestium)』에서 태양을 중심에 둔 지동설(태양중심설)을 제시했다. 행성의 역행을 별도 장치
+        없이 "지구도 행성"이라는 한 가정만으로 자연스럽게 설명한 것이 결정적 강점이었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>기원전 4세기 — 아리스토텔레스, 지구중심 우주관(완전한 원운동) 정립</li>
+          <li>기원전 3세기 — 아리스타르코스, 최초의 태양중심설 제안(당대에 외면받음)</li>
+          <li>150년경 — 프톨레마이오스 『알마게스트』, 주전원으로 역행을 설명하는 천동설 완성</li>
+          <li>1543년 — 코페르니쿠스 『천구의 회전에 관하여』 출간, 태양중심설 부활</li>
+          <li>1609년 — 케플러, 타원 궤도 법칙으로 원운동 가정을 폐기(주전원 불필요해짐)</li>
+          <li>1610년 — 갈릴레오, 금성의 위상·목성 위성 관측으로 지동설을 관측적으로 뒷받침</li>
+          <li>1687년 — 뉴턴 『프린키피아』, 만유인력으로 행성 운동을 물리 법칙으로 통합</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 두 모형 모두 역행이라는 <em>같은 관측</em>을 설명했지만, 천동설은
+        주전원을 거듭 추가해야 정확도가 유지되는 반면, 지동설은 "지구도 하나의 행성"이라는 단 하나의 가정으로
+        역행을 자연스럽게 풀어냈다. 같은 현상을 더 단순하게 설명하는 모형을 택하는 <strong>경제성(오컴의
+        면도날)</strong>의 본보기이자, 인간을 우주의 중심에서 끌어내린 '코페르니쿠스 혁명'의 출발점으로
+        근대 과학혁명을 열었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리/궤도 파라미터 (단순화된 원궤도 모형) -----
+      // 지구: 공전주기 1년, 화성: 약 1.88년. 각속도 ω = 2π / T.
+      var T_EARTH = 1.0;
+      var T_MARS = 1.88;
+      var W_EARTH = (2 * Math.PI) / T_EARTH;  // rad / 년
+      var W_MARS = (2 * Math.PI) / T_MARS;
+      var R_EARTH_AU = 1.0;   // AU
+      var R_MARS_AU = 1.524;  // AU
+
+      // ----- 상태 -----
+      var state = {
+        mode: 'helio',   // 'helio' | 'geo'
+        t: 0,            // 시뮬레이션 시각(년), 0 ~ 2π(약 6.28년 ≈ 화성 회합주기 부근까지)
+        speed: 1.0,      // 애니메이션 배속
+        showSight: true,
+        running: false,
+        lastTs: null
+      };
+      var T_MAX = 6.28;  // 슬라이더/루프 상한(년)
+
+      // ----- DOM -----
+      var canvas = document.getElementById('canvas');
+      var ctx = canvas.getContext('2d');
+
+      var timeSlider = document.getElementById('time');
+      var speedSlider = document.getElementById('speed');
+      var sightToggle = document.getElementById('showSight');
+      var modeHelioBtn = document.getElementById('modeHelio');
+      var modeGeoBtn = document.getElementById('modeGeo');
+      var playBtn = document.getElementById('playBtn');
+      var pauseBtn = document.getElementById('pauseBtn');
+      var resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.tab-btn').forEach(function (b) {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach(function (c) {
+            c.classList.remove('active');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 천체 위치 (지동설 기준 좌표, AU 단위, 태양 원점) -----
+      function earthPos(t) {
+        return { x: R_EARTH_AU * Math.cos(W_EARTH * t), y: R_EARTH_AU * Math.sin(W_EARTH * t) };
+      }
+      function marsPos(t) {
+        return { x: R_MARS_AU * Math.cos(W_MARS * t), y: R_MARS_AU * Math.sin(W_MARS * t) };
+      }
+
+      // 지구에서 본 화성의 겉보기 경도(라디안). 두 모형 공통으로 상대벡터로 계산.
+      function apparentLongitude(t) {
+        var e = earthPos(t), m = marsPos(t);
+        return Math.atan2(m.y - e.y, m.x - e.x);
+      }
+
+      // 각도 차이를 -π~π로 정규화
+      function wrapAngle(a) {
+        while (a > Math.PI) a -= 2 * Math.PI;
+        while (a < -Math.PI) a += 2 * Math.PI;
+        return a;
+      }
+
+      // 겉보기 경도 변화율(°/년): 수치 미분
+      function apparentRate(t) {
+        var dt = 0.002;
+        var l1 = apparentLongitude(t);
+        var l2 = apparentLongitude(t + dt);
+        var d = wrapAngle(l2 - l1) / dt; // rad/년
+        return (d * 180) / Math.PI;
+      }
+
+      // ----- 좌표 변환 (AU → 화면 px) -----
+      var CX = 270, CY = 220;   // 캔버스 중심
+      var AU_PX = 58;           // 1 AU 당 픽셀
+
+      // 별 배경(고정 별점) — draw마다 동일하게 그리기 위한 시드 배열
+      var stars = (function () {
+        var arr = [];
+        var seed = 12345;
+        function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+        for (var i = 0; i < 90; i++) {
+          arr.push({ x: rnd() * 540, y: rnd() * 440, r: rnd() * 1.1 + 0.3 });
+        }
+        return arr;
+      })();
+
+      function drawStars() {
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        for (var i = 0; i < stars.length; i++) {
+          var s = stars[i];
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // ----- 겉보기 경로(별 배경 천구 고리) 계산 & 그리기 -----
+      // 지구에서 본 화성의 방향(경도)을 캔버스 가장자리의 가상 천구원에 투영해 자취를 그린다.
+      var SKY_R = 200; // 천구 반지름(px), 지구 중심에서
+      function drawApparentTrail(originX, originY) {
+        // origin: 지구의 화면 좌표. 시선 방향을 천구원에 점으로 찍어 자취 표시.
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#22c55e';
+        ctx.beginPath();
+        var started = false;
+        for (var tau = 0; tau <= state.t + 1e-6; tau += 0.04) {
+          var lon = apparentLongitude(tau);
+          var px = originX + SKY_R * Math.cos(lon);
+          var py = originY + SKY_R * Math.sin(lon);
+          if (!started) { ctx.moveTo(px, py); started = true; }
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 현재 지점 점
+        var curLon = apparentLongitude(state.t);
+        var cpx = originX + SKY_R * Math.cos(curLon);
+        var cpy = originY + SKY_R * Math.sin(curLon);
+        ctx.beginPath();
+        ctx.arc(cpx, cpy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#bbf7d0';
+        ctx.fill();
+        return { x: cpx, y: cpy };
+      }
+
+      // ----- draw(): 모드에 따라 분기, state만 읽음 -----
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawStars();
+        if (state.mode === 'helio') drawHelio();
+        else drawGeo();
+        drawCaption();
+      }
+
+      function drawCaption() {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('t = ' + state.t.toFixed(2) + ' 년', 14, 24);
+        ctx.fillText(state.mode === 'helio' ? '지동설 (태양 중심)' : '천동설 (지구 중심 + 주전원)', 14, canvas.height - 14);
+      }
+
+      // 지동설: 태양 중심, 지구·화성 공전, 지구→화성 시선과 천구 겉보기 고리
+      function drawHelio() {
+        // 태양
+        ctx.beginPath();
+        ctx.arc(CX, CY, 11, 0, Math.PI * 2);
+        ctx.fillStyle = '#fbbf24'; ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('태양', CX, CY + 26);
+
+        // 궤도
+        drawOrbit(CX, CY, R_EARTH_AU * AU_PX, 'rgba(96,165,250,0.5)');
+        drawOrbit(CX, CY, R_MARS_AU * AU_PX, 'rgba(248,113,113,0.5)');
+
+        var e = earthPos(state.t), m = marsPos(state.t);
+        var ex = CX + e.x * AU_PX, ey = CY + e.y * AU_PX;
+        var mx = CX + m.x * AU_PX, my = CY + m.y * AU_PX;
+
+        // 겉보기 경로(천구 고리) — 지구를 원점으로
+        if (state.showSight) {
+          drawApparentTrail(ex, ey);
+          // 지구→화성 시선 연장(천구까지)
+          var lon = apparentLongitude(state.t);
+          ctx.strokeStyle = 'rgba(34,197,94,0.7)';
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(ex, ey);
+          ctx.lineTo(ex + SKY_R * Math.cos(lon), ey + SKY_R * Math.sin(lon));
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 지구
+        drawPlanet(ex, ey, 5, '#60a5fa', '지구');
+        // 화성
+        drawPlanet(mx, my, 6, '#f87171', '화성');
+      }
+
+      // 천동설: 지구 중심, 화성은 deferent 위 중심점을 도는 epicycle 위에서 회전
+      function drawGeo() {
+        // 지구(중심)
+        ctx.beginPath();
+        ctx.arc(CX, CY, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#60a5fa'; ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('지구', CX, CY + 24);
+
+        // 주원(deferent) 반지름과 주전원(epicycle) 반지름.
+        // 지동설과 동일한 겉보기 운동을 재현하기 위한 고전적 구성:
+        //   deferent 각속도 = 화성 평균 각속도(W_MARS),
+        //   epicycle 각속도 = 지구 각속도(W_EARTH) (회합 운동 담당),
+        //   epicycle 반지름 / deferent 반지름 = R_EARTH / R_MARS.
+        var R_DEF = 150;                          // 주원 반지름(px)
+        var R_EPI = R_DEF * (R_EARTH_AU / R_MARS_AU); // 주전원 반지름(px)
+
+        // deferent
+        drawOrbit(CX, CY, R_DEF, 'rgba(248,113,113,0.5)');
+
+        // 주전원 중심(주원 위의 점) — 화성의 평균(deferent) 운동
+        var defAng = W_MARS * state.t;
+        var dcx = CX + R_DEF * Math.cos(defAng);
+        var dcy = CY + R_DEF * Math.sin(defAng);
+
+        // 주전원 자체
+        drawOrbit(dcx, dcy, R_EPI, 'rgba(251,191,36,0.6)');
+        // 주원 중심점
+        ctx.beginPath();
+        ctx.arc(dcx, dcy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fill();
+
+        // 화성: 주전원 위. 위상은 지구-태양 방향(태양 방향)을 향하도록 W_EARTH*t 사용
+        // (프톨레마이오스 체계에서 외행성 주전원 주기는 1 회합년에 대응 → 지구 운동이 만든다)
+        var epiAng = W_EARTH * state.t;
+        var mx = dcx + R_EPI * Math.cos(epiAng);
+        var my = dcy + R_EPI * Math.sin(epiAng);
+
+        // deferent 반지름선과 주전원 반지름선
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.beginPath(); ctx.moveTo(CX, CY); ctx.lineTo(dcx, dcy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(dcx, dcy); ctx.lineTo(mx, my); ctx.stroke();
+
+        // 지구→화성 시선 + 천구 겉보기 자취
+        if (state.showSight) {
+          drawGeoApparentTrail();
+          ctx.strokeStyle = 'rgba(34,197,94,0.7)';
+          ctx.setLineDash([4, 4]);
+          var lon = Math.atan2(my - CY, mx - CX);
+          ctx.beginPath();
+          ctx.moveTo(CX, CY);
+          ctx.lineTo(CX + SKY_R * Math.cos(lon), CY + SKY_R * Math.sin(lon));
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 화성
+        drawPlanet(mx, my, 6, '#f87171', '화성');
+      }
+
+      // 천동설에서의 화성 화면좌표(겉보기 경로용)
+      function geoMarsScreen(t) {
+        var R_DEF = 150;
+        var R_EPI = R_DEF * (R_EARTH_AU / R_MARS_AU);
+        var defAng = W_MARS * t;
+        var dcx = CX + R_DEF * Math.cos(defAng);
+        var dcy = CY + R_DEF * Math.sin(defAng);
+        var epiAng = W_EARTH * t;
+        return { x: dcx + R_EPI * Math.cos(epiAng), y: dcy + R_EPI * Math.sin(epiAng) };
+      }
+
+      function drawGeoApparentTrail() {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#22c55e';
+        ctx.beginPath();
+        var started = false;
+        for (var tau = 0; tau <= state.t + 1e-6; tau += 0.04) {
+          var p = geoMarsScreen(tau);
+          var lon = Math.atan2(p.y - CY, p.x - CX);
+          var px = CX + SKY_R * Math.cos(lon);
+          var py = CY + SKY_R * Math.sin(lon);
+          if (!started) { ctx.moveTo(px, py); started = true; }
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
+
+      function drawOrbit(cx, cy, r, color) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      function drawPlanet(x, y, r, color, label) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(label, x, y - r - 5);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        document.getElementById('r-mode').textContent =
+          state.mode === 'helio' ? '지동설 (코페르니쿠스)' : '천동설 (프톨레마이오스)';
+        document.getElementById('r-time').textContent = state.t.toFixed(2) + ' 년';
+
+        // 겉보기 경도 변화율: 두 모형 모두 "지구에서 본 화성"이 동일하므로 동일 계산 사용
+        var rate = apparentRate(state.t);
+        document.getElementById('r-rate').textContent = rate.toFixed(1) + ' °/년';
+
+        var stateEl = document.getElementById('r-state');
+        if (rate < 0) {
+          stateEl.textContent = '역행 (retrograde)';
+          stateEl.className = 'badge-state badge-retrograde';
+        } else {
+          stateEl.textContent = '순행 (prograde)';
+          stateEl.className = 'badge-state badge-prograde';
+        }
+      }
+
+      // ----- 슬라이더/토글/모드 이벤트 -----
+      timeSlider.addEventListener('input', function () {
+        state.running = false;
+        state.t = Number(timeSlider.value);
+        document.getElementById('time-val').textContent = state.t.toFixed(2);
+        updateResult();
+        draw();
+      });
+
+      speedSlider.addEventListener('input', function () {
+        state.speed = Number(speedSlider.value);
+        document.getElementById('speed-val').textContent = state.speed.toFixed(1);
+      });
+
+      sightToggle.addEventListener('change', function () {
+        state.showSight = sightToggle.checked;
+        draw();
+      });
+
+      function setMode(mode) {
+        state.mode = mode;
+        modeHelioBtn.classList.toggle('active', mode === 'helio');
+        modeGeoBtn.classList.toggle('active', mode === 'geo');
+        updateResult();
+        draw();
+      }
+      modeHelioBtn.addEventListener('click', function () { setMode('helio'); });
+      modeGeoBtn.addEventListener('click', function () { setMode('geo'); });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        var dt = (ts - state.lastTs) / 1000; // 실제 경과초
+        state.lastTs = ts;
+
+        // 1초당 약 0.4년 진행 × 배속
+        state.t += dt * 0.4 * state.speed;
+        if (state.t >= T_MAX) {
+          state.t = 0; // 순환 재생
+        }
+
+        timeSlider.value = state.t.toFixed(2);
+        document.getElementById('time-val').textContent = state.t.toFixed(2);
+        updateResult();
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() { state.running = false; }
+      function resetSim() {
+        state.running = false;
+        state.t = 0;
+        state.lastTs = null;
+        timeSlider.value = '0';
+        document.getElementById('time-val').textContent = '0.00';
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', function () {
+          var picked = document.querySelector('input[name="' + name + '"]:checked');
+          var out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '역행은 더 빠른 지구가 화성을 추월할 때 생기는 겉보기(상대운동) 현상입니다.',
+        '화성은 한 방향으로 계속 공전합니다. 뒤로 가 보이는 것은 지구의 추월 때문입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '프톨레마이오스는 큰 원(deferent) 위의 점을 도는 작은 원, 즉 주전원(epicycle)으로 역행을 재현했습니다.',
+        '타원·만유인력은 후대의 케플러·뉴턴 개념입니다. 천동설의 장치는 주전원입니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

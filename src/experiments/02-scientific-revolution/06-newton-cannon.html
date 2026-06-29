@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뉴턴의 대포 사고실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #05070f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .badge-class {
+      display: inline-block; padding: 2px 12px; border-radius: 999px;
+      font-size: 0.95rem; font-weight: 700; color: #fff; background: var(--text-muted);
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); }
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .swatch { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>뉴턴의 대포 사고실험</h1>
+    <div class="en">Newton's Cannonball</div>
+    <div class="meta">1687년 · 아이작 뉴턴 (Isaac Newton) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="520" role="img"
+        aria-label="높은 산 위 대포에서 수평으로 발사한 포탄이 지구 주위를 도는 궤도 시뮬레이션"></canvas>
+
+      <div class="legend" aria-hidden="true">
+        <span><i class="swatch" style="background:#f87171;"></i> 추락</span>
+        <span><i class="swatch" style="background:#fbbf24;"></i> 타원궤도</span>
+        <span><i class="swatch" style="background:#34d399;"></i> 원궤도</span>
+        <span><i class="swatch" style="background:#60a5fa;"></i> 탈출</span>
+      </div>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="speed">발사 속도 v: <span id="speed-val">5.6</span> (km/s, 모형값) — v / v<sub>orbit</sub> = <span id="ratio-val">0.71</span></label>
+          <input type="range" id="speed" min="1.0" max="13.0" step="0.05" value="5.6"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="control-row">
+          <label>빠른 선택 (기준 속도)</label>
+          <div class="btn-row" role="group" aria-label="속도 프리셋">
+            <button type="button" class="btn preset" data-mode="under">추락 (느림)</button>
+            <button type="button" class="btn preset" data-mode="circle">원궤도 (v<sub>orbit</sub>)</button>
+            <button type="button" class="btn preset" data-mode="ellipse">타원궤도</button>
+            <button type="button" class="btn preset" data-mode="escape">탈출 (v<sub>escape</sub>)</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="fireBtn">🚀 발사</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>현재 속도 v: <strong id="r-speed">5.60</strong> (모형 km/s)</div>
+          <div>v / v<sub>orbit</sub>: <strong id="r-ratio">0.71</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>v<sub>orbit</sub> = √(g·R): <strong id="r-vorb">7.91</strong></div>
+          <div>v<sub>escape</sub> = √2·v<sub>orbit</sub>: <strong id="r-vesc">11.18</strong></div>
+        </div>
+        <div style="margin-top:10px;">예측 결과: <span class="badge-class" id="r-class">—</span></div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 포탄은 매 순간 지구로 <em>떨어지고</em> 있습니다. 다만 수평 속도가 충분히
+        빠르면, 포탄이 떨어지는 만큼 지구 표면도 둥글게 <em>비껴 내려가</em> 영원히 닿지 못합니다. 이것이 바로
+        궤도(orbit)입니다. 인공위성은 "떨어지지 않는" 것이 아니라 "계속 떨어지면서 지구를 비껴 도는" 것입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>궤도 운동이 곧 "수평 방향으로 빠르게 던진 자유낙하"임을 이해한다.</li>
+        <li>발사 속도에 따라 추락 → 타원궤도 → 원궤도 → 탈출로 갈리는 경계를 안다.</li>
+        <li>원궤도 속도 v<sub>orbit</sub> = √(g·R) 와 탈출속도 v<sub>escape</sub> = √2·v<sub>orbit</sub> 를 익힌다.</li>
+        <li>중력이 행성·위성·포탄을 같은 법칙으로 지배함(만유인력)을 받아들인다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>높은 산 위 대포에서 포탄을 수평으로 쏘면, 포탄은 중력 때문에 아래로 휘며 결국 지면에 떨어진다.
+        발사 속도를 높일수록 포탄은 더 멀리 날아가 더 먼 지점에 떨어진다.</p>
+        <p>속도를 계속 높이면, 포탄이 한 순간 떨어지는 거리만큼 둥근 지구 표면도 그만큼 멀어진다.
+        결국 포탄은 지면에 영원히 닿지 못하고 <strong>지구 주위를 도는 원궤도</strong>가 된다. 이때의 속도가
+        원궤도 속도 v<sub>orbit</sub> = √(g·R)이다. 그보다 빠르면 <strong>타원궤도</strong>가 되고,
+        탈출속도 v<sub>escape</sub> = √2·v<sub>orbit</sub> 이상이면 지구 중력을 벗어나 <strong>되돌아오지 않는다</strong>.</p>
+        <p>지표 부근(R ≈ 6,371 km, g ≈ 9.8 m/s²)에서 v<sub>orbit</sub> ≈ 7.9 km/s, v<sub>escape</sub> ≈ 11.2 km/s 이다.</p>
+      </div>
+
+      <div class="formula-box">
+        구심력 = 중력 :&nbsp; m·v² / R = G·M·m / R² = m·g<br>
+        v<sub>orbit</sub> = √(g·R) = √(G·M / R)<br>
+        v<sub>escape</sub> = √(2·g·R) = √2 · v<sub>orbit</sub>
+      </div>
+
+      <!-- SVG 다이어그램: 발사 속도별 궤적 -->
+      <svg width="320" height="320" viewBox="0 0 320 320" role="img"
+        aria-label="지구 위 대포에서 속도별로 떨어지는 궤적, 충분히 빠르면 원궤도가 되는 다이어그램">
+        <circle cx="160" cy="170" r="90" fill="#bcd0e0" stroke="#2E4A62" stroke-width="2"/>
+        <!-- 대포 위치(북극 부근) -->
+        <circle cx="160" cy="80" r="4" fill="#1a1a1a"/>
+        <text x="168" y="78" font-size="10" fill="#1a1a1a">대포</text>
+        <!-- 추락(짧게 떨어짐) -->
+        <path d="M160,80 Q210,95 232,150" fill="none" stroke="#f87171" stroke-width="2"/>
+        <text x="236" y="150" font-size="10" fill="#f87171">추락</text>
+        <!-- 타원(더 멀리) -->
+        <path d="M160,80 Q280,100 270,210" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 3"/>
+        <text x="272" y="215" font-size="10" fill="#d97706">타원</text>
+        <!-- 원궤도 -->
+        <circle cx="160" cy="170" r="90" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="2 4"/>
+        <text x="120" y="270" font-size="10" fill="#16a34a">원궤도</text>
+        <!-- 발사 방향 화살표(수평) -->
+        <line x1="160" y1="80" x2="205" y2="80" stroke="#1a1a1a" stroke-width="1.5"/>
+        <polygon points="205,80 198,76 198,84" fill="#1a1a1a"/>
+        <text x="180" y="72" font-size="9" fill="#1a1a1a">v</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        같은 발사점, 같은 수평 방향. 속도만 다를 뿐인데 추락·타원·원궤도로 갈린다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "인공위성은 지구 중력이 닿지 않는 곳에 있어서 떨어지지 않는다"는 생각은
+        틀렸다. 저궤도(고도 ~400 km)에서도 중력은 지표의 약 89%로 거의 그대로 작용한다. 위성은 중력을 벗어난
+        것이 아니라 <em>끊임없이 자유낙하</em>하고 있다. 다만 수평 속도가 매우 빨라(약 7.7 km/s) 떨어지는 곡선이
+        지구의 곡률과 맞아떨어져 영원히 지면에 닿지 못할 뿐이다. 그래서 위성 안은 "무중력"이 아니라
+        <em>자유낙하 상태(무게가 느껴지지 않는 상태)</em>다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>인공위성이 지구로 떨어지지 않는(궤도를 도는) 이유로 가장 옳은 것은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 그 높이에는 지구 중력이 미치지 않기 때문</label>
+        <label><input type="radio" name="q1" value="wrong"> 원심력이 중력보다 커서 바깥으로 밀려나기 때문</label>
+        <label><input type="radio" name="q1" value="correct"> 계속 자유낙하하지만 수평 속도가 충분해 지구 곡률을 따라 돌기 때문</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>원궤도 속도가 v<sub>orbit</sub>일 때, 지구 중력을 벗어나기 위한 탈출속도 v<sub>escape</sub>는?</p>
+        <label><input type="radio" name="q2" value="wrong"> v<sub>orbit</sub> 와 같다</label>
+        <label><input type="radio" name="q2" value="correct"> √2 · v<sub>orbit</sub> (약 1.41배)</label>
+        <label><input type="radio" name="q2" value="wrong"> 2 · v<sub>orbit</sub> (정확히 2배)</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아이작 뉴턴 (Isaac Newton, 1643~1727)</h3>
+        <p>영국의 물리학자·수학자·천문학자로 고전역학의 체계를 완성했다. 운동의 세 법칙과 만유인력 법칙을
+        통해 사과의 낙하와 달의 공전, 행성의 운동을 하나의 법칙으로 설명했다. 미적분학을 독자적으로 창안했고,
+        빛과 색의 본성, 반사망원경 등 광학에서도 큰 업적을 남겼다.</p>
+        <p>대포 사고실험은 뉴턴의 유작 『세계의 체계(A Treatise of the System of the World)』에 실린 삽화로
+        널리 알려졌다. 높은 산 위에서 점점 빠르게 발사되는 포탄(V, D, E, F, G로 표기)이 결국 지구를 한 바퀴
+        도는 그림을 통해, 달이 지구를 도는 것과 포탄이 떨어지는 것이 <em>같은 원리</em>임을 직관적으로 보였다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1609~1619년 — 케플러, 행성 운동의 세 법칙을 관측으로 정리</li>
+          <li>1666년경 — 뉴턴, "기적의 해"에 중력과 운동에 관한 착상을 얻음(사과 일화)</li>
+          <li>1687년 — 『프린키피아(Principia)』 출간, 운동 법칙과 만유인력 법칙 발표</li>
+          <li>1728년 — 사후 출간된 『세계의 체계』에 대포 사고실험 삽화 수록</li>
+          <li>1957년 — 스푸트니크 1호 발사, 뉴턴의 사고실험이 실제 인공위성으로 실현</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 대포 사고실험은 "하늘의 운동"과 "땅의 운동"을 하나로 통합한 결정적
+        통찰이다. 천체는 신성한 별개의 법칙을 따른다는 고대의 믿음을 깨고, 달의 공전조차 포탄의 낙하와 같은
+        만유인력으로 설명된다는 것을 보였다. 이 발상은 270년 뒤 인공위성과 우주 비행으로 실현되었고,
+        근대 천체역학과 우주공학의 출발점이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리/모형 상수 -----
+      // 화면 좌표계: 지구 중심을 캔버스 중앙에 두고, 픽셀 단위로 중력 적분.
+      // 실제 km/s 값은 라벨용으로만 사용하고, 내부 적분은 픽셀 단위 자체 스케일로 동작한다.
+      const W = 520, H = 520;
+      const CX = W / 2, CY = H / 2;     // 지구 중심(px)
+      const R_EARTH = 150;              // 지구 반지름(px)
+      const LAUNCH_ALT = 28;            // 산(대포) 높이(px)
+      const R_LAUNCH = R_EARTH + LAUNCH_ALT; // 발사 지점까지 거리(px)
+
+      // 중력 모형: a = MU / r^2 (지구 중심을 향함). MU는 임의 스케일.
+      const MU = 90000;                 // 중력 매개변수(px^3/step^2 스케일)
+      // 발사 지점(r = R_LAUNCH)에서의 원궤도 속도(px/step): v = sqrt(MU / r)
+      const V_ORBIT_PX = Math.sqrt(MU / R_LAUNCH);
+      const V_ESCAPE_PX = Math.SQRT2 * V_ORBIT_PX;
+
+      // 실제 단위(라벨용): v_orbit ≈ 7.91 km/s 로 환산
+      const V_ORBIT_KMS = 7.91;
+      const PX_TO_KMS = V_ORBIT_KMS / V_ORBIT_PX; // px/step -> km/s 환산 계수
+
+      // 슬라이더는 km/s(모형값)로 다룬다.
+      const V_ESCAPE_KMS = Math.SQRT2 * V_ORBIT_KMS; // ≈ 11.18
+
+      // ----- 상태 -----
+      const state = {
+        speedKms: 5.6,    // 슬라이더 값(모형 km/s)
+        flying: false,
+        pos: null,        // {x, y}
+        vel: null,        // {x, y}
+        trail: [],        // 잔상 좌표 배열
+        escaped: false,
+        crashed: false,
+        orbited: false,   // 한 바퀴 이상 돌았는지
+        angleAccum: 0,    // 누적 회전각(라디안)
+        prevAngle: 0
+      };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const speedSlider = document.getElementById('speed');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+      const fireBtn = document.getElementById('fireBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 분류: 발사 속도 -> 결과 종류 -----
+      // ratio = v / v_orbit (발사 지점 기준)
+      //  ratio < ~0.95 : 근지점이 지표 아래 -> 추락
+      //  ~0.95 <= ratio < ~1.05 : 원궤도
+      //  ~1.05 <= ratio < sqrt(2) : 타원궤도
+      //  ratio >= sqrt(2) : 탈출
+      function classify(ratio) {
+        if (ratio >= Math.SQRT2 - 1e-6) return { key: 'escape', label: '탈출', color: '#60a5fa' };
+        if (ratio < 0.95) return { key: 'crash', label: '추락', color: '#f87171' };
+        if (ratio <= 1.05) return { key: 'circle', label: '원궤도', color: '#34d399' };
+        return { key: 'ellipse', label: '타원궤도', color: '#fbbf24' };
+      }
+
+      function currentRatio() {
+        return state.speedKms / V_ORBIT_KMS;
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const ratio = currentRatio();
+        const cls = classify(ratio);
+        document.getElementById('speed-val').textContent = state.speedKms.toFixed(2);
+        document.getElementById('ratio-val').textContent = ratio.toFixed(2);
+        document.getElementById('r-speed').textContent = state.speedKms.toFixed(2);
+        document.getElementById('r-ratio').textContent = ratio.toFixed(2);
+        document.getElementById('r-vorb').textContent = V_ORBIT_KMS.toFixed(2);
+        document.getElementById('r-vesc').textContent = V_ESCAPE_KMS.toFixed(2);
+        const badge = document.getElementById('r-class');
+        badge.textContent = cls.label;
+        badge.style.background = cls.color;
+      }
+
+      // ----- 발사 초기화: 발사 지점 = 지구 위쪽(북극), 발사 방향 = 오른쪽(수평) -----
+      function initProjectile() {
+        const speedPx = state.speedKms / PX_TO_KMS; // 모형 km/s -> px/step
+        state.pos = { x: CX, y: CY - R_LAUNCH };    // 북극 위 대포
+        state.vel = { x: speedPx, y: 0 };           // 수평(오른쪽)
+        state.trail = [{ x: state.pos.x, y: state.pos.y }];
+        state.escaped = false;
+        state.crashed = false;
+        state.orbited = false;
+        state.angleAccum = 0;
+        state.prevAngle = Math.atan2(state.pos.y - CY, state.pos.x - CX);
+      }
+
+      // ----- 한 스텝 물리 적분(준-심플렉틱: 속도 먼저 갱신) -----
+      function stepPhysics(dt) {
+        const dx = state.pos.x - CX;
+        const dy = state.pos.y - CY;
+        const r2 = dx * dx + dy * dy;
+        const r = Math.sqrt(r2);
+        // 중력 가속도(지구 중심 방향)
+        const aMag = MU / r2;
+        const ax = -aMag * (dx / r);
+        const ay = -aMag * (dy / r);
+        // 속도 갱신
+        state.vel.x += ax * dt;
+        state.vel.y += ay * dt;
+        // 위치 갱신
+        state.pos.x += state.vel.x * dt;
+        state.pos.y += state.vel.y * dt;
+      }
+
+      // ----- 누적 회전각 갱신(한 바퀴 감지용) -----
+      function updateAngle() {
+        const a = Math.atan2(state.pos.y - CY, state.pos.x - CX);
+        let d = a - state.prevAngle;
+        if (d > Math.PI) d -= 2 * Math.PI;
+        if (d < -Math.PI) d += 2 * Math.PI;
+        state.angleAccum += Math.abs(d);
+        state.prevAngle = a;
+        if (state.angleAccum >= 2 * Math.PI) state.orbited = true;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // 우주 배경 별
+        drawStars();
+
+        // 지구
+        const grad = ctx.createRadialGradient(CX - 40, CY - 40, 30, CX, CY, R_EARTH);
+        grad.addColorStop(0, '#5b8fb0');
+        grad.addColorStop(1, '#1f3a4d');
+        ctx.beginPath();
+        ctx.arc(CX, CY, R_EARTH, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#2E4A62';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 대포(산) 위치: 북극
+        const mx = CX, my = CY - R_EARTH;
+        ctx.beginPath();
+        ctx.moveTo(mx - 10, my);
+        ctx.lineTo(mx, my - LAUNCH_ALT);
+        ctx.lineTo(mx + 10, my);
+        ctx.closePath();
+        ctx.fillStyle = '#6b5b4d';
+        ctx.fill();
+        // 대포 포신
+        ctx.beginPath();
+        ctx.arc(mx, my - LAUNCH_ALT, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#111';
+        ctx.fill();
+
+        // 잔상(궤적)
+        if (state.trail.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(state.trail[0].x, state.trail[0].y);
+          for (let i = 1; i < state.trail.length; i++) {
+            ctx.lineTo(state.trail[i].x, state.trail[i].y);
+          }
+          const cls = classify(currentRatio());
+          ctx.strokeStyle = cls.color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // 포탄
+        if (state.pos) {
+          ctx.beginPath();
+          ctx.arc(state.pos.x, state.pos.y, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // 상태 텍스트
+        ctx.fillStyle = '#e5e7eb';
+        ctx.font = '13px sans-serif';
+        const ratio = currentRatio();
+        ctx.fillText('v = ' + state.speedKms.toFixed(2) + ' km/s  (v/v_orbit = ' + ratio.toFixed(2) + ')', 14, 24);
+        if (state.crashed) {
+          ctx.fillStyle = '#f87171';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.fillText('지면 충돌 — 추락!', 14, 48);
+        } else if (state.escaped) {
+          ctx.fillStyle = '#60a5fa';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.fillText('지구를 벗어남 — 탈출!', 14, 48);
+        } else if (state.orbited) {
+          ctx.fillStyle = '#34d399';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.fillText('궤도 진입 — 한 바퀴 완주!', 14, 48);
+        }
+      }
+
+      // 고정된 별 배경(좌표 캐시)
+      let starCache = null;
+      function drawStars() {
+        if (!starCache) {
+          starCache = [];
+          let seed = 12345;
+          const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+          for (let i = 0; i < 70; i++) {
+            starCache.push({ x: rnd() * W, y: rnd() * H, r: rnd() * 1.2 + 0.3 });
+          }
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        starCache.forEach((s) => {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // ----- 애니메이션 루프 -----
+      const DT = 0.9;              // 적분 시간 간격(스텝)
+      const STEPS_PER_FRAME = 4;   // 프레임당 적분 횟수(부드러움/속도)
+      const MAX_TRAIL = 4000;      // 잔상 최대 길이(타원 한 바퀴를 모두 담도록 충분히 크게)
+
+      // 비역학적 에너지 판정: E = v^2/2 - MU/r.
+      //  E >= 0 이면 속박되지 않은(열린) 궤도 = 탈출, E < 0 이면 속박된(닫힌) 궤도 = 타원/원.
+      function specificEnergy() {
+        const dx = state.pos.x - CX, dy = state.pos.y - CY;
+        const r = Math.sqrt(dx * dx + dy * dy);
+        const v2 = state.vel.x * state.vel.x + state.vel.y * state.vel.y;
+        return 0.5 * v2 - MU / r;
+      }
+
+      function frame() {
+        if (!state.flying) return;
+
+        for (let i = 0; i < STEPS_PER_FRAME; i++) {
+          stepPhysics(DT);
+          updateAngle();
+
+          const dx = state.pos.x - CX, dy = state.pos.y - CY;
+          const r = Math.sqrt(dx * dx + dy * dy);
+
+          // 충돌 검사(지면)
+          if (r <= R_EARTH + 1.5) {
+            // 표면 위로 살짝 보정
+            const k = (R_EARTH + 1.5) / r;
+            state.pos.x = CX + dx * k;
+            state.pos.y = CY + dy * k;
+            state.crashed = true;
+            state.flying = false;
+            break;
+          }
+
+          // 잔상 기록
+          state.trail.push({ x: state.pos.x, y: state.pos.y });
+          if (state.trail.length > MAX_TRAIL) state.trail.shift();
+
+          // 탈출 검사(에너지 기준): 속박되지 않은 궤도이며 바깥으로 멀어지는 중이면 탈출.
+          // 닫힌 타원은 근지점 부근에서 일시적으로 멀어져도 E<0 이므로 탈출로 오판하지 않는다.
+          const radialV = (state.vel.x * dx + state.vel.y * dy) / r; // 동경방향 속도
+          if (specificEnergy() >= 0 && radialV > 0 && r > R_EARTH * 1.4) {
+            state.escaped = true;
+            state.flying = false;
+            break;
+          }
+
+          // 속박된 궤도(타원/원)는 한 바퀴를 완주하면 멈춘다.
+          if (state.orbited) {
+            state.flying = false;
+            break;
+          }
+
+          // 화면 밖 한참까지 가면(수치 안전망) 정지
+          if (r > Math.max(W, H) * 1.6) {
+            state.escaped = true;
+            state.flying = false;
+            break;
+          }
+        }
+
+        draw();
+        if (state.flying) requestAnimationFrame(frame);
+        else draw();
+      }
+
+      function fire() {
+        initProjectile();
+        state.flying = true;
+        requestAnimationFrame(frame);
+      }
+
+      function resetSim() {
+        state.flying = false;
+        state.pos = null;
+        state.vel = null;
+        state.trail = [];
+        state.escaped = false;
+        state.crashed = false;
+        state.orbited = false;
+        draw();
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      speedSlider.addEventListener('input', () => {
+        state.speedKms = Number(speedSlider.value);
+        state.flying = false; // 슬라이더 조정 시 비행 중지
+        updateResult();
+        draw();
+      });
+
+      // 프리셋 버튼: 대표 속도로 설정
+      const PRESETS = {
+        under: 5.2,                      // 추락
+        circle: V_ORBIT_KMS,             // 원궤도 ≈ 7.91
+        ellipse: 9.4,                    // 타원
+        escape: V_ESCAPE_KMS + 0.4       // 탈출 ≈ 11.6
+      };
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const v = PRESETS[btn.dataset.mode];
+          state.speedKms = Math.min(13, Math.max(1, v));
+          speedSlider.value = state.speedKms.toFixed(2);
+          state.flying = false;
+          updateResult();
+          draw();
+        });
+      });
+
+      fireBtn.addEventListener('click', fire);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '위성은 끊임없이 자유낙하하지만 수평 속도가 충분해 떨어지는 곡선이 지구 곡률과 맞아떨어집니다.',
+        '위성은 중력을 벗어난 것도, 원심력에 밀려난 것도 아닙니다. 계속 떨어지면서 지구를 비껴 도는 것입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'v_escape = √(2·g·R) = √2 · v_orbit ≈ 1.41배 입니다.',
+        '에너지 보존으로 유도하면 v_escape = √2 · v_orbit 입니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

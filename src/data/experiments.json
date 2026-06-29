@@ -123,7 +123,7 @@
         "평형",
         "역학적 이득"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 4,
@@ -142,7 +142,7 @@
         "역행운동",
         "태양중심설"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 5,
@@ -161,7 +161,7 @@
         "행성운동",
         "공전주기"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 6,
@@ -199,7 +199,7 @@
         "운동학",
         "갈릴레오"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 8,
@@ -218,7 +218,7 @@
         "천문 관측",
         "갈릴레이 위성"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 9,
@@ -256,7 +256,7 @@
         "포물선",
         "만유인력"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 11,
@@ -275,7 +275,7 @@
         "질량",
         "행성 운동"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 12,

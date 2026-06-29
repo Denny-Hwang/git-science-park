@@ -44,15 +44,24 @@
   - `02-scientific-revolution/05-newton-prism` — 뉴턴의 프리즘 분광 (입사각·꼭지각·분산으로 백색광이 무지개로 분해, 빨강/보라 분산각 표시).
   - `03-precision-era/05-young-double-slit` — 영의 이중 슬릿 (파장·슬릿 간격·스크린 거리로 간섭무늬와 무늬 간격 Δy 계산).
   - 각 페이지: Canvas 시뮬레이션, 실시간 결과(result-box), 공식·SVG 다이어그램·퀴즈, 연표·과학사적 의의 포함. Zero Dependencies 단일 HTML.
+- **Phase 2 실험 7종 추가** (ROADMAP Phase 2 — `01-ancient`·`02-scientific-revolution` 카테고리 완성) — 동일한 3탭·Canvas 규격:
+  - `01-ancient/03-archimedes-lever` — 아르키메데스의 지레 원리 (토크 평형 F₁d₁=F₂d₂, 역학적 이득).
+  - `01-ancient/04-ptolemy-copernicus` — 천동설 vs 지동설 (주전원 vs 태양중심으로 화성 역행 비교, 순행/역행 판정).
+  - `02-scientific-revolution/01-kepler` — 케플러의 행성 운동 법칙 (타원·면적속도 일정·T²∝a³).
+  - `02-scientific-revolution/03-galileo-incline` — 갈릴레오의 경사면 실험 (a=g·sinθ, 거리비 1:3:5:7).
+  - `02-scientific-revolution/04-galileo-telescope` — 갈릴레오의 망원경 관측 (배율 M=f_대물/f_접안, 목성 4대 위성).
+  - `02-scientific-revolution/06-newton-cannon` — 뉴턴의 대포 사고실험 (발사 속도 → 추락/원궤도/타원/탈출).
+  - `02-scientific-revolution/07-newton-gravitation` — 뉴턴의 만유인력 법칙 (F=G·m₁m₂/r², 역제곱).
+- 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 전 페이지의 탭 전환·슬라이더 반응·콘솔 에러를 자동 점검.
 
 ### Changed
 
-- `src/data/experiments.json`: 위 5개 실험(id 1·2·6·9·16)의 `status`를 `planned` → `ready`로 전환.
-- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 48개는 "준비중" 비활성 유지).
+- `src/data/experiments.json`: 구현 완료한 12개 실험(id 1–11, 16)의 `status`를 `ready`로 전환 — `01-ancient`(4/4)·`02-scientific-revolution`(7/7) 카테고리 100% 완료.
+- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 41개는 "준비중" 비활성 유지).
 
 ### 예정 (Planned)
 
-- 남은 48개 실험의 인터랙티브 페이지 단계적 구현 (ROADMAP 참조).
+- 남은 41개 실험의 인터랙티브 페이지 단계적 구현 (ROADMAP Phase 3 이후).
 - Canvas 공통 유틸리티·레이아웃 셸(shell) 추출로 중복 축소.
 
 ---

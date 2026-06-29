@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>갈릴레오의 망원경 관측 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #07101c; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .moon-tags { margin-top: 8px; font-size: 0.95rem; }
+    .moon-tags .mtag { display: inline-block; padding: 2px 8px; border-radius: 6px; margin: 2px 4px 2px 0; color: #fff; font-size: 0.85rem; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>갈릴레오의 망원경 관측</h1>
+    <div class="en">Galileo's Telescope</div>
+    <div class="meta">1609년 · 갈릴레오 갈릴레이 (Galileo Galilei) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="망원경으로 본 목성과 그 둘레를 공전하는 4대 위성, 그리고 지구에서의 겉보기 일렬 배치 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="fobj">대물렌즈 초점거리 f<sub>obj</sub>: <span id="fobj-val">100</span> cm</label>
+          <input type="range" id="fobj" min="20" max="200" step="1" value="100"
+            aria-describedby="fobj-val">
+        </div>
+
+        <div class="control-row">
+          <label for="feye">접안렌즈 초점거리 f<sub>eye</sub>: <span id="feye-val">5.0</span> cm</label>
+          <input type="range" id="feye" min="1" max="20" step="0.1" value="5.0"
+            aria-describedby="feye-val">
+        </div>
+
+        <div class="control-row">
+          <label for="day">관측 시각 (일): <span id="day-val">0.0</span> 일째</label>
+          <input type="range" id="day" min="0" max="28" step="0.05" value="0"
+            aria-describedby="day-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>배율 M = f<sub>obj</sub> / f<sub>eye</sub>: <strong id="r-mag">—</strong></div>
+          <div>현재 시각: <strong id="r-day">0.0 일째</strong></div>
+        </div>
+        <div class="moon-tags" id="r-arrangement">
+          겉보기 배치: <span id="r-line">—</span>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 4개의 위성(이오·유로파·가니메데·칼리스토)이 각자 다른 주기로
+        목성 둘레를 공전합니다. 위에서 본 궤도(왼쪽)와, 지구에서 본 겉보기 위치(목성 양옆의 작은 점들)를
+        비교하세요. 위성들이 <em>목성을 중심으로</em> 좌우로 진동하며 매일 배치가 바뀝니다.
+        이것은 곧 <strong>지구가 아닌 천체(목성)를 도는 위성이 존재함</strong>을 뜻하며,
+        모든 것이 지구를 돈다는 천동설을 정면으로 반박하는 증거입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>굴절망원경의 배율이 두 렌즈의 초점거리 비 M = f<sub>obj</sub> / f<sub>eye</sub> 로 정해짐을 이해한다.</li>
+        <li>목성의 4대 위성이 서로 다른 주기로 공전함을 관측으로 확인한다.</li>
+        <li>지구에서는 궤도를 옆에서 보므로 위성이 목성 양옆으로 일렬로 진동해 보임을 설명한다.</li>
+        <li>"목성을 도는 천체"의 발견이 천동설을 어떻게 반박하는지 논증한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념 1 — 망원경 배율</h3>
+        <p>갈릴레오가 만든 굴절망원경은 빛을 모으는 <em>대물렌즈</em>와 눈으로 보는 <em>접안렌즈</em>로
+        이루어진다. 멀리 있는 천체를 확대해 보는 각배율은 두 렌즈의 초점거리 비로 결정된다.
+        대물렌즈의 초점거리 f<sub>obj</sub> 가 길고 접안렌즈의 초점거리 f<sub>eye</sub> 가 짧을수록 배율이 커진다.</p>
+        <h3 style="margin-top:10px;">핵심 개념 2 — 목성의 위성</h3>
+        <p>이오·유로파·가니메데·칼리스토는 각각 약 1.8 / 3.6 / 7.2 / 16.7 일의 주기로 목성 둘레를 공전한다.
+        우리는 이 궤도를 거의 옆(평면)에서 보기 때문에, 원운동이 <em>수평축에 투영되어</em> 위성들이 목성
+        양옆으로 늘어선 채 좌우로 진동하는 것처럼 보인다. 그래서 밤마다 위성의 줄 배치가 달라진다.</p>
+      </div>
+
+      <div class="formula-box">
+        M = f<sub>obj</sub> / f<sub>eye</sub><br>
+        x<sub>겉보기</sub> = a · sin( 2π · t / T )
+      </div>
+
+      <!-- SVG 다이어그램: 위에서 본 궤도 → 지구에서의 겉보기 투영 -->
+      <svg width="380" height="200" viewBox="0 0 380 200" role="img"
+        aria-label="위에서 본 위성 궤도가 지구 방향으로 투영되어 목성 양옆 일렬 위치로 보이는 다이어그램">
+        <!-- 위에서 본 궤도 (왼쪽) -->
+        <ellipse cx="95" cy="95" rx="62" ry="62" fill="none" stroke="#3f6589" stroke-width="1.5"/>
+        <ellipse cx="95" cy="95" rx="40" ry="40" fill="none" stroke="#3f6589" stroke-width="1.2" opacity="0.7"/>
+        <circle cx="95" cy="95" r="11" fill="#c98a3a"/>
+        <circle cx="157" cy="95" r="5" fill="#e5e7eb" stroke="#3f6589"/>
+        <circle cx="95" cy="55" r="4" fill="#e5e7eb" stroke="#3f6589"/>
+        <text x="58" y="22" font-size="11" fill="#374151">위에서 본 궤도</text>
+        <!-- 투영 화살표 (아래쪽 = 지구 방향) -->
+        <line x1="95" y1="160" x2="95" y2="185" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="40" y="180" font-size="10" fill="#6b7280">지구에서 보는 방향</text>
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#9ca3af"/>
+          </marker>
+        </defs>
+        <!-- 지구에서의 겉보기 (오른쪽): 목성 + 양옆 점들 -->
+        <line x1="230" y1="95" x2="365" y2="95" stroke="#374151" stroke-width="1" stroke-dasharray="4 3"/>
+        <circle cx="300" cy="95" r="11" fill="#c98a3a"/>
+        <circle cx="340" cy="95" r="4" fill="#fff"/>
+        <circle cx="262" cy="95" r="3.5" fill="#fff"/>
+        <text x="232" y="22" font-size="11" fill="#374151">지구에서 본 겉보기</text>
+        <text x="252" y="125" font-size="10" fill="#6b7280">목성 양옆 일렬</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        원궤도(왼쪽)를 옆에서 보면, 위성은 목성을 중심으로 양옆으로 진동하는 점(오른쪽)으로 나타난다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "망원경 배율은 무조건 높을수록 좋다"고 생각하기 쉽다.
+        실제로는 배율을 높이면 시야가 좁아지고 상이 어두워지며 손떨림·대기 흔들림이 함께 확대되어
+        오히려 흐려진다. 또한 "위성이 목성에서 멀어졌다 가까워졌다 한다"기보다는, <em>원궤도를 옆에서 보아
+        좌우 진동처럼 보이는 것</em>이 정확한 해석이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>대물렌즈 초점거리 100 cm, 접안렌즈 초점거리 5 cm인 굴절망원경의 배율 M은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 5배</label>
+        <label><input type="radio" name="q1" value="correct"> 20배</label>
+        <label><input type="radio" name="q1" value="wrong"> 100배</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>목성의 위성 발견이 천동설(지구중심설)에 준 충격은 무엇인가?</p>
+        <label><input type="radio" name="q2" value="wrong"> 지구가 태양보다 크다는 것을 보였다</label>
+        <label><input type="radio" name="q2" value="correct"> 지구가 아닌 천체(목성)를 도는 천체가 있음을 보여 천동설을 약화시켰다</label>
+        <label><input type="radio" name="q2" value="wrong"> 모든 행성이 정확한 원궤도를 돈다는 것을 증명했다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 갈릴레오 갈릴레이 (Galileo Galilei, 1564~1642)</h3>
+        <p>이탈리아 피사 출신의 물리학자·천문학자·수학자로 "근대 과학의 아버지"라 불린다.
+        1609년 네덜란드에서 발명된 망원경 소식을 듣고 직접 성능을 개량해 약 20배까지 확대되는
+        굴절망원경을 제작했으며, 이를 하늘로 향한 최초의 본격적 관측자가 되었다.</p>
+        <p>1610년 1월, 목성 곁에서 일렬로 늘어선 작은 별 같은 점들이 밤마다 위치를 바꾸는 것을 관측하고,
+        이들이 목성을 공전하는 위성임을 알아냈다. 이 네 위성은 오늘날 "갈릴레이 위성"으로 불린다.
+        같은 해 관측 결과를 『별의 전령(Sidereus Nuncius)』으로 발표했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>2세기 — 프톨레마이오스, 모든 천체가 지구를 돈다는 천동설을 집대성</li>
+          <li>1543년 — 코페르니쿠스, 태양중심설(지동설)을 담은 『천구의 회전에 관하여』 출간</li>
+          <li>1608년 — 네덜란드에서 망원경(스파이글라스) 발명</li>
+          <li>1609년 — 갈릴레오, 망원경을 개량·제작하여 천체 관측 시작</li>
+          <li>1610년 1월 — 목성의 4대 위성 발견, 3월 『별의 전령』 출간</li>
+          <li>1633년 — 종교재판에서 지동설 옹호로 유죄 판결, 가택연금</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 목성을 도는 위성의 발견은 "모든 천체는 지구를 중심으로 돈다"는
+        천동설의 핵심 전제를 직접 무너뜨린 결정적 관측 증거였다. 지구 이외의 천체도 자신만의 위성을
+        거느릴 수 있음을 보임으로써 코페르니쿠스의 태양중심설에 강력한 힘을 실어 주었고, 권위(아리스토텔레스·
+        프톨레마이오스)가 아닌 망원경 관측이 진리의 기준이 되는 과학혁명의 상징적 사건이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 갈릴레이 위성 데이터 (이름, 공전주기[일], 궤도 반지름[상대], 색) -----
+      // 주기/반지름은 실제 비율을 단순화한 교육용 값.
+      const MOONS = [
+        { name: '이오',     T: 1.77,  a: 0.42, color: '#f6c453' },
+        { name: '유로파',   T: 3.55,  a: 0.55, color: '#9fd3ff' },
+        { name: '가니메데', T: 7.15,  a: 0.74, color: '#cdbfa6' },
+        { name: '칼리스토', T: 16.69, a: 1.00, color: '#b08d57' }
+      ];
+
+      // ----- 상태 -----
+      const state = {
+        fobj: 100,   // cm
+        feye: 5.0,   // cm
+        day: 0,      // 관측 시각(일)
+        running: false,
+        lastTs: null
+      };
+
+      const DAY_MAX = 28;
+      const TIME_SCALE = 1.5; // 1초당 진행되는 "일"
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const fobjSlider = document.getElementById('fobj');
+      const feyeSlider = document.getElementById('feye');
+      const daySlider = document.getElementById('day');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리/기하 모델 -----
+      function magnification() {
+        return state.fobj / state.feye;
+      }
+      // 위성의 궤도 위상 각도(라디안). t=0 에서 위상을 조금씩 다르게 두어 겹치지 않게.
+      function phase(i, t) {
+        const m = MOONS[i];
+        return 2 * Math.PI * (t / m.T) + (i * Math.PI / 3);
+      }
+      // 위에서 본 위치(궤도 평면): x = a cos, y(깊이) = a sin
+      // 지구에서의 겉보기 = 수평축 투영 = a * cos(phase)
+      function apparentX(i, t) {
+        return MOONS[i].a * Math.cos(phase(i, t));
+      }
+      function orbitDepth(i, t) {
+        return MOONS[i].a * Math.sin(phase(i, t)); // +면 목성 뒤쪽
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경(밤하늘) + 별
+        ctx.fillStyle = '#07101c';
+        ctx.fillRect(0, 0, W, H);
+        drawStars(W, H);
+
+        const M = magnification();
+        // 배율에 따른 확대(시각화 스케일). 20배를 기준으로 ±.
+        const zoom = Math.max(0.45, Math.min(2.2, M / 20));
+
+        // --- 영역 1: 위에서 본 궤도 (상단) ---
+        const topCx = W / 2, topCy = 132;
+        ctx.save();
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#9fb3c8';
+        ctx.fillText('위에서 본 궤도 (배율 ×' + M.toFixed(1) + ')', 12, 20);
+
+        // 궤도 + 위성(위에서 본 모습)
+        const orbScale = 78 * zoom * 0.55; // 상단 궤도 시각 스케일
+        for (let i = MOONS.length - 1; i >= 0; i--) {
+          const m = MOONS[i];
+          // 궤도 원
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(120,150,180,0.35)';
+          ctx.lineWidth = 1;
+          ctx.arc(topCx, topCy, m.a * orbScale, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        // 목성(상단)
+        drawJupiter(topCx, topCy, 13 * zoom);
+        // 위성(상단, 위에서 본 실제 위치)
+        for (let i = 0; i < MOONS.length; i++) {
+          const m = MOONS[i];
+          const ph = phase(i, state.day);
+          const mx = topCx + m.a * orbScale * Math.cos(ph);
+          const my = topCy + m.a * orbScale * Math.sin(ph) * 0.5; // 약간 기울여 보기
+          ctx.beginPath();
+          ctx.fillStyle = m.color;
+          ctx.arc(mx, my, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        // --- 영역 2: 지구에서 본 겉보기 (하단, 망원경 시야) ---
+        const eyeCy = 320;
+        // 망원경 원형 시야
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(W / 2, eyeCy, 92, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.fillStyle = '#0a1726';
+        ctx.fillRect(0, eyeCy - 100, W, 200);
+
+        ctx.fillStyle = '#9fb3c8';
+        ctx.font = '12px sans-serif';
+
+        // 겉보기 수평 기준선
+        ctx.strokeStyle = 'rgba(150,170,200,0.25)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(W / 2 - 88, eyeCy); ctx.lineTo(W / 2 + 88, eyeCy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 목성(하단 중앙)
+        const appScale = 80 * zoom;
+        drawJupiter(W / 2, eyeCy, 13 * zoom);
+
+        // 위성: 수평축 투영 위치에 점 (깊이에 따라 크기/밝기 살짝 변화)
+        for (let i = 0; i < MOONS.length; i++) {
+          const m = MOONS[i];
+          const ax = apparentX(i, state.day);          // -a..a
+          const depth = orbitDepth(i, state.day);      // -a..a
+          const px = W / 2 + ax * appScale;
+          // 목성 앞(가까움)이면 살짝 크게
+          const r = 3 + (1 - (depth + 1) / 2) * 1.6;
+          ctx.beginPath();
+          ctx.fillStyle = m.color;
+          ctx.globalAlpha = 0.85;
+          ctx.arc(px, eyeCy, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        ctx.restore();
+
+        // 시야 테두리
+        ctx.beginPath();
+        ctx.arc(W / 2, eyeCy, 92, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(180,200,220,0.5)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        ctx.fillStyle = '#9fb3c8';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('지구에서 본 겉보기 (망원경 시야)', 12, eyeCy - 104);
+        ctx.fillStyle = '#cdd9e5';
+        ctx.fillText('t = ' + state.day.toFixed(1) + ' 일째', W - 110, eyeCy - 104);
+      }
+
+      // 배경 별 (고정 시드로 깜빡임 없이)
+      const starSeed = [];
+      (function buildStars() {
+        let s = 12345;
+        function rnd() { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }
+        for (let k = 0; k < 60; k++) starSeed.push([rnd(), rnd(), rnd()]);
+      })();
+      function drawStars(W, H) {
+        ctx.fillStyle = '#dfe8f2';
+        for (const [rx, ry, rr] of starSeed) {
+          ctx.globalAlpha = 0.4 + rr * 0.5;
+          ctx.beginPath();
+          ctx.arc(rx * W, ry * H, rr * 1.3 + 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function drawJupiter(cx, cy, r) {
+        const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.2, cx, cy, r);
+        grad.addColorStop(0, '#e9c98f');
+        grad.addColorStop(1, '#b88a4a');
+        ctx.beginPath();
+        ctx.fillStyle = grad;
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        // 줄무늬
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.strokeStyle = 'rgba(120,80,40,0.35)';
+        ctx.lineWidth = Math.max(1, r * 0.12);
+        for (let k = -2; k <= 2; k++) {
+          ctx.beginPath();
+          ctx.moveTo(cx - r, cy + k * r * 0.4);
+          ctx.lineTo(cx + r, cy + k * r * 0.4);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const M = magnification();
+        document.getElementById('r-mag').textContent = '×' + M.toFixed(1);
+        document.getElementById('r-day').textContent = state.day.toFixed(1) + ' 일째';
+        updateArrangement();
+      }
+
+      // 겉보기 배치를 왼쪽→오른쪽 순서로 텍스트화 (목성 기준 동/서)
+      function updateArrangement() {
+        const items = MOONS.map((m, i) => ({
+          name: m.name, color: m.color, x: apparentX(i, state.day)
+        }));
+        items.push({ name: '목성', color: '#c98a3a', x: 0, isJ: true });
+        items.sort((a, b) => a.x - b.x); // 왼(서)→오(동)
+        const wrap = document.getElementById('r-line');
+        wrap.innerHTML = '';
+        items.forEach((it) => {
+          const span = document.createElement('span');
+          span.className = 'mtag';
+          span.style.background = it.isJ ? '#2E4A62' : it.color;
+          span.style.color = (it.color === '#f6c453' || it.color === '#9fd3ff') && !it.isJ ? '#1a1a1a' : '#fff';
+          span.textContent = it.name;
+          wrap.appendChild(span);
+        });
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      fobjSlider.addEventListener('input', () => {
+        state.fobj = Number(fobjSlider.value);
+        document.getElementById('fobj-val').textContent = state.fobj;
+        updateResult();
+        draw();
+      });
+      feyeSlider.addEventListener('input', () => {
+        state.feye = Number(feyeSlider.value);
+        document.getElementById('feye-val').textContent = state.feye.toFixed(1);
+        updateResult();
+        draw();
+      });
+      daySlider.addEventListener('input', () => {
+        state.day = Number(daySlider.value);
+        document.getElementById('day-val').textContent = state.day.toFixed(1);
+        updateResult();
+        draw();
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        state.day += dt * TIME_SCALE;
+        if (state.day >= DAY_MAX) state.day -= DAY_MAX; // 순환
+
+        daySlider.value = state.day.toFixed(2);
+        document.getElementById('day-val').textContent = state.day.toFixed(1);
+        updateResult();
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() { state.running = false; }
+      function resetSim() {
+        state.running = false;
+        state.day = 0;
+        state.lastTs = null;
+        daySlider.value = 0;
+        document.getElementById('day-val').textContent = '0.0';
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'M = f_obj / f_eye = 100 / 5 = 20배 입니다.',
+        '배율은 대물렌즈 초점거리를 접안렌즈 초점거리로 나눈 값입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '지구가 아닌 목성을 도는 위성이 있으므로, 모든 천체가 지구를 돈다는 천동설이 무너집니다.',
+        '핵심은 "지구가 아닌 천체(목성)를 도는 천체"의 존재입니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>갈릴레오의 경사면 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #eef3f7; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .ratio-box {
+      margin-top: 10px; padding-top: 10px; border-top: 1px dashed #c7d2dc;
+      font-size: 0.95rem;
+    }
+    .ratio-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>갈릴레오의 경사면 실험</h1>
+    <div class="en">Galileo's Inclined Plane</div>
+    <div class="meta">1604년경 · 갈릴레오 갈릴레이 (Galileo Galilei) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="420" role="img"
+        aria-label="경사면을 굴러 내려가는 공과 같은 시간 간격마다 찍히는 위치 마커를 보여주는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="angle">경사각 θ: <span id="angle-val">30</span>°</label>
+          <input type="range" id="angle" min="5" max="45" step="1" value="30"
+            aria-describedby="angle-val">
+        </div>
+
+        <div class="control-row">
+          <label>중력가속도 g: <span id="g-val">9.80</span> m/s²</label>
+          <div class="btn-row" role="group" aria-label="중력가속도 프리셋">
+            <button type="button" class="btn preset active" data-g="9.8">🌍 지구 9.8</button>
+            <button type="button" class="btn preset" data-g="1.62">🌕 달 1.62</button>
+            <button type="button" class="btn preset" data-g="3.7">🔴 화성 3.7</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="showMarkers" checked>
+            <label for="showMarkers">시간 간격(0.5초) 마커 표시 — 거리 비 1:3:5:7 확인</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>가속도 a = g·sinθ: <strong id="r-accel">—</strong></div>
+          <div>경사면 길이 L: <strong id="r-len">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>경과 시간 t: <strong id="r-elapsed">0.00 s</strong></div>
+          <div>현재 속도 v: <strong id="r-curvel">0.00 m/s</strong></div>
+          <div>이동 거리 s: <strong id="r-dist">0.00 m</strong></div>
+        </div>
+        <div class="ratio-box">
+          0.5초 구간별 이동 거리(홀수 비):
+          <strong id="r-ratio">—</strong>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 마커는 매 <strong>0.5초</strong>마다 공의 위치에 찍힙니다.
+        마커 사이 간격(구간별 이동 거리)이 <strong>1 : 3 : 5 : 7 …</strong> 홀수 비로 점점 벌어지는 것을
+        확인하세요. 누적 거리는 <strong>1 : 4 : 9 : 16</strong>(제곱 비)이 됩니다.
+        경사각 θ를 키우면 가속도 a = g·sinθ가 커져 공이 더 빨리 굴러 내려갑니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>마찰을 무시한 경사면의 가속도가 a = g·sinθ 임을 이해한다.</li>
+        <li>등가속도 운동에서 이동 거리가 시간의 제곱에 비례함(s = ½at²)을 익힌다.</li>
+        <li>같은 시간 간격의 구간 거리 비가 홀수(1:3:5:7…)임을 발견한다.</li>
+        <li>누적 거리 비가 제곱(1:4:9:16)이 되는 까닭을 설명한다.</li>
+        <li>경사각이 가속도에 미치는 영향을 정량적으로 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>경사면 위의 공에 작용하는 중력 <em>mg</em> 중 경사면 방향 성분은 <em>mg·sinθ</em>이다.
+        마찰을 무시하면 뉴턴 제2법칙 <em>ma = mg·sinθ</em>에서 질량 <em>m</em>이 약분되어
+        가속도는 <strong>a = g·sinθ</strong>로 결정된다. 즉 가속도는 경사각에만 의존한다.</p>
+        <p>정지 상태에서 출발하므로 등가속도 운동이고, 이동 거리는 <strong>s = ½·a·t²</strong> 로
+        시간의 <em>제곱</em>에 비례한다. 갈릴레오는 직접 시간을 정밀하게 잴 수 없던 시대에,
+        경사면으로 낙하를 '느리게' 만들어 이 제곱 관계를 발견했다.</p>
+        <p><strong>홀수 법칙:</strong> 같은 시간 간격 Δt로 끊어 보면 n번째 구간의 이동 거리는
+        ½a(Δt)²·(2n−1)에 비례한다. 따라서 구간 거리 비는 <strong>1 : 3 : 5 : 7 …</strong> 의
+        홀수 비가 되고, 처음부터의 누적 거리 비는 <strong>1 : 4 : 9 : 16</strong> 의 제곱 비가 된다.</p>
+      </div>
+
+      <div class="formula-box">
+        a = g · sinθ<br>
+        s = ½ · a · t²&nbsp;&nbsp;(v = a·t)<br>
+        구간 거리 ∝ 1 : 3 : 5 : 7 …&nbsp;&nbsp;(누적 1 : 4 : 9 : 16)
+      </div>
+
+      <!-- SVG 다이어그램: 경사면과 홀수 비 구간 -->
+      <svg width="380" height="220" viewBox="0 0 380 220" role="img"
+        aria-label="경사면 위에서 같은 시간 간격마다 1, 3, 5, 7 비율로 벌어지는 구간 거리를 보여주는 다이어그램">
+        <!-- 경사면 (직각삼각형) -->
+        <polygon points="30,190 350,190 350,70" fill="#dbe6ef" stroke="#2E4A62" stroke-width="2"/>
+        <!-- 빗변 위 마커: 누적거리 1,4,9,16 비례 위치(전체 16) -->
+        <!-- 빗변은 (350,70)->(30,190). 출발점은 위쪽(350,70). 누적 분율 1/16,4/16,9/16,16/16 -->
+        <!-- 시작점 -->
+        <circle cx="350" cy="70" r="5" fill="#2E4A62"/>
+        <!-- t1: 1/16 지점 -->
+        <circle cx="330" cy="77.5" r="4" fill="#C53030"/>
+        <!-- t2: 4/16 지점 -->
+        <circle cx="270" cy="100" r="4" fill="#C53030"/>
+        <!-- t3: 9/16 지점 -->
+        <circle cx="170" cy="137.5" r="4" fill="#C53030"/>
+        <!-- t4: 16/16 지점(바닥) -->
+        <circle cx="30" cy="190" r="5" fill="#2E4A62"/>
+        <!-- 구간 라벨 -->
+        <text x="338" y="66" font-size="11" fill="#374151">1</text>
+        <text x="296" y="84" font-size="11" fill="#374151">3</text>
+        <text x="216" y="113" font-size="11" fill="#374151">5</text>
+        <text x="96" y="158" font-size="11" fill="#374151">7</text>
+        <!-- 각도 표기 -->
+        <text x="305" y="184" font-size="12" fill="#2E4A62">θ</text>
+        <text x="120" y="40" font-size="11" fill="#6b7280">같은 시간 간격마다 구간 거리 = 1 : 3 : 5 : 7</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        같은 시간 간격(빨간 마커)마다 공이 더 멀리 간다. 구간 거리 비 1:3:5:7, 누적 거리 비 1:4:9:16.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "공이 일정한 속도로 내려간다" 또는 "같은 시간이면 같은 거리를
+        간다"고 생각하기 쉽다. 실제로는 등가속도 운동이라 시간이 갈수록 속도가 빨라져
+        같은 시간 동안 가는 거리가 점점 늘어난다(1:3:5:7…). 거리는 시간이 아니라 시간의
+        <em>제곱</em>에 비례한다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>마찰을 무시할 때 경사각 θ를 더 크게 하면 경사면 가속도 a = g·sinθ는?</p>
+        <label><input type="radio" name="q1" value="correct"> 커진다</label>
+        <label><input type="radio" name="q1" value="wrong"> 작아진다</label>
+        <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>정지 상태에서 출발한 공을 같은 시간 간격으로 끊어 볼 때, 각 구간의 이동 거리 비는?</p>
+        <label><input type="radio" name="q2" value="wrong"> 1 : 2 : 3 : 4</label>
+        <label><input type="radio" name="q2" value="correct"> 1 : 3 : 5 : 7</label>
+        <label><input type="radio" name="q2" value="wrong"> 1 : 1 : 1 : 1</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 갈릴레오 갈릴레이 (Galileo Galilei, 1564~1642)</h3>
+        <p>이탈리아 피사 출신의 물리학자·천문학자·수학자로 "근대 과학의 아버지"라 불린다.
+        그는 정밀한 시계가 없던 시대에 낙하 운동을 직접 측정하기 위해, 경사면을 이용해 낙하를
+        '느리게' 만드는 기발한 방법을 고안했다. 매끄럽게 다듬은 홈에 청동 공을 굴리고,
+        물시계(흘러나온 물의 무게)로 시간을 재며 거리와 시간의 관계를 정량화했다.</p>
+        <p>『새로운 두 과학(Discorsi, 1638)』에서 갈릴레오는 이 실험을 자세히 기술하며,
+        이동 거리가 시간의 제곱에 비례하고 같은 시간 간격의 거리 비가 홀수(1:3:5…)임을
+        명확히 보였다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>기원전 4세기 — 아리스토텔레스: 무거운 물체가 더 빨리, 일정한 속도로 떨어진다는 운동관</li>
+          <li>1604년경 — 갈릴레오, 파도바 시절 경사면 실험으로 거리–시간 제곱 법칙 발견</li>
+          <li>1610년 — 『별의 전령(Sidereus Nuncius)』으로 천문 관측 성과 발표</li>
+          <li>1638년 — 『새로운 두 과학』 출간, 경사면 실험과 등가속도 운동 법칙 체계화</li>
+          <li>1687년 — 뉴턴 『프린키피아』, 갈릴레오의 운동학을 역학 법칙으로 일반화</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 측정 도구의 한계를 '경사면으로 낙하를 늦추는' 실험 설계로
+        극복한 점에서 정량 실험의 모범이 되었다. "거리는 시간의 제곱에 비례한다"는 발견은
+        등가속도 운동의 수학적 기술을 가능하게 했고, 훗날 뉴턴의 운동 법칙으로 이어졌다.
+        권위가 아닌 측정과 수학으로 자연을 기술한 과학혁명의 대표 사례다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상수 -----
+      const MARKER_INTERVAL = 0.5; // 마커 시간 간격(초)
+      const TIME_SCALE = 0.6;      // 애니메이션 배속(<1: 느리게 관찰)
+      const RAMP_HEIGHT = 8;       // 경사면 수직 높이 h(m) 고정 -> L = h / sinθ
+
+      // ----- 상태 -----
+      const state = {
+        angle: 30,          // deg
+        g: 9.8,             // m/s^2
+        showMarkers: true,
+        running: false,
+        elapsed: 0,         // 시뮬레이션 시각(s)
+        lastTs: null
+      };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const angleSlider = document.getElementById('angle');
+      const markerToggle = document.getElementById('showMarkers');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      function accel() {
+        return state.g * Math.sin(state.angle * Math.PI / 180); // a = g sinθ
+      }
+      function rampLength() {
+        // 수직 높이 고정, 길이 L = h / sinθ
+        return RAMP_HEIGHT / Math.sin(state.angle * Math.PI / 180);
+      }
+      function totalTime() {
+        // L = 1/2 a t^2  ->  t = sqrt(2L/a)
+        const a = accel();
+        return Math.sqrt(2 * rampLength() / a);
+      }
+      function distanceAt(t) {
+        const a = accel();
+        const tc = Math.min(t, totalTime());
+        return 0.5 * a * tc * tc;
+      }
+      function velocityAt(t) {
+        const a = accel();
+        const tc = Math.min(t, totalTime());
+        return a * tc;
+      }
+
+      // ----- 캔버스 좌표(경사면 기하) -----
+      // 경사면: 좌상단 출발점 -> 우하단 바닥. 각도가 클수록 가파르게.
+      function geometry() {
+        const W = canvas.width, H = canvas.height;
+        const padX = 50, baseY = H - 60;     // 바닥선 y
+        const apexX = padX, baseX = W - 50;   // 좌측 꼭대기 x, 우측 바닥 x
+        const horiz = baseX - apexX;          // 수평 길이(px)
+        const apexY = baseY - horiz * Math.tan(state.angle * Math.PI / 180);
+        // 화면을 벗어나지 않도록 클램프
+        const topY = Math.max(40, apexY);
+        return { apexX, topY, baseX, baseY };
+      }
+      // 빗변 위 분율 f(0=출발, 1=바닥)에 대응하는 픽셀 좌표
+      function pointOnRamp(f) {
+        const g = geometry();
+        return {
+          x: g.apexX + (g.baseX - g.apexX) * f,
+          y: g.topY + (g.baseY - g.topY) * f
+        };
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const g = geometry();
+        const L = rampLength();
+
+        // 경사면 채움(삼각형)
+        ctx.beginPath();
+        ctx.moveTo(g.apexX, g.topY);
+        ctx.lineTo(g.baseX, g.baseY);
+        ctx.lineTo(g.apexX, g.baseY);
+        ctx.closePath();
+        ctx.fillStyle = '#dbe6ef';
+        ctx.fill();
+
+        // 바닥선
+        ctx.strokeStyle = '#5b6b78';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(20, g.baseY); ctx.lineTo(W - 20, g.baseY); ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 경사면 빗변(레일)
+        ctx.strokeStyle = '#2E4A62';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(g.apexX, g.topY); ctx.lineTo(g.baseX, g.baseY); ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 각도 호 & 라벨
+        ctx.strokeStyle = '#2E4A62';
+        ctx.beginPath();
+        ctx.arc(g.baseX, g.baseY, 34, Math.PI, Math.PI - state.angle * Math.PI / 180, true);
+        ctx.stroke();
+        ctx.fillStyle = '#2E4A62';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText('θ = ' + state.angle + '°', g.baseX - 78, g.baseY - 10);
+
+        // 시간 간격 마커(매 MARKER_INTERVAL초 누적 거리에서)
+        if (state.showMarkers) {
+          const tTot = totalTime();
+          for (let k = 1; ; k++) {
+            const tk = k * MARKER_INTERVAL;
+            if (tk > tTot) break;
+            const f = distanceAt(tk) / L;
+            const p = pointOnRamp(f);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#C53030';
+            ctx.fill();
+          }
+          // 출발 마커
+          const p0 = pointOnRamp(0);
+          ctx.beginPath();
+          ctx.arc(p0.x, p0.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#C53030'; ctx.fill();
+        }
+
+        // 공
+        const frac = Math.min(1, distanceAt(state.elapsed) / L);
+        const pb = pointOnRamp(frac);
+        // 공을 레일 위에 살짝 띄움(법선 방향)
+        const ang = state.angle * Math.PI / 180;
+        const r = 11;
+        const nx = -Math.sin(ang), ny = -Math.cos(ang); // 레일 위쪽 법선
+        const bx = pb.x + nx * r, by = pb.y + ny * r;
+        // 그림자
+        ctx.beginPath();
+        ctx.ellipse(pb.x, pb.y + 2, r * 0.8, 3, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fill();
+        // 공 본체
+        ctx.beginPath();
+        ctx.arc(bx, by, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#2E4A62'; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 출발/도착 라벨
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('출발', g.apexX - 6, g.topY - 10);
+        ctx.fillText('바닥', g.baseX - 24, g.baseY + 18);
+
+        // 시각 표시
+        ctx.fillStyle = '#374151';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('t = ' + state.elapsed.toFixed(2) + ' s', 24, 24);
+        if (frac >= 1) {
+          ctx.fillStyle = '#C53030';
+          ctx.font = 'bold 13px sans-serif';
+          ctx.fillText('도착!', 24, 44);
+        }
+      }
+
+      // ----- 구간 거리 비(홀수) 계산 -----
+      function intervalRatio() {
+        const tTot = totalTime();
+        const n = Math.floor(tTot / MARKER_INTERVAL);
+        if (n < 1) return '구간 없음 (경사가 짧음)';
+        const segs = [];
+        let prev = 0;
+        for (let k = 1; k <= Math.min(n, 5); k++) {
+          const d = distanceAt(k * MARKER_INTERVAL);
+          segs.push(d - prev);
+          prev = d;
+        }
+        if (segs.length === 0) return '—';
+        const base = segs[0];
+        return segs.map((s) => (s / base).toFixed(1)).join(' : ');
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        document.getElementById('r-accel').textContent = accel().toFixed(2) + ' m/s²';
+        document.getElementById('r-len').textContent = rampLength().toFixed(2) + ' m';
+        document.getElementById('r-ratio').textContent = intervalRatio();
+        updateLiveReadout();
+      }
+      function updateLiveReadout() {
+        document.getElementById('r-elapsed').textContent = state.elapsed.toFixed(2) + ' s';
+        document.getElementById('r-curvel').textContent = velocityAt(state.elapsed).toFixed(2) + ' m/s';
+        document.getElementById('r-dist').textContent = distanceAt(state.elapsed).toFixed(2) + ' m';
+      }
+
+      // ----- (2) 슬라이더/입력 이벤트 -----
+      angleSlider.addEventListener('input', () => {
+        state.angle = Number(angleSlider.value);
+        document.getElementById('angle-val').textContent = state.angle;
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+      markerToggle.addEventListener('change', () => {
+        state.showMarkers = markerToggle.checked;
+        draw();
+      });
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.g = Number(btn.dataset.g);
+          document.getElementById('g-val').textContent = state.g.toFixed(2);
+          resetSim(false);
+          updateResult();
+          draw();
+        });
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        state.elapsed += dt * TIME_SCALE;
+
+        const tEnd = totalTime();
+        if (state.elapsed >= tEnd) {
+          state.elapsed = tEnd;
+          state.running = false;
+        }
+        updateLiveReadout();
+        draw();
+        if (state.running) requestAnimationFrame(loop);
+      }
+      function play() {
+        if (state.running) return;
+        if (state.elapsed >= totalTime()) state.elapsed = 0;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() { state.running = false; }
+      function resetSim(redraw) {
+        state.running = false;
+        state.elapsed = 0;
+        state.lastTs = null;
+        if (redraw !== false) {
+          updateLiveReadout();
+          draw();
+        }
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'a = g·sinθ 이므로 θ가 커지면 sinθ가 커져 가속도도 커집니다.',
+        'a = g·sinθ 에서 θ가 커지면 sinθ가 커집니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '등가속도 운동에서 같은 시간 간격의 구간 거리는 1:3:5:7… 홀수 비입니다.',
+        's = ½at² 에서 t=1,2,3…의 누적 거리(1:4:9:16) 차이를 구해 보세요.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

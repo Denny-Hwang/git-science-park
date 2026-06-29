@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>케플러의 행성 운동 법칙 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header { max-width: 880px; margin: 0 auto; padding: 28px 20px 12px; }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0b1020; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>케플러의 행성 운동 법칙</h1>
+    <div class="en">Kepler's Laws of Planetary Motion</div>
+    <div class="meta">1609년 · 요하네스 케플러 (Johannes Kepler) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="태양을 한 초점으로 하는 타원 궤도를 도는 행성과, 같은 시간 동안 쓸어낸 같은 면적의 부채꼴 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="ecc">이심률 e (0 = 원, 클수록 납작): <span id="ecc-val">0.40</span></label>
+          <input type="range" id="ecc" min="0" max="0.8" step="0.01" value="0.40"
+            aria-describedby="ecc-val">
+        </div>
+
+        <div class="control-row">
+          <label for="semi">긴반지름 a (상대값): <span id="semi-val">1.00</span></label>
+          <input type="range" id="semi" min="0.5" max="2.0" step="0.01" value="1.00"
+            aria-describedby="semi-val">
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="showAreas" checked>
+            <label for="showAreas">같은 시간 동안 쓸어낸 면적(부채꼴) 색칠</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>공전주기 T (3법칙, 상대값): <strong id="r-period">—</strong></div>
+          <div>이심률 e: <strong id="r-ecc">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>근일점/원일점 속도비: <strong id="r-vratio">—</strong></div>
+          <div>현재 위치: <strong id="r-phase">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 색칠된 부채꼴들은 모두 <em>같은 시간 동안</em> 쓸어낸 면적입니다.
+        모양은 길쭉하거나 넓적해도 <strong>넓이는 모두 같습니다(케플러 2법칙)</strong>. 태양에 가장 가까운
+        근일점에서 행성이 가장 빠르고, 가장 먼 원일점에서 가장 느립니다. 이심률 e를 키울수록 근일점과
+        원일점의 속도 차이가 커집니다. 긴반지름 a를 키우면 궤도가 커지고 공전주기 T가 길어집니다(T² ∝ a³).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>행성 궤도가 태양을 한 초점으로 하는 타원임을 이해한다 (1법칙).</li>
+        <li>태양-행성 선분이 같은 시간에 같은 면적을 쓸어냄(면적속도 일정)을 이해한다 (2법칙).</li>
+        <li>면적속도 일정으로부터 근일점에서 빠르고 원일점에서 느린 이유를 설명한다.</li>
+        <li>공전주기와 긴반지름의 관계 T² ∝ a³ 를 익힌다 (3법칙).</li>
+        <li>이심률 e가 궤도의 납작함과 속도 변화를 어떻게 결정하는지 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p><strong>1법칙 (타원 궤도):</strong> 모든 행성은 태양을 두 초점 중 하나로 하는 타원 궤도를 돈다.
+        이심률 e가 0이면 완전한 원이고, e가 커질수록 타원이 납작해진다. 타원의 긴반지름을 a, 이심률을 e라
+        하면 태양(초점)에서 가장 가까운 근일점 거리는 a(1−e), 가장 먼 원일점 거리는 a(1+e)이다.</p>
+        <p><strong>2법칙 (면적속도 일정):</strong> 태양과 행성을 잇는 선분은 같은 시간 동안 항상 같은 면적을
+        쓸어낸다. 면적속도(dA/dt)가 일정하므로, 태양에 가까운 근일점에서는 짧은 거리에서 같은 면적을 채우려고
+        빠르게 움직이고, 먼 원일점에서는 천천히 움직인다. 이는 각운동량 보존의 결과다.</p>
+        <p><strong>3법칙 (조화 법칙):</strong> 공전주기 T의 제곱은 긴반지름 a의 세제곱에 비례한다(T² ∝ a³).
+        궤도가 클수록 한 바퀴 도는 데 비례 이상으로 오래 걸린다.</p>
+      </div>
+
+      <div class="formula-box">
+        근일점 거리 = a(1 − e) , 원일점 거리 = a(1 + e)<br>
+        dA/dt = 일정 &nbsp;⇒&nbsp; v_근일점 / v_원일점 = (1 + e) / (1 − e)<br>
+        T² ∝ a³ &nbsp;⇒&nbsp; T = a^(3/2)
+      </div>
+
+      <!-- SVG 다이어그램: 타원 궤도와 같은 면적의 부채꼴 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="태양을 한 초점으로 하는 타원 궤도에서, 근일점 근처의 넓적한 부채꼴과 원일점 근처의 길쭉한 부채꼴이 같은 넓이임을 보여주는 다이어그램">
+        <!-- 타원 (cx=180, 중심에서 초점까지 c=70) -->
+        <ellipse cx="180" cy="110" rx="150" ry="90" fill="none" stroke="#3f6589" stroke-width="2"/>
+        <!-- 태양 = 왼쪽 초점 (cx - c = 110) -->
+        <circle cx="110" cy="110" r="9" fill="#f6a623"/>
+        <text x="92" y="135" font-size="10" fill="#374151">태양(초점)</text>
+        <!-- 근일점 근처 부채꼴 (태양 가까이, 넓적함) -->
+        <path d="M110,110 L30,110 A150,90 0 0 1 44,68 Z" fill="#2563eb" opacity="0.45"/>
+        <!-- 원일점 근처 부채꼴 (태양에서 멀리, 길쭉함) -->
+        <path d="M110,110 L330,110 A150,90 0 0 0 305,170 Z" fill="#dc2626" opacity="0.45"/>
+        <!-- 근일점/원일점 표시 -->
+        <circle cx="30" cy="110" r="3.5" fill="#2563eb"/>
+        <circle cx="330" cy="110" r="3.5" fill="#dc2626"/>
+        <text x="14" y="104" font-size="10" fill="#2563eb">근일점(빠름)</text>
+        <text x="278" y="104" font-size="10" fill="#dc2626">원일점(느림)</text>
+        <text x="120" y="206" font-size="11" fill="#374151">두 부채꼴 넓이는 같다 (같은 시간 동안)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        근일점 근처 부채꼴은 짧고 넓적, 원일점 근처는 길고 가늘지만 넓이는 같다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "행성 궤도는 완전한 원이고, 행성은 일정한 속도로 돈다"는 생각은
+        프톨레마이오스와 코페르니쿠스조차 벗어나지 못한 2,000년의 통념이었다. 실제 궤도는 타원이며 속도도
+        끊임없이 변한다. 또 "태양이 타원의 중심에 있다"는 것도 오해다. 태양은 중심이 아니라 두 초점 중
+        <em>하나</em>에 있다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>행성이 궤도에서 가장 빠르게 움직이는 위치는 어디인가?</p>
+        <label><input type="radio" name="q1" value="correct"> 근일점 (태양에 가장 가까울 때)</label>
+        <label><input type="radio" name="q1" value="wrong"> 원일점 (태양에서 가장 멀 때)</label>
+        <label><input type="radio" name="q1" value="wrong"> 긴반지름의 양 끝 사이 중간 지점</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>케플러 3법칙(T² ∝ a³)에 따르면, 긴반지름 a가 4배인 궤도의 공전주기 T는 몇 배가 되는가?</p>
+        <label><input type="radio" name="q2" value="wrong"> 4배</label>
+        <label><input type="radio" name="q2" value="correct"> 8배</label>
+        <label><input type="radio" name="q2" value="wrong"> 16배</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 요하네스 케플러 (Johannes Kepler, 1571~1630)</h3>
+        <p>독일의 천문학자·수학자로, 천체 관측의 거장 튀코 브라헤(Tycho Brahe)의 조수였다가 그의 사후
+        방대한 관측 자료를 물려받았다. 특히 화성의 궤도를 원으로 맞추려다 8분(arcminute)의 오차를 끝내
+        용납하지 못하고, 궤도가 타원임을 발견했다. 이 "8분의 불일치"에 대한 그의 집요함이 천문학 혁명을
+        낳았다고 평가된다.</p>
+        <p>독실한 신앙과 신비주의적 우주관(『우주의 신비』의 정다면체 모형)을 가졌으면서도, 관측 데이터에
+        철저히 복종한 인물이다. 이론보다 관측을 우선한 그의 태도는 갈릴레오의 실험 정신과 함께 근대 과학의
+        방법론을 형성했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1543년 — 코페르니쿠스 『천구의 회전에 관하여』 출간, 태양중심설 제시(단, 여전히 원 궤도)</li>
+          <li>1600년 — 케플러가 프라하에서 튀코 브라헤의 조수가 됨</li>
+          <li>1601년 — 튀코 사망, 케플러가 정밀 관측 자료를 계승</li>
+          <li>1609년 — 『새로운 천문학(Astronomia nova)』 출간, 제1·제2법칙 발표</li>
+          <li>1619년 — 『세계의 조화(Harmonices mundi)』 출간, 제3법칙(T² ∝ a³) 발표</li>
+          <li>1687년 — 뉴턴이 『프린키피아』에서 만유인력으로 케플러 법칙을 수학적으로 증명</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 케플러는 2,000년간 천문학을 지배한 "완전한 원과 등속 운동"이라는
+        도그마를 깨고, 행성 궤도가 타원이며 속도가 변한다는 사실을 관측 데이터로 입증했다. 그의 세 법칙은
+        훗날 뉴턴이 만유인력 법칙을 세우는 결정적 토대가 되었으며, 관측과 수학으로 자연의 법칙을 정량적으로
+        기술하는 근대 천체역학의 출발점이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        e: 0.40,        // 이심률
+        a: 1.00,        // 긴반지름(상대값)
+        showAreas: true,
+        running: false,
+        theta: 0,       // 현재 진근점이각(true anomaly), 라디안. 태양(초점) 기준 각도
+        lastTs: null,
+        sweepStartTheta: 0,   // 현재 부채꼴 시작 각도
+        sweepStartXY: null,   // 현재 부채꼴 시작 위치(px)
+        sweeps: []            // 완성된 부채꼴들의 꼭짓점 목록
+      };
+
+      // 시각화 상수
+      const VIEW_RX = 165;          // a=1일 때 화면상 긴반지름(px)
+      const SWEEP_INTERVAL = 0.9;   // 부채꼴 하나를 쌓는 시간 간격(상대 초)
+      const MAX_SWEEPS = 8;         // 화면에 유지할 부채꼴 개수
+      const TIME_SCALE = 1.0;       // 애니메이션 배속
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const eccSlider = document.getElementById('ecc');
+      const semiSlider = document.getElementById('semi');
+      const areasToggle = document.getElementById('showAreas');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 궤도 기하 -----
+      // 화면 좌표계: 타원 중심(centerX, centerY). 긴반지름은 가로 방향.
+      // 태양은 왼쪽 초점에 위치. 행성 위치는 태양(초점) 기준 진근점이각 theta로 표현.
+      function geom() {
+        const W = canvas.width, H = canvas.height;
+        const rx = VIEW_RX * state.a;             // 화면 긴반지름
+        const ry = rx * Math.sqrt(1 - state.e * state.e); // 짧은반지름 b = a√(1−e²)
+        const c = rx * state.e;                   // 중심-초점 거리
+        const centerX = W / 2 + c * 0.0 + 20;     // 타원 중심 x (살짝 우측 여백)
+        const centerY = H / 2;
+        const sunX = centerX - c;                 // 태양 = 왼쪽 초점
+        const sunY = centerY;
+        return { W, H, rx, ry, c, centerX, centerY, sunX, sunY };
+      }
+
+      // 태양(초점) 기준 진근점이각 theta에서 초점-행성 거리 r (상대값) :
+      // r = a(1−e²) / (1 + e·cosθ). theta=0 이 근일점.
+      function focalRadius(theta) {
+        return state.a * (1 - state.e * state.e) / (1 + state.e * Math.cos(theta));
+      }
+
+      // theta(태양 기준 각도, 근일점=0이 화면상 왼쪽 방향)에서 행성의 화면 좌표.
+      // 근일점은 태양에서 보아 중심 반대편(왼쪽), 즉 화면 음의 x 방향.
+      function planetPos(g, theta) {
+        const rRel = focalRadius(theta);            // 상대 거리
+        const rPx = rRel * VIEW_RX;                 // 화면 거리
+        // 근일점(theta=0) 방향 = 태양에서 왼쪽(−x). theta 증가 시 반시계로 돈다.
+        const dirX = -Math.cos(theta);
+        const dirY = -Math.sin(theta);
+        return { x: g.sunX + rPx * dirX, y: g.sunY + rPx * dirY };
+      }
+
+      // 면적속도 일정 → dθ/dt ∝ 1/r² . 각운동량 보존 상수.
+      // 한 바퀴(2π)를 도는 상대 시간이 주기 T(=a^1.5)가 되도록 정규화한다.
+      // dθ/dt = k / r²  이고  k 는 ∮(r²)dθ 로 결정. 수치적으로는 단순히
+      // dθ = (rate / r²) dt 로 적분하되 rate를 주기에 맞게 보정한다.
+      function angularRate(theta) {
+        const r = focalRadius(theta);
+        // 한 바퀴 도는 데 걸리는 시간이 주기 T가 되도록 각속도를 정규화한다.
+        // dt = (r²/L) dθ 이고  ∮ dt = (∮ r² dθ)/L = T  →  L = (∮ r² dθ)/T.
+        // ½∮ r² dθ = 타원 넓이 = π·a·b = π a²√(1−e²) 이므로 ∮ r² dθ = 2π a²√(1−e²).
+        // T = a^1.5 이므로 L = 2π a²√(1−e²) / a^1.5 = 2π √a · √(1−e²).
+        const L = 2 * Math.PI * state.a * state.a * Math.sqrt(1 - state.e * state.e) / period();
+        return L / (r * r);
+      }
+
+      function period() {
+        return Math.pow(state.a, 1.5); // 3법칙: T = a^(3/2)
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const g = geom();
+        ctx.clearRect(0, 0, g.W, g.H);
+
+        // 별 배경(고정 패턴)
+        drawStars(g);
+
+        // 타원 궤도
+        ctx.beginPath();
+        ctx.ellipse(g.centerX, g.centerY, g.rx, g.ry, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = '#5b7fa6';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 완성된 부채꼴 + 진행 중 부채꼴 색칠
+        if (state.showAreas) {
+          drawSweeps(g);
+        }
+
+        // 근일점/원일점 표시
+        const peri = planetPos(g, 0);
+        const apo = planetPos(g, Math.PI);
+        markPoint(peri.x, peri.y, '#60a5fa', '근일점');
+        markPoint(apo.x, apo.y, '#f87171', '원일점');
+
+        // 태양
+        const grd = ctx.createRadialGradient(g.sunX, g.sunY, 2, g.sunX, g.sunY, 16);
+        grd.addColorStop(0, '#fff7cc');
+        grd.addColorStop(1, '#f6a623');
+        ctx.beginPath();
+        ctx.arc(g.sunX, g.sunY, 11, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+
+        // 행성
+        const p = planetPos(g, state.theta);
+        // 태양-행성 선분
+        ctx.beginPath();
+        ctx.moveTo(g.sunX, g.sunY);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#9fd0ff';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // 라벨
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('행성', p.x + 10, p.y - 8);
+      }
+
+      function drawStars(g) {
+        // 결정적 의사난수로 고정된 별 배치
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        let seed = 12345;
+        function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+        for (let i = 0; i < 70; i++) {
+          const x = rnd() * g.W, y = rnd() * g.H, r = rnd() * 1.2 + 0.2;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function markPoint(x, y, color, label) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.font = '11px sans-serif';
+        ctx.fillText(label, x - 16, y + (label === '근일점' ? -8 : 18));
+      }
+
+      // 부채꼴(태양-궤도호-태양) 채우기
+      function drawSweeps(g) {
+        const colors = ['rgba(96,165,250,0.35)', 'rgba(167,139,250,0.35)',
+                        'rgba(248,113,113,0.35)', 'rgba(52,211,153,0.35)',
+                        'rgba(251,191,36,0.35)'];
+        state.sweeps.forEach((sw, i) => {
+          fillSweep(g, sw.startTheta, sw.endTheta, colors[i % colors.length]);
+        });
+        // 진행 중 부채꼴
+        fillSweep(g, state.sweepStartTheta, state.theta,
+          'rgba(255,255,255,0.22)');
+      }
+
+      function fillSweep(g, t0, t1, color) {
+        if (Math.abs(t1 - t0) < 1e-4) return;
+        ctx.beginPath();
+        ctx.moveTo(g.sunX, g.sunY);
+        const steps = Math.max(2, Math.ceil(Math.abs(t1 - t0) / 0.05));
+        for (let i = 0; i <= steps; i++) {
+          const t = t0 + (t1 - t0) * (i / steps);
+          const q = planetPos(g, t);
+          ctx.lineTo(q.x, q.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        document.getElementById('r-period').textContent = period().toFixed(3);
+        document.getElementById('r-ecc').textContent = state.e.toFixed(2);
+        // 근일점/원일점 속도비 = (1+e)/(1-e)
+        const ratio = (1 + state.e) / (1 - state.e);
+        document.getElementById('r-vratio').textContent = ratio.toFixed(2) + ' : 1';
+        updatePhase();
+      }
+
+      function updatePhase() {
+        // 근일점(θ≈0) 근처 vs 원일점(θ≈π) 근처 표시
+        const t = ((state.theta % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        let label;
+        if (t < Math.PI / 4 || t > 7 * Math.PI / 4) label = '근일점 부근 (가장 빠름)';
+        else if (Math.abs(t - Math.PI) < Math.PI / 4) label = '원일점 부근 (가장 느림)';
+        else label = '이동 중';
+        document.getElementById('r-phase').textContent = label;
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      eccSlider.addEventListener('input', () => {
+        state.e = Number(eccSlider.value);
+        document.getElementById('ecc-val').textContent = state.e.toFixed(2);
+        resetSweeps();
+        updateResult();
+        draw();
+      });
+      semiSlider.addEventListener('input', () => {
+        state.a = Number(semiSlider.value);
+        document.getElementById('semi-val').textContent = state.a.toFixed(2);
+        resetSweeps();
+        updateResult();
+        draw();
+      });
+      areasToggle.addEventListener('change', () => {
+        state.showAreas = areasToggle.checked;
+        draw();
+      });
+
+      // ----- 부채꼴 관리 -----
+      function resetSweeps() {
+        state.sweepStartTheta = state.theta;
+        state.sweepElapsed = 0;
+        state.sweeps = [];
+      }
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        let dt = (ts - state.lastTs) / 1000; // 실제 경과초
+        state.lastTs = ts;
+        if (dt > 0.05) dt = 0.05; // 큰 점프 방지
+
+        const simDt = dt * TIME_SCALE;
+        // 면적속도 일정으로 theta 적분 (작은 스텝으로 나눠 정확도 확보)
+        const sub = 6;
+        for (let i = 0; i < sub; i++) {
+          const dTheta = angularRate(state.theta) * (simDt / sub);
+          state.theta += dTheta;
+        }
+
+        // 일정 시간마다 부채꼴 확정
+        state.sweepElapsed = (state.sweepElapsed || 0) + simDt;
+        if (state.sweepElapsed >= SWEEP_INTERVAL) {
+          state.sweepElapsed -= SWEEP_INTERVAL;
+          state.sweeps.push({ startTheta: state.sweepStartTheta, endTheta: state.theta });
+          if (state.sweeps.length > MAX_SWEEPS) state.sweeps.shift();
+          state.sweepStartTheta = state.theta;
+        }
+
+        // theta 누적이 너무 커지지 않도록 정규화(부채꼴 좌표 영향 없음)
+        if (state.theta > 4 * Math.PI) {
+          const shift = 2 * Math.PI;
+          state.theta -= shift;
+          state.sweepStartTheta -= shift;
+          state.sweeps.forEach((s) => { s.startTheta -= shift; s.endTheta -= shift; });
+        }
+
+        updatePhase();
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+      function pause() { state.running = false; }
+
+      function resetSim() {
+        state.running = false;
+        state.theta = 0;
+        state.lastTs = null;
+        resetSweeps();
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '면적속도가 일정하므로 태양에 가까운 근일점에서 가장 빠릅니다.',
+        '같은 시간에 같은 면적을 쓸려면 태양에 가까울수록 빨라야 합니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'T² ∝ a³ 에서 a=4면 T = √(4³) = √64 = 8배.',
+        'T = a^(3/2) 입니다. a=4를 대입해 보세요.');
+
+      // ----- 초기 렌더 -----
+      state.sweepStartTheta = 0;
+      state.sweepElapsed = 0;
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

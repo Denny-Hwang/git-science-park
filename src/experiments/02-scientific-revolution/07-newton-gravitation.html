@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뉴턴의 만유인력 법칙 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2E4A62;
+      --primary-light: #3f6589;
+      --bg: #f5f7f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0b1220; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef2f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .cmp { display: block; margin-top: 6px; font-size: 0.95rem; color: var(--text-muted); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔭 과학혁명 (Scientific Revolution)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>뉴턴의 만유인력 법칙</h1>
+    <div class="en">Newton's Law of Universal Gravitation</div>
+    <div class="meta">1687년 · 아이작 뉴턴 (Isaac Newton) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="360" aria-label="두 물체 사이에 작용하는 만유인력을 화살표로 보여주고, 오른쪽 위에 힘-거리 1/r² 그래프를 함께 표시하는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="m1">질량 m₁: <span id="m1-val">5.0</span> ×10¹⁰ kg</label>
+          <input type="range" id="m1" min="1" max="100" step="1" value="50" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="m2">질량 m₂: <span id="m2-val">5.0</span> ×10¹⁰ kg</label>
+          <input type="range" id="m2" min="1" max="100" step="1" value="50" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="r">두 물체 사이 거리 r: <span id="r-val">5.0</span> m</label>
+          <input type="range" id="r" min="1" max="20" step="0.1" value="5" aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        만유인력 F: <strong>—</strong> &nbsp;(F = G·m₁·m₂ / r²)
+        <span class="cmp" id="cmp">—</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 두 물체는 서로를 같은 크기의 힘으로 끌어당긴다(작용–반작용).
+        <strong>거리 r을 2배로</strong> 늘리면 힘은 <strong>1/4</strong>로 줄고(역제곱), 절반으로 줄이면 4배가 된다.
+        <strong>질량을 2배로</strong> 하면 힘도 정확히 <strong>2배</strong>가 된다. 화살표 길이와 오른쪽 위 1/r² 그래프의
+        점이 어떻게 변하는지 함께 보라.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>모든 질량을 가진 두 물체는 서로를 끌어당긴다는 보편성을 이해한다.</li>
+        <li>인력이 두 질량의 곱에 비례함을 설명한다(질량 2배 → 힘 2배).</li>
+        <li>인력이 거리의 제곱에 반비례함(역제곱 법칙)을 설명한다(거리 2배 → 힘 1/4).</li>
+        <li>중력 상수 G의 의미와 식 F = G·m₁·m₂ / r² 의 각 항을 해석한다.</li>
+        <li>지상의 사과와 천상의 달이 같은 법칙을 따른다는 통합적 관점을 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>질량을 가진 모든 두 물체는 서로를 끌어당긴다. 이 힘의 크기는 두 물체의 질량의 곱
+        <strong>m₁·m₂</strong>에 <em>비례</em>하고, 두 물체 사이 거리의 제곱 <strong>r²</strong>에
+        <em>반비례</em>한다. 비례 상수가 만유인력 상수 G (= 6.674×10⁻¹¹ N·m²/kg²)이다.</p>
+        <p>거리가 핵심이다. 거리를 2배로 하면 분모가 2² = 4배가 되어 힘은 1/4로 줄어든다.
+        3배로 하면 1/9로 줄어든다. 이것을 <strong>역제곱 법칙(inverse-square law)</strong>이라 한다.
+        두 힘은 항상 크기가 같고 방향이 반대(서로를 향함)여서, 작은 물체도 큰 물체를 같은 힘으로 끌어당긴다.</p>
+      </div>
+
+      <div class="formula-box">
+        F = G · m₁ · m₂ / r²
+        <br>
+        G = 6.674 × 10⁻¹¹ N·m²/kg²
+        <br>
+        r → 2r  ⇒  F → F/4   (역제곱)
+      </div>
+
+      <!-- SVG 다이어그램: 두 질량과 서로 끌어당기는 인력 -->
+      <svg width="420" height="170" viewBox="0 0 420 170" role="img"
+           aria-label="두 질량 m1과 m2가 거리 r만큼 떨어져 서로를 향해 끌어당기는 힘 F 다이어그램">
+        <!-- 물체 1 -->
+        <circle cx="90" cy="85" r="34" fill="#2E4A62"/>
+        <text x="78" y="90" font-size="15" fill="#fff">m₁</text>
+        <!-- 물체 2 -->
+        <circle cx="330" cy="85" r="22" fill="#3f6589"/>
+        <text x="320" y="90" font-size="13" fill="#fff">m₂</text>
+        <!-- 거리 r -->
+        <line x1="90" y1="135" x2="330" y2="135" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="205" y="152" font-size="13" fill="#6b7280">거리 r</text>
+        <!-- 인력 화살표: 물체1 → 오른쪽 -->
+        <line x1="128" y1="70" x2="190" y2="70" stroke="#d97706" stroke-width="3"/>
+        <polygon points="190,70 180,65 180,75" fill="#d97706"/>
+        <!-- 인력 화살표: 물체2 → 왼쪽 -->
+        <line x1="306" y1="70" x2="244" y2="70" stroke="#d97706" stroke-width="3"/>
+        <polygon points="244,70 254,65 254,75" fill="#d97706"/>
+        <text x="200" y="58" font-size="13" fill="#d97706">F</text>
+        <text x="223" y="58" font-size="13" fill="#d97706">F</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "무거운 물체가 가벼운 물체를 더 세게 끌어당기고, 가벼운 물체는 더 약하게
+        끌어당긴다"고 생각하기 쉽다. 실제로는 두 물체가 서로에게 작용하는 힘의 <em>크기는 정확히 같다</em>(작용–반작용).
+        지구가 사과를 끌어당기는 힘과 사과가 지구를 끌어당기는 힘은 같은 크기다. 가벼운 쪽이 더 크게 가속되는 것은
+        힘이 달라서가 아니라 질량이 작기 때문(a = F/m)이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 두 물체 사이 거리를 2배로 늘리면 만유인력은 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="wrong"> 2배로 커진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 1/2로 줄어든다</label>
+          <label><input type="radio" name="q1" value="correct"> 1/4로 줄어든다 (역제곱)</label>
+        </div>
+        <div class="q">
+          <p>2. 거리는 그대로 두고 한 물체의 질량만 2배로 하면 만유인력은?</p>
+          <label><input type="radio" name="q2" value="correct"> 2배로 커진다 (질량에 비례)</label>
+          <label><input type="radio" name="q2" value="wrong"> 4배로 커진다</label>
+          <label><input type="radio" name="q2" value="wrong"> 변하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아이작 뉴턴 (Isaac Newton, 1643~1727)</h3>
+        <p>영국의 물리학자·수학자·천문학자. 운동의 3법칙과 만유인력 법칙을 세워 고전역학을 완성했고,
+        같은 원리로 행성의 타원 궤도(케플러 법칙)와 지상의 낙하 운동을 하나로 설명했다. 미적분학을 창안했으며,
+        빛과 색에 관한 광학 연구, 반사 망원경 제작 등으로도 이름을 남겼다. 1687년 「자연철학의 수학적 원리
+        (Principia)」를 출간해 과학혁명을 집대성했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1543년 — 코페르니쿠스가 지동설을 발표(태양 중심 우주)</li>
+          <li>1609~1619년 — 케플러가 행성 운동 3법칙을 정리(타원 궤도)</li>
+          <li>1610년 — 갈릴레오가 망원경으로 목성의 위성 등을 관측, 지동설을 뒷받침</li>
+          <li>1665~1666년 — 뉴턴이 페스트로 고향에 머물며 중력·미적분·광학의 핵심 착상(사과 일화)</li>
+          <li>1684년 — 핼리의 권유로 행성 운동의 수학적 증명에 착수</li>
+          <li>1687년 — 「프린키피아」 출간, 만유인력 법칙과 운동 법칙을 발표</li>
+          <li>1798년 — 캐번디시가 비틀림 저울 실험으로 G를 측정, 지구의 질량을 계산</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 만유인력 법칙은 떨어지는 사과(지상)와 도는 달(천상)을 하나의
+        같은 법칙으로 묶어, 하늘과 땅이 다른 원리로 움직인다는 오랜 믿음을 무너뜨렸다. 이로써 케플러의
+        행성 법칙이 수학적으로 유도되었고, 자연이 보편적·수학적 법칙을 따른다는 근대 과학의 세계관이 확립되었다.
+        이 틀은 200여 년간 물리학의 기반이 되었으며, 훗날 아인슈타인의 일반상대성이론이 더 정밀한 설명으로
+        확장하기 전까지 천체 운동 예측의 표준이었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상수 & 단위 -----
+      // G = 6.674e-11 N·m²/kg². 슬라이더 m1,m2 는 1~100 (정수)이며, 라벨은 (값/10)×10¹⁰ kg 로 표시한다.
+      // 즉 실제 질량 = 슬라이더값 × 1e9 kg (예: 50 → 5.0×10¹⁰ kg). 거리 r 은 m 단위(1~20).
+      const G = 6.674e-11;
+      const MASS_SCALE = 1e9; // 슬라이더 단위 → kg (라벨 (값/10)×10¹⁰ 과 일치)
+
+      const DEFAULTS = { m1: 50, m2: 50, r: 5 };
+      const state = { m1: DEFAULTS.m1, m2: DEFAULTS.m2, r: DEFAULTS.r };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 계산: F = G·m1·m2 / r² (단위 N) -----
+      function force(m1Unit, m2Unit, rMeters) {
+        const m1 = m1Unit * MASS_SCALE;
+        const m2 = m2Unit * MASS_SCALE;
+        return (G * m1 * m2) / (rMeters * rMeters);
+      }
+      function currentForce() {
+        return force(state.m1, state.m2, state.r);
+      }
+
+      // 지수 표기 포맷 (예: 6.67×10⁻³ N)
+      const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+      function toSuper(n) {
+        return String(n).split('').map((ch) => SUP[ch] || ch).join('');
+      }
+      function fmtForce(f) {
+        if (f === 0) return '0 N';
+        const exp = Math.floor(Math.log10(f));
+        const mant = f / Math.pow(10, exp);
+        return mant.toFixed(2) + ' × 10' + toSuper(exp) + ' N';
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 슬라이더 r(1~20) → 화면상 두 물체 중심 간 픽셀 거리로 매핑(시각화용)
+      function rToPixels(rVal) {
+        const minR = 1, maxR = 20;
+        const minPx = 90, maxPx = 460;
+        const t = (rVal - minR) / (maxR - minR);
+        return minPx + t * (maxPx - minPx);
+      }
+      // 질량(1~100) → 반지름(px) 시각화. 너무 작/크지 않게.
+      function massToRadius(mUnit) {
+        return 10 + Math.sqrt(mUnit) * 3.2; // 1→13.2, 100→42
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0b1220';
+        ctx.fillRect(0, 0, W, H);
+
+        const cy = H / 2 + 10;
+        const pxDist = rToPixels(state.r);
+        const r1 = massToRadius(state.m1);
+        const r2 = massToRadius(state.m2);
+
+        // 두 물체를 캔버스 중앙을 기준으로 배치
+        const cx = W / 2;
+        const x1 = cx - pxDist / 2;
+        const x2 = cx + pxDist / 2;
+
+        // --- 거리 r 가이드 + 라벨 ---
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(x1, cy + Math.max(r1, r2) + 22);
+        ctx.lineTo(x2, cy + Math.max(r1, r2) + 22);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('r = ' + state.r.toFixed(1) + ' m', cx, cy + Math.max(r1, r2) + 40);
+
+        // --- 인력 화살표 (서로 끌어당김) ---
+        // 화살표 길이를 현재 힘에 비례시키되, 최대 힘 기준으로 정규화하여 화면을 벗어나지 않게.
+        const fNow = currentForce();
+        const fMax = force(100, 100, 1);      // 가능한 최대 힘
+        const gap = pxDist - r1 - r2;          // 두 물체 표면 사이 빈 공간
+        const maxArrow = Math.max(8, gap / 2 - 8);
+        // sqrt 스케일: 미세한 힘도 보이도록, 큰 힘은 포화
+        const arrowLen = Math.max(6, Math.min(maxArrow, maxArrow * Math.sqrt(fNow / fMax)));
+
+        ctx.strokeStyle = '#f59e0b';
+        ctx.fillStyle = '#f59e0b';
+        ctx.lineWidth = 3;
+        ctx.textAlign = 'center';
+
+        // 물체1 표면(오른쪽)에서 안쪽(오른쪽)으로 향하는 화살표
+        const a1Start = x1 + r1 + 4;
+        const a1End = a1Start + arrowLen;
+        drawArrow(a1Start, cy, a1End, cy);
+        // 물체2 표면(왼쪽)에서 안쪽(왼쪽)으로 향하는 화살표
+        const a2Start = x2 - r2 - 4;
+        const a2End = a2Start - arrowLen;
+        drawArrow(a2Start, cy, a2End, cy);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('F', (a1Start + a1End) / 2, cy - 12);
+        ctx.fillText('F', (a2Start + a2End) / 2, cy - 12);
+
+        // --- 물체 1 ---
+        drawBody(x1, cy, r1, '#2E4A62', '#3f6589', 'm₁');
+        // --- 물체 2 ---
+        drawBody(x2, cy, r2, '#3f6589', '#5b80a4', 'm₂');
+
+        // --- 우상단 힘-거리 그래프 (F ∝ 1/r²) ---
+        drawForceGraph(W, H);
+
+        ctx.textAlign = 'left';
+      }
+
+      function drawArrow(x0, y0, x1, y1) {
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+        const ang = Math.atan2(y1 - y0, x1 - x0);
+        const head = 7;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 - head * Math.cos(ang - Math.PI / 6), y1 - head * Math.sin(ang - Math.PI / 6));
+        ctx.lineTo(x1 - head * Math.cos(ang + Math.PI / 6), y1 - head * Math.sin(ang + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function drawBody(x, y, r, fill, ring, label) {
+        const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.2, x, y, r);
+        grad.addColorStop(0, ring);
+        grad.addColorStop(1, fill);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#cbd5e0';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x, y + 5);
+      }
+
+      // 우상단 작은 1/r² 곡선과 현재 r 위치 점
+      function drawForceGraph(W, H) {
+        const gx = W - 168, gy = 16, gw = 150, gh = 92;
+        // 패널
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillRect(gx, gy, gw, gh);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(gx, gy, gw, gh);
+        // 축
+        const ox = gx + 24, oy = gy + gh - 18;
+        const axW = gw - 36, axH = gh - 30;
+        ctx.strokeStyle = '#64748b';
+        ctx.beginPath();
+        ctx.moveTo(ox, oy - axH);
+        ctx.lineTo(ox, oy);
+        ctx.lineTo(ox + axW, oy);
+        ctx.stroke();
+        // 1/r² 곡선 (질량 고정, r 1~20 정규화)
+        const rMin = 1, rMax = 20;
+        const fRef = force(state.m1, state.m2, rMin); // 곡선 최대값
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i <= 60; i++) {
+          const rr = rMin + (rMax - rMin) * (i / 60);
+          const ff = force(state.m1, state.m2, rr);
+          const px = ox + axW * ((rr - rMin) / (rMax - rMin));
+          const py = oy - axH * (ff / fRef);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        // 현재 r 위치 점
+        const fr = currentForce();
+        const cxp = ox + axW * ((state.r - rMin) / (rMax - rMin));
+        const cyp = oy - axH * Math.min(1, fr / fRef);
+        ctx.beginPath();
+        ctx.arc(cxp, cyp, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fill();
+        // 라벨
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('F', gx + 4, gy + 14);
+        ctx.fillText('r', gx + gw - 12, oy + 13);
+        ctx.fillText('F ∝ 1/r²', ox + 6, gy + 14);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const f = currentForce();
+        document.querySelector('#result strong').textContent = fmtForce(f);
+
+        // 비교 문구: 거리 2배 시 1/4
+        const fHalf = force(state.m1, state.m2, state.r * 2);
+        const cmp = document.getElementById('cmp');
+        cmp.textContent = '거리를 2배(' + (state.r * 2).toFixed(1) + ' m)로 하면 F는 1/4인 '
+          + fmtForce(fHalf) + ' 로 줄어든다.';
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const m1Slider = document.getElementById('m1');
+      const m2Slider = document.getElementById('m2');
+      const rSlider = document.getElementById('r');
+      const m1Val = document.getElementById('m1-val');
+      const m2Val = document.getElementById('m2-val');
+      const rVal = document.getElementById('r-val');
+
+      function syncLabels() {
+        // 슬라이더 1~100 → 표시 0.1~10.0 (×10¹⁰ kg)
+        m1Val.textContent = (state.m1 / 10).toFixed(1);
+        m2Val.textContent = (state.m2 / 10).toFixed(1);
+        rVal.textContent = state.r.toFixed(1);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      m1Slider.addEventListener('input', () => {
+        state.m1 = Number(m1Slider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      m2Slider.addEventListener('input', () => {
+        state.m2 = Number(m2Slider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      rSlider.addEventListener('input', () => {
+        state.r = Number(rSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.m1 = DEFAULTS.m1;
+        state.m2 = DEFAULTS.m2;
+        state.r = DEFAULTS.r;
+        m1Slider.value = String(DEFAULTS.m1);
+        m2Slider.value = String(DEFAULTS.m2);
+        rSlider.value = String(DEFAULTS.r);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 F는 거리의 제곱에 반비례(2배→1/4), 질량에 비례(2배→2배)합니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. F = G·m₁·m₂ / r² 에서 r은 제곱으로 분모에, 질량은 분자에 있습니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

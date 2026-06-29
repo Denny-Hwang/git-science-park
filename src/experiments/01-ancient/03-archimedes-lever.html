@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아르키메데스의 지레 원리 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #b5703a;
+      --bg: #f7f5f2;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .quiz-box button:focus-visible, .quiz-box label:focus-within, .controls .btn:focus-visible {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #fdfbf7; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #fff7ed; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .verdict { display: inline-block; margin-top: 6px; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🏛️ 고대 (Ancient)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>아르키메데스의 지레 원리</h1>
+    <div class="en">Archimedes' Law of the Lever</div>
+    <div class="meta">기원전 250년경 · 아르키메데스 (Archimedes) · 난이도 ⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="360" aria-label="받침점 위 막대의 양쪽에 부하와 힘이 작용하는 지레 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="load">부하(들어올릴 물체) 무게 W: <span id="load-val">200</span> N</label>
+          <input type="range" id="load" min="10" max="500" step="5" value="200"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="dload">부하 팔 길이 d<sub>부하</sub>: <span id="dload-val">0.5</span> m</label>
+          <input type="range" id="dload" min="0.2" max="2.0" step="0.05" value="0.5"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="deffort">힘 팔 길이 d<sub>힘</sub>: <span id="deffort-val">1.5</span> m</label>
+          <input type="range" id="deffort" min="0.2" max="3.0" step="0.05" value="1.5"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="effort">내가 주는 힘 F: <span id="effort-val">67</span> N</label>
+          <input type="range" id="effort" min="0" max="600" step="1" value="67"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        평형에 필요한 힘 F<sub>평형</sub>: <strong>—</strong> &nbsp;(F = W·d<sub>부하</sub> / d<sub>힘</sub>)
+        <br>역학적 이득 (MA): <strong id="ma-val">—</strong>
+        <br><span class="verdict" id="verdict">—</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 힘 팔 d<sub>힘</sub>을 길게 할수록 더 <strong>작은 힘</strong>으로 같은 부하를 들 수 있다.
+        받침점 기준 양쪽 모멘트(힘 × 거리)가 같아지면 막대가 수평으로 평형을 이룬다.
+        내 힘이 평형값보다 크면 부하 쪽이 올라가고, 작으면 부하 쪽이 내려간다.
+        아르키메데스의 말처럼 "충분히 긴 지레와 받침점이 있으면 지구도 들 수 있다".
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>토크(모멘트) = 힘 × 받침점까지의 거리 임을 이해한다.</li>
+        <li>지레가 평형을 이루는 조건 F₁·d₁ = F₂·d₂ 를 설명한다.</li>
+        <li>힘 팔을 길게 하면 더 작은 힘으로 부하를 들 수 있음을 안다(역학적 이득).</li>
+        <li>적은 힘으로 큰 일을 하는 대신, 힘을 주는 거리가 길어진다는 것을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>지레는 받침점(fulcrum)을 중심으로 회전하는 막대다. 받침점을 기준으로 한 회전 효과를
+        <strong>토크(모멘트)</strong>라 하며, 작용한 힘과 받침점까지의 수직 거리(팔 길이)의 곱으로 정한다.
+        양쪽 토크가 같으면 막대는 회전하지 않고 <strong>수평 평형</strong>을 이룬다.</p>
+        <p>부하(무게 W)가 받침점에서 d<sub>부하</sub>만큼, 내가 주는 힘 F가 반대쪽으로 d<sub>힘</sub>만큼 떨어져 있을 때,
+        평형 조건은 <strong>W · d<sub>부하</sub> = F · d<sub>힘</sub></strong> 이다. 따라서 부하를 막 들어올리는 데 필요한 힘은
+        <strong>F = W · d<sub>부하</sub> / d<sub>힘</sub></strong> 이며, 힘 팔 d<sub>힘</sub>이 길수록 필요한 힘이 작아진다.</p>
+        <p>이때 <strong>역학적 이득(MA) = d<sub>힘</sub> / d<sub>부하</sub></strong> 으로, 힘이 몇 배로 확대되는지를 나타낸다.
+        단, 공짜는 없다. 힘을 1/N로 줄이면 힘점을 N배 더 멀리 움직여야 하므로, 한 일(에너지)은 같다.</p>
+      </div>
+
+      <div class="formula-box">
+        평형: W · d<sub>부하</sub> = F · d<sub>힘</sub>
+        <br>
+        필요한 힘: F = W · d<sub>부하</sub> / d<sub>힘</sub>
+        <br>
+        역학적 이득: MA = d<sub>힘</sub> / d<sub>부하</sub>
+      </div>
+
+      <!-- SVG 다이어그램: 받침점 위 막대, 양쪽 부하와 힘 -->
+      <svg width="420" height="200" viewBox="0 0 420 200" role="img"
+           aria-label="받침점 위 막대의 한쪽에 부하 W, 반대쪽에 힘 F가 작용하는 지레 다이어그램">
+        <!-- 막대(수평 평형) -->
+        <rect x="40" y="92" width="340" height="10" rx="3" fill="#8B4513"/>
+        <!-- 받침점 삼각형 (중심에서 부하 쪽으로 치우침) -->
+        <polygon points="150,102 130,150 170,150" fill="#6b7280"/>
+        <text x="138" y="168" font-size="11" fill="#6b7280">받침점</text>
+        <!-- 부하(왼쪽, 짧은 팔) -->
+        <rect x="62" y="60" width="34" height="34" rx="4" fill="#b5703a"/>
+        <text x="68" y="50" font-size="12" fill="#8B4513">W</text>
+        <line x1="79" y1="94" x2="79" y2="120" stroke="#8B4513" stroke-width="1.5"/>
+        <!-- 부하 팔 길이 d_부하 -->
+        <line x1="79" y1="132" x2="150" y2="132" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="100" y="128" font-size="11" fill="#6b7280">d_부하</text>
+        <!-- 힘(오른쪽, 긴 팔) 아래로 누르는 화살표 -->
+        <line x1="350" y1="52" x2="350" y2="86" stroke="#dc2626" stroke-width="2.5"/>
+        <polygon points="350,94 344,82 356,82" fill="#dc2626"/>
+        <text x="342" y="46" font-size="12" fill="#dc2626">F</text>
+        <!-- 힘 팔 길이 d_힘 -->
+        <line x1="150" y1="132" x2="350" y2="132" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="240" y="128" font-size="11" fill="#6b7280">d_힘</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "지레를 쓰면 힘을 공짜로 무한정 줄일 수 있다"고 생각하기 쉽다.
+        실제로는 힘을 절반으로 줄이면 그만큼 힘점을 두 배 더 멀리 움직여야 한다.
+        지레가 늘려 주는 것은 <em>힘</em>이지 <em>에너지(일)</em>가 아니다. 에너지 보존은 그대로 성립한다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 받침점에서 힘을 주는 점(힘 팔 d<sub>힘</sub>)이 멀수록, 부하를 들어올리는 데 필요한 힘은?</p>
+          <label><input type="radio" name="q1" value="correct"> 작아진다 (F ∝ 1/d<sub>힘</sub>)</label>
+          <label><input type="radio" name="q1" value="wrong"> 커진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 부하 200 N, 부하 팔 0.5 m, 힘 팔 2.0 m일 때 평형에 필요한 힘은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 200 N</label>
+          <label><input type="radio" name="q2" value="correct"> 50 N</label>
+          <label><input type="radio" name="q2" value="wrong"> 800 N</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 아르키메데스 (Archimedes, 기원전 287~212)</h3>
+        <p>고대 그리스 시칠리아 섬 시라쿠사 출신의 수학자·물리학자·공학자다.
+        부력의 원리(아르키메데스의 원리), 원주율 π의 정밀한 근삿값, 구와 원기둥의 부피 관계 등 수많은 업적을 남겼다.
+        지레와 도르래의 원리를 정량적으로 정리하여, 한 사람의 힘으로 거대한 배를 끌어내는 모습을 직접 보여 주었다고 전해진다.
+        "나에게 설 자리(받침점)와 충분히 긴 지레를 달라. 그러면 지구를 들어 보이겠다"는 말로 유명하다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>기원전 3세기 — 헬레니즘 시대, 그리스 수학·역학이 시라쿠사·알렉산드리아에서 꽃핌</li>
+          <li>기원전 250년경 — 아르키메데스가 지레·무게중심의 원리를 「평면의 평형에 관하여」에서 기하학적으로 증명</li>
+          <li>기원전 214~212년 — 시라쿠사 공방전에서 투석기·기중기 등 지레·도르래 기반 전쟁 기계를 고안</li>
+          <li>기원전 212년 — 로마군의 시라쿠사 함락 때 아르키메데스 사망</li>
+          <li>이후 — 정역학(statics)과 단순 기계 이론의 출발점으로 자리매김</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 아르키메데스의 지레 원리는 "힘과 거리의 곱(토크)"이라는 개념을 통해
+        역학을 처음으로 <em>정량적·기하학적</em>으로 다룬 사례다. 이는 후대의 정역학과 기계 공학의 기초가 되었고,
+        에너지 개념 이전에 이미 "적은 힘으로 큰 일을 하려면 거리를 대신 내어 주어야 한다"는
+        보존 원리의 직관을 담고 있었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (단위: W N, d m, F N) -----
+      const DEFAULTS = { load: 200, dLoad: 0.5, dEffort: 1.5, effort: 67 };
+      const state = {
+        load: DEFAULTS.load,
+        dLoad: DEFAULTS.dLoad,
+        dEffort: DEFAULTS.dEffort,
+        effort: DEFAULTS.effort
+      };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 물리 계산 -----
+      // 평형 힘: F = W·d_부하 / d_힘
+      function equilibriumForce() {
+        return (state.load * state.dLoad) / state.dEffort;
+      }
+      // 역학적 이득: MA = d_힘 / d_부하
+      function mechanicalAdvantage() {
+        return state.dEffort / state.dLoad;
+      }
+      // 양쪽 모멘트 차이로 기울기 결정.
+      // 부하 토크(받침점 기준, 부하쪽 아래로) vs 힘 토크(힘쪽 아래로)
+      // tilt > 0 : 힘 토크가 커서 힘 쪽이 내려가고 부하 쪽이 올라감
+      // tilt < 0 : 부하 토크가 커서 부하 쪽이 내려감
+      function tiltSign() {
+        const loadTorque = state.load * state.dLoad;
+        const effortTorque = state.effort * state.dEffort;
+        const diff = effortTorque - loadTorque;
+        const ref = Math.max(loadTorque, 1);
+        if (Math.abs(diff) < ref * 0.02) return 0; // 거의 평형
+        return diff > 0 ? 1 : -1;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#fdfbf7';
+        ctx.fillRect(0, 0, W, H);
+
+        // 지면
+        const groundY = H - 36;
+        ctx.strokeStyle = '#cbb79a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(W, groundY);
+        ctx.stroke();
+
+        // 받침점(피벗) 위치: 화면 중앙 약간 왼쪽
+        const pivotX = W * 0.45;
+        const pivotTopY = groundY - 70; // 막대가 놓이는 피벗 꼭짓점
+
+        // 스케일: 실제 거리(m) → 화면 픽셀. 좌우로 들어갈 최대 거리 기준.
+        const maxLeft = 2.0;   // dLoad 최댓값
+        const maxRight = 3.0;  // dEffort 최댓값
+        const pxLeft = (pivotX - 30) / maxLeft;     // 왼쪽 여유
+        const pxRight = (W - 30 - pivotX) / maxRight; // 오른쪽 여유
+        const pxPerM = Math.min(pxLeft, pxRight);
+
+        // 기울기 각도(시각화용, 라디안). 양수면 힘 쪽(오른쪽)이 내려감.
+        const sign = tiltSign();
+        const angle = sign * 0.16; // 약 9도
+
+        // 막대 끝 좌표(피벗 기준 회전)
+        const loadDistPx = state.dLoad * pxPerM;     // 왼쪽
+        const effortDistPx = state.dEffort * pxPerM; // 오른쪽
+
+        // 회전 변환: 화면 y는 아래로 증가. 오른쪽이 내려가려면 오른쪽 y가 커져야 함.
+        // 점(거리 r, 피벗 기준) → (pivotX + r*cos, pivotTopY + r*sin) ; 오른쪽 +r, 왼쪽 -r
+        function beamPoint(rMeters, side) {
+          // side: 'left' (-) or 'right' (+)
+          const r = rMeters * pxPerM * (side === 'left' ? -1 : 1);
+          return {
+            x: pivotX + r * Math.cos(angle),
+            y: pivotTopY + r * Math.sin(angle)
+          };
+        }
+
+        // 막대 양 끝 (조금 더 길게 그려 시각적 막대)
+        const leftEndM = Math.max(state.dLoad + 0.25, 0.45);
+        const rightEndM = Math.max(state.dEffort + 0.25, 0.45);
+        const pL = beamPoint(leftEndM, 'left');
+        const pR = beamPoint(rightEndM, 'right');
+
+        // 막대(beam)
+        ctx.save();
+        ctx.lineWidth = 12;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.moveTo(pL.x, pL.y);
+        ctx.lineTo(pR.x, pR.y);
+        ctx.stroke();
+        ctx.restore();
+
+        // 받침점 삼각형(fulcrum)
+        ctx.fillStyle = '#6b7280';
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotTopY + 2);
+        ctx.lineTo(pivotX - 26, groundY);
+        ctx.lineTo(pivotX + 26, groundY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#374151';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('받침점', pivotX, groundY + 22);
+
+        // 부하 위치(왼쪽, dLoad 지점)
+        const loadPt = beamPoint(state.dLoad, 'left');
+        // 부하 추(상자) — 무게에 따라 크기 변화
+        const boxSize = 18 + (state.load / 500) * 26; // 18~44
+        ctx.fillStyle = '#b5703a';
+        ctx.fillRect(loadPt.x - boxSize / 2, loadPt.y - boxSize - 4, boxSize, boxSize);
+        ctx.strokeStyle = '#7a4a1f';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(loadPt.x - boxSize / 2, loadPt.y - boxSize - 4, boxSize, boxSize);
+        ctx.fillStyle = '#7a3f12';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('W=' + Math.round(state.load) + 'N', loadPt.x, loadPt.y - boxSize - 12);
+
+        // 힘 위치(오른쪽, dEffort 지점) — 아래로 누르는 화살표(빨강)
+        const effortPt = beamPoint(state.dEffort, 'right');
+        const arrowLen = 26 + (state.effort / 600) * 34; // 26~60
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(effortPt.x, effortPt.y - 6 - arrowLen);
+        ctx.lineTo(effortPt.x, effortPt.y - 6);
+        ctx.stroke();
+        // 화살촉(아래 방향)
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.moveTo(effortPt.x, effortPt.y - 2);
+        ctx.lineTo(effortPt.x - 6, effortPt.y - 12);
+        ctx.lineTo(effortPt.x + 6, effortPt.y - 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#b91c1c';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('F=' + Math.round(state.effort) + 'N', effortPt.x, effortPt.y - 12 - arrowLen);
+
+        // 거리 라벨(팔 길이) — 막대 아래 점선 가이드
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pivotX, groundY - 6);
+        ctx.lineTo(loadPt.x, groundY - 6);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pivotX, groundY - 16);
+        ctx.lineTo(effortPt.x, groundY - 16);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('d부하=' + state.dLoad.toFixed(2) + 'm', (pivotX + loadPt.x) / 2, groundY - 9);
+        ctx.fillText('d힘=' + state.dEffort.toFixed(2) + 'm', (pivotX + effortPt.x) / 2, groundY - 19);
+
+        // 상태 표시(상단)
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 13px sans-serif';
+        if (sign === 0) {
+          ctx.fillStyle = '#16a34a';
+          ctx.fillText('⚖ 평형 (수평)', 14, 22);
+        } else if (sign > 0) {
+          ctx.fillStyle = '#dc2626';
+          ctx.fillText('↑ 부하가 올라감 (내 힘이 더 큼)', 14, 22);
+        } else {
+          ctx.fillStyle = '#b45309';
+          ctx.fillText('↓ 부하가 내려감 (내 힘이 부족)', 14, 22);
+        }
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const fEq = equilibriumForce();
+        const ma = mechanicalAdvantage();
+        document.querySelector('#result strong').textContent = fEq.toFixed(1) + ' N';
+        document.getElementById('ma-val').textContent = ma.toFixed(2) + ' 배';
+
+        const sign = tiltSign();
+        const verdict = document.getElementById('verdict');
+        if (sign === 0) {
+          verdict.textContent = '⚖ 평형: 막대가 수평을 유지합니다.';
+          verdict.style.color = '#16a34a';
+        } else if (sign > 0) {
+          verdict.textContent = '↑ 내 힘이 평형값보다 커서 부하가 들립니다.';
+          verdict.style.color = '#dc2626';
+        } else {
+          verdict.textContent = '↓ 내 힘이 부족해 부하 쪽이 내려갑니다.';
+          verdict.style.color = '#b45309';
+        }
+      }
+
+      // ----- 슬라이더 / 라벨 -----
+      const loadSlider = document.getElementById('load');
+      const dLoadSlider = document.getElementById('dload');
+      const dEffortSlider = document.getElementById('deffort');
+      const effortSlider = document.getElementById('effort');
+      const loadVal = document.getElementById('load-val');
+      const dLoadVal = document.getElementById('dload-val');
+      const dEffortVal = document.getElementById('deffort-val');
+      const effortVal = document.getElementById('effort-val');
+
+      function syncLabels() {
+        loadVal.textContent = Math.round(state.load);
+        dLoadVal.textContent = state.dLoad.toFixed(2);
+        dEffortVal.textContent = state.dEffort.toFixed(2);
+        effortVal.textContent = Math.round(state.effort);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      loadSlider.addEventListener('input', () => {
+        state.load = Number(loadSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      dLoadSlider.addEventListener('input', () => {
+        state.dLoad = Number(dLoadSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      dEffortSlider.addEventListener('input', () => {
+        state.dEffort = Number(dEffortSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      effortSlider.addEventListener('input', () => {
+        state.effort = Number(effortSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.load = DEFAULTS.load;
+        state.dLoad = DEFAULTS.dLoad;
+        state.dEffort = DEFAULTS.dEffort;
+        state.effort = DEFAULTS.effort;
+        loadSlider.value = String(DEFAULTS.load);
+        dLoadSlider.value = String(DEFAULTS.dLoad);
+        dEffortSlider.value = String(DEFAULTS.dEffort);
+        effortSlider.value = String(DEFAULTS.effort);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 힘 팔이 길수록 필요한 힘은 작아지고, F = 200·0.5 / 2.0 = 50 N 입니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. F = W·d부하 / d힘 관계를 다시 살펴보세요 (힘 팔에 반비례).';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>
