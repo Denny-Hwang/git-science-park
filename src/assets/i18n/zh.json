@@ -21,6 +21,7 @@
   "card": { "open": "打开 →", "preparing": "🔒 即将推出" },
   "empty": "没有符合筛选条件的实验。",
   "difficultyAria": "难度 {n}",
+  "a11y": { "colorblind": "色盲友好配色" },
   "lang": { "label": "语言" },
   "nav": { "back": "← 主页" },
   "tab": { "interactive": "🎮 互动", "learning": "📚 原理", "history": "📜 历史" },

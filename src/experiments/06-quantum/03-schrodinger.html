@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>슈뢰딩거 방정식 · Git Science Park</title>
   <style>
     :root {
       --primary: #6B46C1;
-      --primary-light: #8b63e0;
+      --primary-light: #6d28d9;
       --bg: #f6f4fb;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,7 +86,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -99,8 +102,8 @@
     .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
     .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
     .legend { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; }
-    .legend .psi { color: #8b63e0; font-weight: 700; }
-    .legend .prob { color: #f59e0b; font-weight: 700; }
+    .legend .psi { color: #6d28d9; font-weight: 700; }
+    .legend .prob { color: #b45309; font-weight: 700; }
     ul.goals { margin: 12px 0 12px 22px; }
     p { margin: 6px 0; }
     footer {
@@ -222,18 +225,18 @@
         <text x="356" y="18" font-size="11" fill="#6B46C1">V=∞</text>
         <text x="200" y="236" font-size="11" fill="#6b7280">우물 너비 L (양 끝 ψ=0)</text>
         <!-- n=1: 반파장 하나 -->
-        <path d="M70,180 Q210,120 350,180" fill="none" stroke="#8b63e0" stroke-width="2"/>
-        <text x="356" y="180" font-size="11" fill="#8b63e0">n=1</text>
+        <path d="M70,180 Q210,120 350,180" fill="none" stroke="#6d28d9" stroke-width="2"/>
+        <text x="356" y="180" font-size="11" fill="#6d28d9">n=1</text>
         <!-- n=2: 마디 1개 (중앙) -->
         <path d="M70,120 Q140,80 210,120 Q280,160 350,120" fill="none" stroke="#a07ce8" stroke-width="2"/>
         <text x="356" y="120" font-size="11" fill="#a07ce8">n=2</text>
-        <circle cx="210" cy="120" r="3" fill="#f59e0b"/>
+        <circle cx="210" cy="120" r="3" fill="#b45309"/>
         <!-- n=3: 마디 2개 -->
         <path d="M70,60 Q116,30 163,60 Q210,90 257,60 Q304,30 350,60" fill="none" stroke="#b794ed" stroke-width="2"/>
         <text x="356" y="60" font-size="11" fill="#b794ed">n=3</text>
-        <circle cx="163" cy="60" r="3" fill="#f59e0b"/>
-        <circle cx="257" cy="60" r="3" fill="#f59e0b"/>
-        <text x="380" y="232" font-size="10" fill="#f59e0b">● 마디</text>
+        <circle cx="163" cy="60" r="3" fill="#b45309"/>
+        <circle cx="257" cy="60" r="3" fill="#b45309"/>
+        <text x="380" y="232" font-size="10" fill="#b45309">● 마디</text>
       </svg>
 
       <div class="misconception">
@@ -356,7 +359,7 @@
         const amp = H * 0.30; // ψ 표시 진폭(픽셀)
 
         // --- 우물 벽 (무한 퍼텐셜) ---
-        ctx.strokeStyle = '#8b63e0';
+        ctx.strokeStyle = '#6d28d9';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(wallL, 24); ctx.lineTo(wallL, H - 24);
@@ -404,12 +407,12 @@
           const y = axisY - psiShape(u) * timeFactor * amp;
           if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = '#8b63e0';
+        ctx.strokeStyle = '#6d28d9';
         ctx.lineWidth = 2.5;
         ctx.stroke();
 
         // --- 마디(node) 표시: 내부에서 ψ=0인 지점 (n-1개) ---
-        ctx.fillStyle = '#f59e0b';
+        ctx.fillStyle = '#b45309';
         for (let m = 1; m < state.n; m++) {
           const u = m / state.n; // sin(nπu)=0 인 내부 지점
           const x = wallL + u * wellW;
@@ -486,10 +489,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 E_n ∝ n² 이므로 n²에 비례해 커지고, 확률밀도는 |ψ|²로 주어집니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. E_n = n²·h²/(8mL²) (n²에 비례), |ψ|²이 확률밀도임을 다시 보세요.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -514,18 +517,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 35, "slug": "03-schrodinger", "category": "06-quantum", "title": "슈뢰딩거 방정식", "titleEn": "Schrödinger Equation", "year": "1926년", "scientist": "에르빈 슈뢰딩거", "difficulty": 5, "description": "파동함수의 시간 변화와 확률 분포를 탐구한다.", "keywords": ["파동함수", "슈뢰딩거 방정식", "확률 분포", "퍼텐셜 우물", "양자역학"], "catName": "양자역학", "catIcon": "🌊"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

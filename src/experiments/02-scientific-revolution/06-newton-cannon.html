@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>뉴턴의 대포 사고실험 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f4f6f8;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -91,7 +94,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 2;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
     .quiz-box button {
@@ -157,7 +160,7 @@
         aria-label="높은 산 위 대포에서 수평으로 발사한 포탄이 지구 주위를 도는 궤도 시뮬레이션"></canvas>
 
       <div class="legend" aria-hidden="true">
-        <span><i class="swatch" style="background:#f87171;"></i> 추락</span>
+        <span><i class="swatch" style="background:#b91c1c;"></i> 추락</span>
         <span><i class="swatch" style="background:#fbbf24;"></i> 타원궤도</span>
         <span><i class="swatch" style="background:#34d399;"></i> 원궤도</span>
         <span><i class="swatch" style="background:#60a5fa;"></i> 탈출</span>
@@ -240,14 +243,14 @@
         <circle cx="160" cy="80" r="4" fill="#1a1a1a"/>
         <text x="168" y="78" font-size="10" fill="#1a1a1a">대포</text>
         <!-- 추락(짧게 떨어짐) -->
-        <path d="M160,80 Q210,95 232,150" fill="none" stroke="#f87171" stroke-width="2"/>
-        <text x="236" y="150" font-size="10" fill="#f87171">추락</text>
+        <path d="M160,80 Q210,95 232,150" fill="none" stroke="#b91c1c" stroke-width="2"/>
+        <text x="236" y="150" font-size="10" fill="#b91c1c">추락</text>
         <!-- 타원(더 멀리) -->
         <path d="M160,80 Q280,100 270,210" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 3"/>
         <text x="272" y="215" font-size="10" fill="#d97706">타원</text>
         <!-- 원궤도 -->
-        <circle cx="160" cy="170" r="90" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="2 4"/>
-        <text x="120" y="270" font-size="10" fill="#16a34a">원궤도</text>
+        <circle cx="160" cy="170" r="90" fill="none" stroke="#166534" stroke-width="2" stroke-dasharray="2 4"/>
+        <text x="120" y="270" font-size="10" fill="#166534">원궤도</text>
         <!-- 발사 방향 화살표(수평) -->
         <line x1="160" y1="80" x2="205" y2="80" stroke="#1a1a1a" stroke-width="1.5"/>
         <polygon points="205,80 198,76 198,84" fill="#1a1a1a"/>
@@ -392,7 +395,7 @@
       //  ratio >= sqrt(2) : 탈출
       function classify(ratio) {
         if (ratio >= Math.SQRT2 - 1e-6) return { key: 'escape', label: '탈출', color: '#60a5fa' };
-        if (ratio < 0.95) return { key: 'crash', label: '추락', color: '#f87171' };
+        if (ratio < 0.95) return { key: 'crash', label: '추락', color: '#b91c1c' };
         if (ratio <= 1.05) return { key: 'circle', label: '원궤도', color: '#34d399' };
         return { key: 'ellipse', label: '타원궤도', color: '#fbbf24' };
       }
@@ -522,7 +525,7 @@
         const ratio = currentRatio();
         ctx.fillText('v = ' + state.speedKms.toFixed(2) + ' km/s  (v/v_orbit = ' + ratio.toFixed(2) + ')', 14, 24);
         if (state.crashed) {
-          ctx.fillStyle = '#f87171';
+          ctx.fillStyle = '#b91c1c';
           ctx.font = 'bold 15px sans-serif';
           ctx.fillText('지면 충돌 — 추락!', 14, 48);
         } else if (state.escaped) {
@@ -680,10 +683,10 @@
           }
           if (picked.value === 'correct') {
             out.textContent = '정답입니다! 🎉 ' + correctMsg;
-            out.style.color = '#16a34a';
+            out.style.color = '#166534';
           } else {
             out.textContent = '다시 생각해 보세요. ' + wrongMsg;
-            out.style.color = '#dc2626';
+            out.style.color = '#b91c1c';
           }
         });
       }
@@ -713,18 +716,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 10, "slug": "06-newton-cannon", "category": "02-scientific-revolution", "title": "뉴턴의 대포 사고실험", "titleEn": "Newton's Cannonball", "year": "1687년", "scientist": "아이작 뉴턴", "difficulty": 2, "description": "발사 속도를 높이면 포탄이 궤도를 도는 인공위성이 됨을 보인다.", "keywords": ["인공위성", "궤도운동", "탈출속도", "포물선", "만유인력"], "catName": "과학혁명", "catIcon": "🔭"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

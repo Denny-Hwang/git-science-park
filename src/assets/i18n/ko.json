@@ -21,6 +21,7 @@
   "card": { "open": "열기 →", "preparing": "🔒 준비중" },
   "empty": "조건에 맞는 실험이 없습니다.",
   "difficultyAria": "난이도 {n}",
+  "a11y": { "colorblind": "색약 팔레트" },
   "lang": { "label": "언어" },
   "nav": { "back": "← 허브로" },
   "tab": { "interactive": "🎮 인터랙티브", "learning": "📚 원리 학습", "history": "📜 역사적 맥락" },

@@ -21,6 +21,7 @@
   "card": { "open": "פתח →", "preparing": "🔒 בקרוב" },
   "empty": "אין ניסויים התואמים את הסינון.",
   "difficultyAria": "רמת קושי {n}",
+  "a11y": { "colorblind": "פלטה ידידותית לעיוורון צבעים" },
   "lang": { "label": "שפה" },
   "nav": { "back": "← מרכז" },
   "tab": { "interactive": "🎮 אינטראקטיבי", "learning": "📚 עקרונות", "history": "📜 היסטוריה" },

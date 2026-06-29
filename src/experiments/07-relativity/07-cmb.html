@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>우주배경복사 발견 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f3f5f9;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -86,7 +89,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -214,8 +217,8 @@
         <line x1="30" y1="180" x2="410" y2="180" stroke="#94a3b8" stroke-width="1.5"/>
         <text x="220" y="206" font-size="11" fill="#6b7280" text-anchor="middle">시간 / 우주 팽창 →</text>
         <!-- 불투명 플라스마 (뜨거움) -->
-        <rect x="40" y="60" width="70" height="100" rx="6" fill="#dc2626" opacity="0.85"/>
-        <text x="75" y="46" font-size="11" fill="#dc2626" text-anchor="middle">뜨거운 플라스마</text>
+        <rect x="40" y="60" width="70" height="100" rx="6" fill="#b91c1c" opacity="0.85"/>
+        <text x="75" y="46" font-size="11" fill="#b91c1c" text-anchor="middle">뜨거운 플라스마</text>
         <text x="75" y="120" font-size="10" fill="#fff" text-anchor="middle">불투명</text>
         <!-- 재결합 경계 -->
         <line x1="150" y1="40" x2="150" y2="180" stroke="#eab308" stroke-width="2" stroke-dasharray="4 3"/>
@@ -609,10 +612,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 CMB는 뜨겁고 밀집했던 초기 우주(빅뱅)와 그 후 팽창·냉각의 증거이며, 현재 봉우리는 약 1 mm 마이크로파 영역에 있습니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. CMB가 빅뱅의 잔광이라는 점과, 식어서(2.725 K) 봉우리가 마이크로파에 온다는 점을 다시 살펴보세요.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -634,18 +637,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 46, "slug": "07-cmb", "category": "07-relativity", "title": "우주배경복사 발견", "titleEn": "Discovery of the CMB", "year": "1965년", "scientist": "펜지어스, 윌슨", "difficulty": 3, "description": "하늘 전역의 마이크로파 잡음에서 빅뱅의 잔광을 발견한다.", "keywords": ["우주배경복사", "CMB", "빅뱅", "마이크로파", "펜지어스-윌슨"], "catName": "상대성·우주론", "catIcon": "🌌"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

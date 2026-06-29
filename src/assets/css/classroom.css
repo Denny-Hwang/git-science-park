@@ -268,3 +268,30 @@ body.gsp-present header { max-width: 1100px; }
 @media (prefers-reduced-motion: reduce) {
   .gsp-scrim, .gsp-guide-panel, .gsp-dialog { animation: none !important; transition: none !important; }
 }
+
+/* ================================================================
+ * v2.0-B 접근성 · 성능
+ * classroom.css 는 허브와 53개 실험 페이지 모두에 링크되므로
+ * 여기 둔 전역 규칙은 사이트 전체에 적용된다.
+ * ================================================================ */
+
+/* 전역 prefers-reduced-motion (실험 페이지엔 자체 처리가 없었음) */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.gsp-motion-ok) *,
+  html:not(.gsp-motion-ok) *::before,
+  html:not(.gsp-motion-ok) *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 색약(color-blind) 보조 모드: 색 외 단서를 강화한다.
+   허브 카테고리 색은 JS가 Okabe-Ito 팔레트로 교체하고,
+   여기서는 테두리·아웃라인 등 형태 단서를 더한다. */
+html.gsp-cb .chip[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 1px; }
+html.gsp-cb .badge { border: 1px solid rgba(127, 127, 127, 0.55); }
+html.gsp-cb .card.is-ready { border-inline-start: 3px solid currentColor; }
+html.gsp-cb .topbar-btn[aria-pressed="true"] { outline: 2px solid #fff; outline-offset: -3px; }
+

@@ -21,6 +21,7 @@
   "card": { "open": "खोलें →", "preparing": "🔒 जल्द आ रहा है" },
   "empty": "आपके फ़िल्टर से कोई प्रयोग मेल नहीं खाता।",
   "difficultyAria": "कठिनाई {n}",
+  "a11y": { "colorblind": "वर्णान्ध-अनुकूल पैलेट" },
   "lang": { "label": "भाषा" },
   "nav": { "back": "← हब" },
   "tab": { "interactive": "🎮 इंटरैक्टिव", "learning": "📚 सिद्धांत", "history": "📜 इतिहास" },

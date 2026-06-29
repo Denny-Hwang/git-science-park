@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>양자컴퓨팅 큐비트 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f2f7f6;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -89,7 +92,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -595,10 +598,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 큐비트는 측정 전엔 0과 1의 중첩이지만, 측정하면 확률대로 0 또는 1 하나로 붕괴합니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. 측정하면 확률적으로 0 또는 1로 붕괴하며, θ=90°(적도)에서는 P(0)=P(1)=0.5입니다.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -618,18 +621,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 53, "slug": "07-qubit", "category": "08-modern", "title": "양자컴퓨팅 큐비트", "titleEn": "Quantum Computing Qubit", "year": "2019년", "scientist": "양자컴퓨팅 연구진", "difficulty": 5, "description": "중첩과 얽힘을 이용하는 큐비트의 동작 원리를 본다.", "keywords": ["큐비트", "중첩", "양자 게이트", "블로흐 구", "양자컴퓨팅"], "catName": "현대 물리학", "catIcon": "🔬"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

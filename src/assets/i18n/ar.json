@@ -21,6 +21,7 @@
   "card": { "open": "افتح →", "preparing": "🔒 قريبًا" },
   "empty": "لا توجد تجارب مطابقة لعوامل التصفية.",
   "difficultyAria": "الصعوبة {n}",
+  "a11y": { "colorblind": "لوحة ألوان لعمى الألوان" },
   "lang": { "label": "اللغة" },
   "nav": { "back": "← الرئيسية" },
   "tab": { "interactive": "🎮 تفاعلي", "learning": "📚 المبادئ", "history": "📜 التاريخ" },

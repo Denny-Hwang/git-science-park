@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>슈테른-게를라흐 실험 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f5f3fb;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -86,14 +89,14 @@
     .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
     .result-grid div { min-width: 150px; }
     .spin-up { color: #2563eb; font-weight: 700; }
-    .spin-down { color: #dc2626; font-weight: 700; }
+    .spin-down { color: #b91c1c; font-weight: 700; }
     .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
     .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
     .formula-box {
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 2;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
     .quiz-box button {
@@ -256,11 +259,11 @@
         <text x="344" y="60" font-size="9" fill="#6b7280">고전: 연속 띠</text>
         <!-- 양자 관측: 두 점 -->
         <line x1="230" y1="105" x2="370" y2="74" stroke="#2563eb" stroke-width="1.5"/>
-        <line x1="230" y1="115" x2="370" y2="146" stroke="#dc2626" stroke-width="1.5"/>
+        <line x1="230" y1="115" x2="370" y2="146" stroke="#b91c1c" stroke-width="1.5"/>
         <circle cx="372" cy="74" r="7" fill="#2563eb"/>
-        <circle cx="372" cy="146" r="7" fill="#dc2626"/>
+        <circle cx="372" cy="146" r="7" fill="#b91c1c"/>
         <text x="384" y="78" font-size="11" fill="#2563eb">↑</text>
-        <text x="384" y="150" font-size="11" fill="#dc2626">↓</text>
+        <text x="384" y="150" font-size="11" fill="#b91c1c">↓</text>
         <text x="300" y="205" font-size="10" fill="#374151">양자: 정확히 두 점</text>
       </svg>
       <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
@@ -648,10 +651,10 @@
           }
           if (picked.value === 'correct') {
             out.textContent = '정답입니다! 🎉 ' + correctMsg;
-            out.style.color = '#16a34a';
+            out.style.color = '#166534';
           } else {
             out.textContent = '다시 생각해 보세요. ' + wrongMsg;
-            out.style.color = '#dc2626';
+            out.style.color = '#b91c1c';
           }
         });
       }
@@ -682,18 +685,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 37, "slug": "05-stern-gerlach", "category": "06-quantum", "title": "슈테른-게를라흐 실험", "titleEn": "Stern-Gerlach Experiment", "year": "1922년", "scientist": "오토 슈테른, 발터 게를라흐", "difficulty": 4, "description": "은 원자 빔이 두 갈래로 갈라지는 스핀 양자화를 본다.", "keywords": ["스핀", "공간 양자화", "자기 모멘트", "은 원자", "측정"], "catName": "양자역학", "catIcon": "🌊"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

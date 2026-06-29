@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>패러데이의 전자기 유도 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #fbf5f4;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -85,7 +88,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 2;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
     .quiz-box button {
@@ -242,9 +245,9 @@
         <text x="74" y="65" font-size="13" fill="#fff" font-weight="bold">S</text>
         <text x="114" y="65" font-size="13" fill="#fff" font-weight="bold">N</text>
         <!-- 운동 방향 화살표 -->
-        <line x1="145" y1="36" x2="180" y2="36" stroke="#16a34a" stroke-width="2.5"/>
-        <polygon points="180,36 172,32 172,40" fill="#16a34a"/>
-        <text x="150" y="28" font-size="10" fill="#16a34a">자석 이동</text>
+        <line x1="145" y1="36" x2="180" y2="36" stroke="#166534" stroke-width="2.5"/>
+        <polygon points="180,36 172,32 172,40" fill="#166534"/>
+        <text x="150" y="28" font-size="10" fill="#166534">자석 이동</text>
         <!-- 자기력선 -->
         <path d="M140 60 C160 60 175 60 188 60" stroke="#6b7280" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
         <text x="190" y="115" font-size="10" fill="#6b7280">Φ 증가 → EMF 유도</text>
@@ -489,8 +492,8 @@
       function drawMotionArrow(x, y, v) {
         const dir = v < 0 ? -1 : 1; // v<0: offset 감소(왼쪽), 화면상 자석이 코일에서 멀어지는 방향
         const len = 34;
-        ctx.strokeStyle = '#16a34a';
-        ctx.fillStyle = '#16a34a';
+        ctx.strokeStyle = '#166534';
+        ctx.fillStyle = '#166534';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(x - dir * len / 2, y);
@@ -653,10 +656,10 @@
           }
           if (picked.value === 'correct') {
             out.textContent = '정답입니다! 🎉 ' + correctMsg;
-            out.style.color = '#16a34a';
+            out.style.color = '#166534';
           } else {
             out.textContent = '다시 생각해 보세요. ' + wrongMsg;
-            out.style.color = '#dc2626';
+            out.style.color = '#b91c1c';
           }
         });
       }
@@ -686,18 +689,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 20, "slug": "04-faraday", "category": "04-energy-field", "title": "패러데이의 전자기 유도", "titleEn": "Faraday's Electromagnetic Induction", "year": "1831년", "scientist": "마이클 패러데이", "difficulty": 3, "description": "자기장의 변화가 코일에 전류를 유도함을 관찰한다.", "keywords": ["전자기 유도", "패러데이 법칙", "자속", "기전력", "발전기"], "catName": "19세기", "catIcon": "🔥"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

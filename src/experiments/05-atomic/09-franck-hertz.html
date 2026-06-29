@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>프랑크-헤르츠 실험 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f4f7fb;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,7 +86,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -221,14 +224,14 @@
         <polyline fill="none" stroke="#2B6CB0" stroke-width="2.5"
           points="40,178 70,150 100,118 100,150 130,118 160,86 160,124 190,92 220,60 220,104 250,72 280,42 280,90 320,58 360,34"/>
         <!-- 골 위치 점선 -->
-        <line x1="100" y1="180" x2="100" y2="118" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
-        <line x1="160" y1="180" x2="160" y2="86" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
-        <line x1="220" y1="180" x2="220" y2="60" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
-        <line x1="280" y1="180" x2="280" y2="42" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
-        <text x="86"  y="195" font-size="10" fill="#dc2626">4.9</text>
-        <text x="146" y="195" font-size="10" fill="#dc2626">9.8</text>
-        <text x="204" y="195" font-size="10" fill="#dc2626">14.7</text>
-        <text x="266" y="195" font-size="10" fill="#dc2626">19.6</text>
+        <line x1="100" y1="180" x2="100" y2="118" stroke="#b91c1c" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="160" y1="180" x2="160" y2="86" stroke="#b91c1c" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="220" y1="180" x2="220" y2="60" stroke="#b91c1c" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="280" y1="180" x2="280" y2="42" stroke="#b91c1c" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="86"  y="195" font-size="10" fill="#b91c1c">4.9</text>
+        <text x="146" y="195" font-size="10" fill="#b91c1c">9.8</text>
+        <text x="204" y="195" font-size="10" fill="#b91c1c">14.7</text>
+        <text x="266" y="195" font-size="10" fill="#b91c1c">19.6</text>
       </svg>
 
       <div class="misconception">
@@ -629,10 +632,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 수은 원자는 4.9eV의 양자화된 에너지만 흡수하므로, 전자가 그 에너지에 도달할 때(비탄성 충돌)마다 전류가 급감합니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. 임계 에너지(4.9eV) 미만에서는 탄성 충돌, 도달 시 비탄성 충돌로 에너지를 통째로 넘겨준다는 점을 다시 살펴보세요.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -662,18 +665,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 32, "slug": "09-franck-hertz", "category": "05-atomic", "title": "프랑크-헤르츠 실험", "titleEn": "Franck-Hertz Experiment", "year": "1914년", "scientist": "제임스 프랑크, 구스타프 헤르츠", "difficulty": 4, "description": "전자 충돌의 에너지 계단으로 원자 준위의 양자화를 증명한다.", "keywords": ["에너지 양자화", "전자 충돌", "원자 준위", "문턱 에너지", "수은"], "catName": "원자의 시대", "catIcon": "⚛️"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

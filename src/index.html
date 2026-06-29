@@ -240,7 +240,7 @@
     }
     .cat-titles { min-width: 0; flex: 1; }
     .cat-name { margin: 0; font-size: 1.3rem; font-weight: 800; }
-    .cat-name .en { color: var(--text-dim); font-weight: 600; font-size: 0.9rem; margin-left: 8px; }
+    .cat-name .en { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; margin-left: 8px; }
     .cat-tagline { margin: 2px 0 0; color: var(--text-muted); font-size: 0.9rem; }
     .cat-count {
       flex: 0 0 auto;
@@ -289,7 +289,7 @@
       background: var(--cat-accent); flex: 0 0 8px;
     }
     .card-title { margin: 0; font-size: 1.08rem; font-weight: 700; line-height: 1.35; }
-    .card-title-en { margin: 3px 0 0; font-size: 0.82rem; color: var(--text-dim); }
+    .card-title-en { margin: 3px 0 0; font-size: 0.82rem; color: var(--text-muted); }
 
     .card-meta {
       margin: 11px 0 9px;
@@ -546,6 +546,7 @@
 
   <script>window.I18N_BASE = "./assets/i18n/";</script>
   <script src="./assets/js/i18n.js"></script>
+  <script src="./assets/js/a11y.js"></script>
   <script src="./assets/js/classroom.js"></script>
   <script>
     (function () {
@@ -699,8 +700,18 @@
         );
       }
 
+      // 색약 모드면 Okabe-Ito 팔레트로 카테고리 색을 교체(색 외 단서는 아이콘·텍스트로 유지)
+      function catColor(cat) {
+        if (window.A11y && window.A11y.isCB()) {
+          var idx = DATA.categories.findIndex(function (c) { return c.id === cat.id; });
+          var pal = window.A11y.palette();
+          if (idx >= 0) return pal[idx % pal.length];
+        }
+        return cat.color || "#5b9dff";
+      }
+
       function catVars(cat) {
-        var c = cat.color || "#5b9dff";
+        var c = catColor(cat);
         return (
           "--cat-accent:" + c + ";" +
           "--cat-accent-soft:" + hexToRGBA(c, 0.16) + ";" +
@@ -777,14 +788,16 @@
 
       // ===== 칩(필터 버튼) 구성 =====
       function buildChips() {
-        // 카테고리: 전체 + 8개
+        // 카테고리: 전체 + 8개 (활성 칩의 흰 글자 대비를 위해 배경색을 AA까지 보정)
         var allLabel = L("filter.all", "전체");
+        var accentVar = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#5b9dff";
         var catHTML =
-          '<button type="button" class="chip" data-type="cat" data-val="all" aria-pressed="true">' + esc(allLabel) + '</button>';
+          '<button type="button" class="chip" data-type="cat" data-val="all" aria-pressed="true" ' +
+          'style="--chip-color:' + esc(darkenForWhite(accentVar)) + '">' + esc(allLabel) + '</button>';
         DATA.categories.forEach(function (cat) {
           catHTML +=
             '<button type="button" class="chip" data-type="cat" data-val="' + esc(cat.id) + '" ' +
-            'aria-pressed="false" style="--chip-color:' + esc(cat.color) + '">' +
+            'aria-pressed="false" style="--chip-color:' + esc(darkenForWhite(catColor(cat))) + '">' +
             '<span class="ic" aria-hidden="true">' + esc(cat.icon) + "</span>" +
             esc(catName(cat)) + "</button>";
         });
@@ -842,6 +855,23 @@
         r = Math.round(r + (255 - r) * amt);
         g = Math.round(g + (255 - g) * amt);
         b = Math.round(b + (255 - b) * amt);
+        return "rgb(" + r + "," + g + "," + b + ")";
+      }
+      // 흰 글자(활성 칩 텍스트)가 WCAG AA(4.5:1)를 넘도록 배경색을 어둡게 보정
+      function lumOf(r, g, b) {
+        function ch(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+        return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b);
+      }
+      function darkenForWhite(hex) {
+        var h = (hex || "").replace("#", "");
+        if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+        var r = parseInt(h.substring(0, 2), 16) || 0;
+        var g = parseInt(h.substring(2, 4), 16) || 0;
+        var b = parseInt(h.substring(4, 6), 16) || 0;
+        var guard = 0;
+        while ((1.05) / (lumOf(r, g, b) + 0.05) < 4.5 && guard++ < 40) {
+          r = Math.round(r * 0.92); g = Math.round(g * 0.92); b = Math.round(b * 0.92);
+        }
         return "rgb(" + r + "," + g + "," + b + ")";
       }
 
@@ -998,6 +1028,9 @@
       function boot() {
         if (window.I18n && window.I18n.mountSwitcher) {
           window.I18n.mountSwitcher(document.getElementById("lang-mount"));
+        }
+        if (window.A11y && window.A11y.mountToggle) {
+          window.A11y.mountToggle(document.getElementById("lang-mount"), L("a11y.colorblind", "Color-blind palette"));
         }
         if (window.Classroom && window.Classroom.initHub) {
           window.Classroom.initHub({

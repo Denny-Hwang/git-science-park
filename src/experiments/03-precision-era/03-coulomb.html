@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>쿨롱의 법칙 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f5f6f8;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,7 +86,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -211,7 +214,7 @@
       <svg width="420" height="180" viewBox="0 0 420 180" role="img"
            aria-label="거리 r만큼 떨어진 양전하와 음전하가 서로 당기는 인력을 화살표로 나타낸 다이어그램">
         <!-- 전하 q1 (+) -->
-        <circle cx="110" cy="90" r="26" fill="#dc2626"/>
+        <circle cx="110" cy="90" r="26" fill="#b91c1c"/>
         <text x="110" y="97" font-size="22" fill="#fff" text-anchor="middle">+</text>
         <text x="110" y="138" font-size="12" text-anchor="middle">q₁</text>
         <!-- 전하 q2 (−) -->
@@ -222,11 +225,11 @@
         <line x1="110" y1="48" x2="310" y2="48" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
         <text x="210" y="42" font-size="13" fill="#6b7280" text-anchor="middle">r</text>
         <!-- 인력 화살표 (서로 마주봄) -->
-        <line x1="146" y1="90" x2="196" y2="90" stroke="#16a34a" stroke-width="3"/>
-        <polygon points="196,90 186,85 186,95" fill="#16a34a"/>
-        <line x1="274" y1="90" x2="224" y2="90" stroke="#16a34a" stroke-width="3"/>
-        <polygon points="224,90 234,85 234,95" fill="#16a34a"/>
-        <text x="210" y="118" font-size="12" fill="#16a34a" text-anchor="middle">인력 (부호가 다름)</text>
+        <line x1="146" y1="90" x2="196" y2="90" stroke="#166534" stroke-width="3"/>
+        <polygon points="196,90 186,85 186,95" fill="#166534"/>
+        <line x1="274" y1="90" x2="224" y2="90" stroke="#166534" stroke-width="3"/>
+        <polygon points="224,90 234,85 234,95" fill="#166534"/>
+        <text x="210" y="118" font-size="12" fill="#166534" text-anchor="middle">인력 (부호가 다름)</text>
       </svg>
 
       <div class="misconception">
@@ -334,7 +337,7 @@
       // ----- 전하 시각화: 색·반지름 -----
       // +면 빨강, −면 파랑, 전하량 클수록 크게(절댓값 0~10 → 14~34px)
       function chargeColor(q) {
-        if (q > 0) return '#dc2626';   // 양전하 빨강
+        if (q > 0) return '#b91c1c';   // 양전하 빨강
         if (q < 0) return '#2563eb';   // 음전하 파랑
         return '#9ca3af';              // 0 회색
       }
@@ -464,7 +467,7 @@
         const typeEl = document.getElementById('force-type');
         // 지수 표기
         strongEl.textContent = F.toExponential(2) + ' N';
-        if (sp > 0) { typeEl.textContent = '척력'; typeEl.style.color = '#dc2626'; }
+        if (sp > 0) { typeEl.textContent = '척력'; typeEl.style.color = '#b91c1c'; }
         else if (sp < 0) { typeEl.textContent = '인력'; typeEl.style.color = '#2563eb'; }
         else { typeEl.textContent = '힘 없음'; typeEl.style.color = '#6b7280'; }
       }
@@ -526,10 +529,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 힘은 거리의 제곱에 반비례하므로 거리 3배면 1/9, 같은 부호끼리는 척력입니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. F = k·q₁·q₂ / r² (거리 제곱에 반비례) 와 부호 규칙(같으면 척력)을 다시 살펴보세요.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -552,18 +555,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 14, "slug": "03-coulomb", "category": "03-precision-era", "title": "쿨롱의 법칙", "titleEn": "Coulomb's Law", "year": "1785년", "scientist": "샤를 드 쿨롱", "difficulty": 3, "description": "전하 사이의 힘이 거리 제곱에 반비례함을 비틀림 저울로 본다.", "keywords": ["쿨롱 법칙", "전하", "정전기력", "역제곱", "비틀림 저울"], "catName": "18세기", "catIcon": "⚗️"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

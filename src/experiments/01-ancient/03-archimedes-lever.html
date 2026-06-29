@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>아르키메데스의 지레 원리 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f7f5f2;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,7 +86,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -234,9 +237,9 @@
         <line x1="79" y1="132" x2="150" y2="132" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
         <text x="100" y="128" font-size="11" fill="#6b7280">d_부하</text>
         <!-- 힘(오른쪽, 긴 팔) 아래로 누르는 화살표 -->
-        <line x1="350" y1="52" x2="350" y2="86" stroke="#dc2626" stroke-width="2.5"/>
-        <polygon points="350,94 344,82 356,82" fill="#dc2626"/>
-        <text x="342" y="46" font-size="12" fill="#dc2626">F</text>
+        <line x1="350" y1="52" x2="350" y2="86" stroke="#b91c1c" stroke-width="2.5"/>
+        <polygon points="350,94 344,82 356,82" fill="#b91c1c"/>
+        <text x="342" y="46" font-size="12" fill="#b91c1c">F</text>
         <!-- 힘 팔 길이 d_힘 -->
         <line x1="150" y1="132" x2="350" y2="132" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
         <text x="240" y="128" font-size="11" fill="#6b7280">d_힘</text>
@@ -447,14 +450,14 @@
         // 힘 위치(오른쪽, dEffort 지점) — 아래로 누르는 화살표(빨강)
         const effortPt = beamPoint(state.dEffort, 'right');
         const arrowLen = 26 + (state.effort / 600) * 34; // 26~60
-        ctx.strokeStyle = '#dc2626';
+        ctx.strokeStyle = '#b91c1c';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(effortPt.x, effortPt.y - 6 - arrowLen);
         ctx.lineTo(effortPt.x, effortPt.y - 6);
         ctx.stroke();
         // 화살촉(아래 방향)
-        ctx.fillStyle = '#dc2626';
+        ctx.fillStyle = '#b91c1c';
         ctx.beginPath();
         ctx.moveTo(effortPt.x, effortPt.y - 2);
         ctx.lineTo(effortPt.x - 6, effortPt.y - 12);
@@ -487,10 +490,10 @@
         ctx.textAlign = 'left';
         ctx.font = 'bold 13px sans-serif';
         if (sign === 0) {
-          ctx.fillStyle = '#16a34a';
+          ctx.fillStyle = '#166534';
           ctx.fillText('⚖ 평형 (수평)', 14, 22);
         } else if (sign > 0) {
-          ctx.fillStyle = '#dc2626';
+          ctx.fillStyle = '#b91c1c';
           ctx.fillText('↑ 부하가 올라감 (내 힘이 더 큼)', 14, 22);
         } else {
           ctx.fillStyle = '#b45309';
@@ -510,10 +513,10 @@
         const verdict = document.getElementById('verdict');
         if (sign === 0) {
           verdict.textContent = '⚖ 평형: 막대가 수평을 유지합니다.';
-          verdict.style.color = '#16a34a';
+          verdict.style.color = '#166534';
         } else if (sign > 0) {
           verdict.textContent = '↑ 내 힘이 평형값보다 커서 부하가 들립니다.';
-          verdict.style.color = '#dc2626';
+          verdict.style.color = '#b91c1c';
         } else {
           verdict.textContent = '↓ 내 힘이 부족해 부하 쪽이 내려갑니다.';
           verdict.style.color = '#b45309';
@@ -583,10 +586,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 힘 팔이 길수록 필요한 힘은 작아지고, F = 200·0.5 / 2.0 = 50 N 입니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. F = W·d부하 / d힘 관계를 다시 살펴보세요 (힘 팔에 반비례).';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -609,18 +612,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 3, "slug": "03-archimedes-lever", "category": "01-ancient", "title": "아르키메데스의 지레 원리", "titleEn": "Archimedes' Law of the Lever", "year": "기원전 250년경", "scientist": "아르키메데스", "difficulty": 1, "description": "받침점과 거리로 힘을 증폭하는 지레의 평형을 탐구한다.", "keywords": ["지레", "받침점", "토크", "평형", "역학적 이득"], "catName": "고대", "catIcon": "🏛️"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>데이비슨-거머 실험 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f6f5fb;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -82,7 +85,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -227,7 +230,7 @@
         <polygon points="380,120 370,120 376,130" fill="#facc15"/>
         <text x="300" y="120" font-size="11" fill="#a16207">회절 전자</text>
         <!-- 검출기 -->
-        <rect x="384" y="100" width="42" height="40" rx="4" fill="#16a34a"/>
+        <rect x="384" y="100" width="42" height="40" rx="4" fill="#166534"/>
         <text x="384" y="158" font-size="11">검출기</text>
         <!-- 각도 θ 호 -->
         <path d="M 250 156 A 60 60 0 0 0 268 196" fill="none" stroke="#6B46C1" stroke-width="1.5"/>
@@ -450,7 +453,7 @@
           ctx.lineTo(dx, dy);
           ctx.stroke();
           // 검출기 박스
-          ctx.fillStyle = '#16a34a';
+          ctx.fillStyle = '#166534';
           ctx.save();
           ctx.translate(dx, dy);
           ctx.rotate(Math.PI - detRad);
@@ -569,10 +572,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 전자도 파동처럼 회절하며(물질파), λ = h/√(2meV) 이므로 V가 커지면 λ는 짧아집니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. 핵심은 전자의 파동성(드브로이 물질파)과 λ ∝ 1/√V 관계입니다.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -596,18 +599,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 34, "slug": "02-davisson-germer", "category": "06-quantum", "title": "데이비슨-거머 실험", "titleEn": "Davisson-Germer Experiment", "year": "1927년", "scientist": "클린턴 데이비슨, 레스터 거머", "difficulty": 4, "description": "전자의 회절무늬로 물질파를 실험으로 확인한다.", "keywords": ["전자 회절", "물질파 검증", "결정 격자", "브래그 회절", "파동성"], "catName": "양자역학", "catIcon": "🌊"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

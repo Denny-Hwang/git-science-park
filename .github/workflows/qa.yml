@@ -1,6 +1,8 @@
 name: QA (experiment pages)
 
-# 모든 실험 페이지를 헤드리스 Chromium으로 검증 (탭 전환 · 콘솔 에러 0 · 허브 ready 수).
+# 모든 실험 페이지를 헤드리스 브라우저로 검증한다.
+#  - 교차 브라우저: Chromium · Firefox · WebKit (탭 전환 · 콘솔 에러 0 · 허브 ready/언어 수)
+#  - 접근성: axe-core 로 WCAG 2 A/AA serious·critical 위반 0
 # 배포(deploy.yml)와 독립적인 품질 게이트.
 on:
   push:
@@ -24,8 +26,8 @@ jobs:
       - name: Install test tooling
         run: npm install
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install browsers (Chromium · Firefox · WebKit)
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Serve src/
         run: |
@@ -35,5 +37,8 @@ jobs:
             sleep 0.5
           done
 
-      - name: Run QA
+      - name: Run cross-browser QA
         run: npm test
+
+      - name: Run accessibility audit (WCAG AA)
+        run: npm run test:a11y

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>캐번디시의 중력 상수 측정 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f5f6f8;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -83,7 +86,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 1.9;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box .q { margin-top: 10px; }
     .quiz-box .q:first-of-type { margin-top: 0; }
@@ -235,13 +238,13 @@
         <text x="116" y="55" font-size="12" fill="#4A5568">M</text>
         <text x="296" y="195" font-size="12" fill="#4A5568">M</text>
         <!-- 인력 화살표 (작은 공 → 큰 공) -->
-        <line x1="120" y1="129" x2="120" y2="103" stroke="#dc2626" stroke-width="2"/>
-        <line x1="120" y1="103" x2="116" y2="111" stroke="#dc2626" stroke-width="2"/>
-        <line x1="120" y1="103" x2="124" y2="111" stroke="#dc2626" stroke-width="2"/>
-        <line x1="300" y1="111" x2="300" y2="138" stroke="#dc2626" stroke-width="2"/>
-        <line x1="300" y1="138" x2="296" y2="130" stroke="#dc2626" stroke-width="2"/>
-        <line x1="300" y1="138" x2="304" y2="130" stroke="#dc2626" stroke-width="2"/>
-        <text x="126" y="120" font-size="11" fill="#dc2626">F</text>
+        <line x1="120" y1="129" x2="120" y2="103" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="120" y1="103" x2="116" y2="111" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="120" y1="103" x2="124" y2="111" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="300" y1="111" x2="300" y2="138" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="300" y1="138" x2="296" y2="130" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="300" y1="138" x2="304" y2="130" stroke="#b91c1c" stroke-width="2"/>
+        <text x="126" y="120" font-size="11" fill="#b91c1c">F</text>
         <!-- 거리 r 표시 -->
         <line x1="120" y1="100" x2="120" y2="129" stroke="#6b7280" stroke-width="0" />
         <text x="338" y="120" font-size="11" fill="#6b7280">r = M와 m 중심 거리</text>
@@ -433,7 +436,7 @@
         });
 
         // 인력 화살표: 작은 공 → 가까운 큰 공
-        ctx.strokeStyle = '#dc2626';
+        ctx.strokeStyle = '#b91c1c';
         ctx.lineWidth = 2;
         const drawForceArrow = (from, to) => {
           const dx = to.x - from.x, dy = to.y - from.y;
@@ -539,10 +542,10 @@
         if (a2.value === 'correct') score++;
         if (score === 2) {
           out.textContent = '정답입니다! 🎉 인력은 거리 제곱에 반비례(2배 멀면 1/4)하고, 가는 비틀림선은 약한 복원력으로 미세 인력을 큰 각으로 증폭합니다.';
-          out.style.color = '#16a34a';
+          out.style.color = '#166534';
         } else {
           out.textContent = score + '/2 정답. F = G·M·m / r² 의 역제곱과 비틀림 저울의 증폭 원리를 다시 살펴보세요.';
-          out.style.color = '#dc2626';
+          out.style.color = '#b91c1c';
         }
       });
 
@@ -575,18 +578,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 13, "slug": "02-cavendish", "category": "03-precision-era", "title": "캐번디시의 중력 상수 측정", "titleEn": "Cavendish Experiment", "year": "1798년", "scientist": "헨리 캐번디시", "difficulty": 4, "description": "비틀림 저울로 미세한 인력을 재어 지구의 무게를 잰다.", "keywords": ["중력상수", "비틀림 저울", "지구 질량", "G", "미세 측정"], "catName": "18세기", "catIcon": "⚗️"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

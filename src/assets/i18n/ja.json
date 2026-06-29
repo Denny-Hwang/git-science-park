@@ -21,6 +21,7 @@
   "card": { "open": "開く →", "preparing": "🔒 近日公開" },
   "empty": "条件に一致する実験はありません。",
   "difficultyAria": "難易度 {n}",
+  "a11y": { "colorblind": "色覚サポート配色" },
   "lang": { "label": "言語" },
   "nav": { "back": "← ハブ" },
   "tab": { "interactive": "🎮 インタラクティブ", "learning": "📚 原理", "history": "📜 歴史" },

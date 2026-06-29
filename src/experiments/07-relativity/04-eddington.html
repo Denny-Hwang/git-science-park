@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>에딩턴의 일식 관측 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f3f5f8;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -85,7 +88,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 2;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
     .quiz-box button {
@@ -232,8 +235,8 @@
         <circle cx="346" cy="40" r="4" fill="#ffffff" stroke="#9ca3af"/>
         <text x="300" y="32" font-size="10" fill="#6b7280">겉보기 별</text>
         <!-- 이동 표시 -->
-        <line x1="346" y1="74" x2="346" y2="44" stroke="#dc2626" stroke-width="1.5"/>
-        <text x="352" y="58" font-size="9" fill="#dc2626">밀림</text>
+        <line x1="346" y1="74" x2="346" y2="44" stroke="#b91c1c" stroke-width="1.5"/>
+        <text x="352" y="58" font-size="9" fill="#b91c1c">밀림</text>
       </svg>
       <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
         휜 광선(노랑)을 곧게 연장하면(흰 점선) 별이 태양에서 바깥쪽으로 밀려 보인다.
@@ -468,7 +471,7 @@
         ctx.fillText('겉보기 위치', apparentStarX - 70, apparentStarY - 8);
 
         // 이동량 화살표(실제->겉보기)
-        ctx.strokeStyle = '#dc2626';
+        ctx.strokeStyle = '#b91c1c';
         ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.moveTo(realStarX, realStarY);
@@ -575,10 +578,10 @@
           }
           if (picked.value === 'correct') {
             out.textContent = '정답입니다! 🎉 ' + correctMsg;
-            out.style.color = '#16a34a';
+            out.style.color = '#166534';
           } else {
             out.textContent = '다시 생각해 보세요. ' + wrongMsg;
-            out.style.color = '#dc2626';
+            out.style.color = '#b91c1c';
           }
         });
       }
@@ -609,18 +612,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 43, "slug": "04-eddington", "category": "07-relativity", "title": "에딩턴의 일식 관측", "titleEn": "Eddington's Eclipse Expedition", "year": "1919년", "scientist": "아서 에딩턴", "difficulty": 3, "description": "일식 때 별빛의 휘어짐을 측정해 일반상대성을 검증한다.", "keywords": ["빛의 휘어짐", "일식", "일반상대성 검증", "에딩턴", "중력"], "catName": "상대성·우주론", "catIcon": "🌌"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

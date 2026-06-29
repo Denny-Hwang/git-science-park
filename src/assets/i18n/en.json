@@ -21,6 +21,7 @@
   "card": { "open": "Open →", "preparing": "🔒 Coming soon" },
   "empty": "No experiments match your filters.",
   "difficultyAria": "difficulty {n}",
+  "a11y": { "colorblind": "Color-blind palette" },
   "lang": { "label": "Language" },
   "nav": { "back": "← Hub" },
   "tab": { "interactive": "🎮 Interactive", "learning": "📚 Principles", "history": "📜 History" },

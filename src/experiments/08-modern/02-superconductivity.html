@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>초전도 현상 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f3f6f6;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -92,7 +95,7 @@
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.1rem; line-height: 2;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
     .quiz-box button {
@@ -232,15 +235,15 @@
         <text x="8" y="30" font-size="11" fill="#374151">저항 R</text>
         <text x="290" y="198" font-size="11" fill="#374151">온도 T</text>
         <!-- Tc 위치(점선) -->
-        <line x1="140" y1="20" x2="140" y2="180" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="5 4"/>
-        <text x="120" y="16" font-size="11" fill="#dc2626">Tc</text>
+        <line x1="140" y1="20" x2="140" y2="180" stroke="#b91c1c" stroke-width="1.2" stroke-dasharray="5 4"/>
+        <text x="120" y="16" font-size="11" fill="#b91c1c">Tc</text>
         <!-- R(T) 곡선: T>Tc 유한, Tc에서 0으로 급강하 -->
         <path d="M140 180 L140 110 C180 95 230 78 330 60" fill="none" stroke="#234E52" stroke-width="2.5"/>
         <line x1="50" y1="180" x2="140" y2="180" stroke="#3a7a80" stroke-width="3"/>
         <text x="58" y="172" font-size="10" fill="#3a7a80">R = 0</text>
         <text x="225" y="74" font-size="10" fill="#234E52">유한한 저항</text>
         <!-- 급강하 강조 화살표 -->
-        <text x="143" y="135" font-size="10" fill="#dc2626">급강하</text>
+        <text x="143" y="135" font-size="10" fill="#b91c1c">급강하</text>
       </svg>
       <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
         Tc 위에서는 저항이 유한하지만, Tc를 지나는 순간 저항이 절벽처럼 0으로 떨어진다.
@@ -541,7 +544,7 @@
         ctx.fill();
 
         // 자석(N극 빨강 / S극 파랑)
-        ctx.fillStyle = '#dc2626';
+        ctx.fillStyle = '#b91c1c';
         roundRect(magCx - magW / 2, magTop, magW / 2, magH, 4);
         ctx.fill();
         ctx.fillStyle = '#2563eb';
@@ -669,10 +672,10 @@
           }
           if (picked.value === 'correct') {
             out.textContent = '정답입니다! 🎉 ' + correctMsg;
-            out.style.color = '#16a34a';
+            out.style.color = '#166534';
           } else {
             out.textContent = '다시 생각해 보세요. ' + wrongMsg;
-            out.style.color = '#dc2626';
+            out.style.color = '#b91c1c';
           }
         });
       }
@@ -702,18 +705,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 48, "slug": "02-superconductivity", "category": "08-modern", "title": "초전도 현상", "titleEn": "Superconductivity", "year": "1911년", "scientist": "하이케 카메를링 오너스", "difficulty": 4, "description": "임계 온도 이하에서 저항이 0이 되고 자석이 뜨는 현상을 본다.", "keywords": ["초전도", "마이스너 효과", "임계온도", "저항 제로", "자기부상"], "catName": "현대 물리학", "catIcon": "🔬"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>천동설 vs 지동설 · Git Science Park</title>
@@ -11,7 +14,7 @@
       --bg: #f7f5f2;
       --card-bg: #ffffff;
       --text: #1a1a1a;
-      --text-muted: #6b7280;
+      --text-muted: #5f6671;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -89,15 +92,15 @@
       display: inline-block; padding: 2px 10px; border-radius: 999px;
       font-size: 0.9rem; font-weight: 700; color: #fff;
     }
-    .badge-prograde { background: #16a34a; }
-    .badge-retrograde { background: #dc2626; }
+    .badge-prograde { background: #166534; }
+    .badge-retrograde { background: #b91c1c; }
     .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
     .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
     .formula-box {
       background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
       text-align: center; font-size: 1.05rem; line-height: 2;
     }
-    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
     .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
     .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
     .quiz-box button {
@@ -255,25 +258,25 @@
         <text x="172" y="196" font-size="11" fill="#b45309">태양</text>
         <!-- 지구 궤도(안쪽) / 화성 궤도(바깥) -->
         <ellipse cx="180" cy="170" rx="55" ry="22" fill="none" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <ellipse cx="180" cy="170" rx="105" ry="42" fill="none" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <ellipse cx="180" cy="170" rx="105" ry="42" fill="none" stroke="#b91c1c" stroke-width="1.2" stroke-dasharray="4 3"/>
         <!-- 지구 세 위치(추월하며 이동) -->
         <circle cx="140" cy="158" r="5" fill="#2563eb"/>
         <circle cx="180" cy="148" r="5" fill="#2563eb"/>
         <circle cx="220" cy="158" r="5" fill="#2563eb"/>
         <!-- 화성 세 위치(느리게 이동) -->
-        <circle cx="160" cy="132" r="6" fill="#dc2626"/>
-        <circle cx="180" cy="128" r="6" fill="#dc2626"/>
-        <circle cx="200" cy="132" r="6" fill="#dc2626"/>
+        <circle cx="160" cy="132" r="6" fill="#b91c1c"/>
+        <circle cx="180" cy="128" r="6" fill="#b91c1c"/>
+        <circle cx="200" cy="132" r="6" fill="#b91c1c"/>
         <!-- 시선(지구→화성→천구) : 가운데가 뒤로 휘어짐 -->
-        <line x1="140" y1="158" x2="100" y2="28" stroke="#16a34a" stroke-width="1.3"/>
-        <line x1="180" y1="148" x2="180" y2="28" stroke="#16a34a" stroke-width="1.3"/>
-        <line x1="220" y1="158" x2="260" y2="28" stroke="#16a34a" stroke-width="1.3"/>
+        <line x1="140" y1="158" x2="100" y2="28" stroke="#166534" stroke-width="1.3"/>
+        <line x1="180" y1="148" x2="180" y2="28" stroke="#166534" stroke-width="1.3"/>
+        <line x1="220" y1="158" x2="260" y2="28" stroke="#166534" stroke-width="1.3"/>
         <!-- 천구상 겉보기 자취(고리): 1→3 사이에서 되돌아옴 -->
-        <text x="86" y="44" font-size="10" fill="#16a34a">①</text>
-        <text x="176" y="44" font-size="10" fill="#16a34a">②</text>
-        <text x="256" y="44" font-size="10" fill="#16a34a">③</text>
+        <text x="86" y="44" font-size="10" fill="#166534">①</text>
+        <text x="176" y="44" font-size="10" fill="#166534">②</text>
+        <text x="256" y="44" font-size="10" fill="#166534">③</text>
         <text x="42" y="120" font-size="10" fill="#2563eb">지구</text>
-        <text x="232" y="118" font-size="10" fill="#dc2626">화성</text>
+        <text x="232" y="118" font-size="10" fill="#b91c1c">화성</text>
       </svg>
       <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
         지구가 ①→②→③로 화성을 추월하는 동안, 천구에 투영된 화성의 위치가 잠시 뒤로 되돌아간다(겉보기 역행).
@@ -753,10 +756,10 @@
           }
           if (picked.value === 'correct') {
             out.textContent = '정답입니다! 🎉 ' + correctMsg;
-            out.style.color = '#16a34a';
+            out.style.color = '#166534';
           } else {
             out.textContent = '다시 생각해 보세요. ' + wrongMsg;
-            out.style.color = '#dc2626';
+            out.style.color = '#b91c1c';
           }
         });
       }
@@ -785,18 +788,23 @@
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
 <script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>
 <script>
 window.GSP_EXP = {"id": 4, "slug": "04-ptolemy-copernicus", "category": "01-ancient", "title": "천동설 vs 지동설", "titleEn": "Ptolemy vs Copernicus", "year": "150년 / 1543년", "scientist": "프톨레마이오스, 코페르니쿠스", "difficulty": 2, "description": "주전원 모형과 태양 중심 모형으로 행성의 역행을 비교한다.", "keywords": ["천동설", "지동설", "주전원", "역행운동", "태양중심설"], "catName": "고대", "catIcon": "🏛️"};
 (function(){
-  function boot(){ if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
   function start(){
-    if(window.I18n&&window.I18n.load){
-      window.I18n.load().then(function(){
-        if(window.I18n.mountSwitcher) window.I18n.mountSwitcher(document.getElementById("lang-mount"));
-        boot();
-      }, boot);
-    } else { boot(); }
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();

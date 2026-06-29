@@ -21,6 +21,7 @@
   "card": { "open": "Abrir →", "preparing": "🔒 Próximamente" },
   "empty": "Ningún experimento coincide con tus filtros.",
   "difficultyAria": "dificultad {n}",
+  "a11y": { "colorblind": "Paleta para daltonismo" },
   "lang": { "label": "Idioma" },
   "nav": { "back": "← Inicio" },
   "tab": { "interactive": "🎮 Interactivo", "learning": "📚 Principios", "history": "📜 Historia" },
