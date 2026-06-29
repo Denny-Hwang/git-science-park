@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>러더퍼드 산란 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header { max-width: 880px; margin: 0 auto; padding: 28px 20px 12px; }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #0b1020; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf2fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER -->
+  <header>
+    <h1>러더퍼드 산란 실험</h1>
+    <div class="en">Rutherford Scattering</div>
+    <div class="meta">1911년 · 어니스트 러더퍼드 (Ernest Rutherford) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="420" role="img"
+        aria-label="왼쪽에서 들어온 알파 입자가 금 원자핵의 쿨롱 척력으로 쌍곡선 궤도를 그리며 산란되는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="impact">충돌 파라미터 b (조준 거리): <span id="impact-val">3.0</span> (상대 단위)</label>
+          <input type="range" id="impact" min="0" max="8" step="0.1" value="3.0" aria-describedby="impact-val">
+        </div>
+
+        <div class="control-row">
+          <label for="charge">핵 전하 Z (양성자 수): <span id="charge-val">79</span> (금=79)</label>
+          <input type="range" id="charge" min="10" max="100" step="1" value="79" aria-describedby="charge-val">
+        </div>
+
+        <div class="control-row">
+          <label for="energy">알파 입자 에너지 E: <span id="energy-val">5.0</span> MeV</label>
+          <input type="range" id="energy" min="2" max="12" step="0.1" value="5.0" aria-describedby="energy-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="fireBtn">▶ 한 발 발사</button>
+          <button type="button" class="btn" id="sprayBtn">✶ 여러 발 산포 (금박 효과)</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>산란각 θ: <strong id="r-angle">—</strong></div>
+          <div>최근접 거리(상대): <strong id="r-rmin">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>결과 해석: <strong id="r-verdict">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 충돌 파라미터 <em>b</em>를 크게 하면 입자는 핵을 멀리 비껴가 거의 직진합니다.
+        <em>b</em>를 0에 가깝게(핵을 정면으로) 줄이면 쿨롱 척력에 떠밀려 크게 휘고, 정면(b=0)이면 들어온 방향으로
+        <strong>되튕깁니다(180°)</strong>. 핵 전하 Z나 b가 같아도 에너지 E를 키우면 더 깊이 파고들어 덜 휩니다.
+        "여러 발 산포"로 쏘면 <em>대부분 직진, 극소수만 크게 산란</em>하는 금박 실험의 핵심이 보입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>알파 입자 산란 결과가 "원자핵" 모형의 증거임을 이해한다.</li>
+        <li>원자가 대부분 빈 공간이며 질량·양전하가 작은 핵에 집중됨을 안다.</li>
+        <li>충돌 파라미터 b가 작을수록 산란각 θ가 커짐(정면=180°)을 안다.</li>
+        <li>핵 전하 Z·에너지 E가 산란에 미치는 영향을 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>양전하를 띤 알파 입자(헬륨 원자핵)가 양전하인 원자핵에 가까이 가면 <strong>쿨롱 척력</strong>을 받아
+        궤도가 휜다. 그 궤도는 핵을 초점으로 하는 <em>쌍곡선</em>이다. 핵을 비껴가는 정도(충돌 파라미터 b)가
+        작을수록 더 가까이 다가가 더 강한 척력을 받으므로 <strong>산란각 θ가 커진다</strong>.</p>
+        <p>대부분의 알파 입자는 핵에서 멀리 떨어진 빈 공간을 지나므로 거의 휘지 않고 직진한다. 아주 드물게
+        핵을 정면으로 겨냥한 입자만 크게 휘거나 되튄다. 이 "극소수의 큰 산란"이 바로 <strong>원자의 양전하와
+        질량이 아주 작은 핵에 뭉쳐 있다</strong>는 결정적 증거다 — 원자핵의 발견.</p>
+      </div>
+
+      <div class="formula-box">
+        tan(θ / 2) = (Z·k) / (E · b)<br>
+        θ : 산란각 &nbsp;|&nbsp; b : 충돌 파라미터<br>
+        b → 0 이면 θ → 180° (정면 충돌, 되튐)
+      </div>
+
+      <!-- SVG 다이어그램: 쌍곡선 산란 -->
+      <svg width="380" height="220" viewBox="0 0 380 220" role="img"
+        aria-label="원자핵을 향해 들어온 알파 입자가 쌍곡선 궤도로 휘어 나가며 산란각 세타를 이루는 다이어그램">
+        <!-- 핵 -->
+        <circle cx="200" cy="120" r="9" fill="#C53030"/>
+        <text x="212" y="118" font-size="11" fill="#C53030">핵 (+Ze)</text>
+        <!-- 입사선 (점선, 직진했다면) -->
+        <line x1="20" y1="150" x2="360" y2="150" stroke="#9ca3af" stroke-width="1" stroke-dasharray="5 4"/>
+        <text x="24" y="166" font-size="10" fill="#6b7280">직진했다면 (충돌 파라미터 b)</text>
+        <!-- b 표시 -->
+        <line x1="200" y1="120" x2="200" y2="150" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="204" y="140" font-size="10" fill="#2563eb">b</text>
+        <!-- 휜 궤도 (쌍곡선 근사: 입사 후 위로 휘어 나감) -->
+        <path d="M20 150 Q150 150 196 128 Q230 112 360 60" fill="none" stroke="#2B6CB0" stroke-width="2.5"/>
+        <!-- 입자 -->
+        <circle cx="20" cy="150" r="5" fill="#2B6CB0"/>
+        <text x="10" y="144" font-size="10" fill="#2B6CB0">α</text>
+        <!-- 화살표 끝 -->
+        <polygon points="360,60 350,62 354,71" fill="#2B6CB0"/>
+        <!-- 산란각 호 -->
+        <path d="M250 150 A50 50 0 0 0 232 110" fill="none" stroke="#d97706" stroke-width="1.5"/>
+        <text x="256" y="128" font-size="11" fill="#d97706">θ</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        입사 경로(점선)에서 핵까지의 수직 거리가 충돌 파라미터 b. b가 작을수록 궤도가 크게 휜다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "알파 입자가 핵에 '부딪혀' 튕긴다"고 생각하기 쉽다. 실제로는 입자가 핵에
+        <em>닿지 않고도</em> 멀리서 작용하는 쿨롱 척력만으로 휜다. 또 톰슨의 "건포도 푸딩 모형"처럼 양전하가
+        원자 전체에 퍼져 있다면 큰 산란은 결코 일어날 수 없다 — 큰 산란이 곧 양전하가 한 점에 집중되었다는 증거다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>대부분의 알파 입자가 금박을 거의 휘지 않고 그대로 통과한 이유는?</p>
+        <label><input type="radio" name="q1" value="wrong"> 금박이 매우 얇아 원자가 없기 때문</label>
+        <label><input type="radio" name="q1" value="correct"> 원자의 대부분이 빈 공간이기 때문</label>
+        <label><input type="radio" name="q1" value="wrong"> 알파 입자가 전기적으로 중성이기 때문</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>충돌 파라미터 b를 0에 가깝게(핵을 정면으로) 줄이면 산란각 θ는?</p>
+        <label><input type="radio" name="q2" value="wrong"> 0°에 가까워진다 (직진)</label>
+        <label><input type="radio" name="q2" value="correct"> 180°에 가까워진다 (되튐)</label>
+        <label><input type="radio" name="q2" value="wrong"> 항상 90°로 일정하다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 어니스트 러더퍼드 (Ernest Rutherford, 1871~1937)</h3>
+        <p>뉴질랜드 출신의 물리학자로 "핵물리학의 아버지"라 불린다. 방사능을 알파선·베타선으로 분류했고,
+        1908년 방사성 붕괴 연구로 노벨 화학상을 받았다. 맨체스터 대학에서 한스 가이거, 어니스트 마스던과 함께
+        금박 산란 실험을 수행해 원자핵을 발견했다.</p>
+        <p>극소수의 알파 입자가 거의 정반대로 되튀어 오는 것을 보고 그는 "마치 15인치 포탄을 휴지에 쏘았더니
+        되튀어 와 나를 맞힌 것만큼 믿기 어려운 일이었다"고 술회했다. 이 한 점의 단단한 핵이 그를 톰슨의
+        '건포도 푸딩 모형'에서 핵을 가진 '행성 모형'으로 이끌었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1897년 — J.J. 톰슨, 전자 발견 → '건포도 푸딩 모형'(양전하가 고루 퍼짐) 제안</li>
+          <li>1909년 — 가이거·마스던, 금박에 쏜 알파 입자 일부가 크게(90° 이상) 산란됨을 관측</li>
+          <li>1911년 — 러더퍼드, 산란 분포를 설명하는 핵 모형(원자핵) 발표</li>
+          <li>1913년 — 보어, 러더퍼드 모형에 양자 조건을 더해 보어 원자 모형 제시</li>
+          <li>1932년 — 채드윅(러더퍼드 연구실), 중성자 발견으로 핵 구조 규명 진전</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 원자가 "골고루 퍼진 양전하 덩어리"가 아니라, 거의 비어 있는 공간
+        한가운데에 질량과 양전하가 집중된 <strong>아주 작고 단단한 핵</strong>을 가진다는 사실을 밝혔다.
+        이는 톰슨 모형을 폐기하고 보어의 원자 모형과 이후 양자역학으로 가는 길을 열었으며, 핵물리학이라는
+        새 분야를 탄생시켰다. 정밀한 산란 측정으로 보이지 않는 내부 구조를 추론하는 방법은 오늘날 입자
+        가속기 실험까지 이어진다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        impact: 3.0,   // 충돌 파라미터 b (상대 단위)
+        charge: 79,    // 핵 전하 Z
+        energy: 5.0,   // 알파 에너지 E (MeV)
+        particles: [], // 애니메이션 중인 입자들
+        running: false
+      };
+
+      // 산란 물리 상수(상대 단위로 보기 좋게 튜닝)
+      const K = 12;            // 쿨롱 세기 스케일 (Z·K / (E·b) = tan(θ/2))
+      const Z_REF = 79;        // 기준 핵 전하(금)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const impactSlider = document.getElementById('impact');
+      const chargeSlider = document.getElementById('charge');
+      const energySlider = document.getElementById('energy');
+
+      const fireBtn = document.getElementById('fireBtn');
+      const sprayBtn = document.getElementById('sprayBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // 캔버스 좌표: 핵 위치 / 스케일
+      const W = canvas.width, H = canvas.height;
+      const NX = W * 0.52, NY = H * 0.5; // 핵 위치
+      const PX_PER_UNIT = 26;            // 상대단위 1 = 26px
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리: 러더퍼드 산란각 -----
+      // tan(θ/2) = (Z·K) / (E · b),  b=0 이면 정면 충돌 → θ=180°
+      function scatterAngle(b, Z, E) {
+        if (b <= 0.0001) return Math.PI; // 정면 = 180° 되튐
+        const t = (Z * K) / (E * b);
+        return 2 * Math.atan(t); // 라디안, 0~π
+      }
+      // 최근접 거리(상대): 정면 거리 d0 ~ Z·K/E, 충돌 파라미터 클수록 멀어짐
+      function closestApproach(b, Z, E) {
+        const d0 = (Z * K) / (E * 8); // 정면 충돌 시 척력 한계 거리 스케일
+        return d0 + Math.sqrt(d0 * d0 + b * b * 0); // 단순화: d0 기반 + b 보정
+      }
+
+      // ----- 입자 궤적 생성 -----
+      // 쌍곡선 산란을 시각적으로 근사: 입사 방향 +x, 핵 척력으로 산란각 θ만큼 휨.
+      // sign(+1/-1)로 위/아래로 휘는 방향 지정.
+      function makeParticle(b, sign) {
+        const Z = state.charge, E = state.energy;
+        const theta = scatterAngle(Math.abs(b), Z, E);
+        // 입사 y: 핵 기준 위/아래로 b만큼
+        return {
+          b: b, theta: theta, sign: sign,
+          pts: buildPath(b, theta, sign),
+          idx: 0,
+          done: false,
+          // 색: 큰 산란은 붉게, 직진은 푸르게
+          big: theta > Math.PI / 2
+        };
+      }
+
+      // 핵에 가까워질수록 휘는 궤적 점들을 생성(부드러운 시각화)
+      function buildPath(b, theta, sign) {
+        const pts = [];
+        const startX = -W; // 캔버스 왼쪽 밖에서 시작
+        const yOff = sign * b * PX_PER_UNIT;
+        const incomingY = NY + yOff;
+        // 입사 직선 구간 (왼쪽 끝 → 핵 부근 x)
+        const approachEndX = NX - 4 * PX_PER_UNIT;
+        const n1 = 40;
+        for (let i = 0; i <= n1; i++) {
+          const x = startX + (approachEndX - startX) * (i / n1);
+          pts.push({ x: x, y: incomingY });
+        }
+        // 산란 구간: 핵 근처에서 부드럽게 각도 theta 만큼 방향 전환
+        // 출사 방향 각도(입사 +x 기준에서 sign 방향으로 theta 회전)
+        const outAng = -sign * theta; // 화면 좌표(y아래+)에서 위로 휘면 음의 각
+        const turnSteps = 50;
+        let px = approachEndX, py = incomingY;
+        // 핵에 가장 가까운 지점에서 방향을 점진적으로 바꿈
+        const segLen = 7;
+        for (let i = 1; i <= turnSteps; i++) {
+          const frac = i / turnSteps;
+          // 0→1 로 가며 방향각을 0 → outAng 로 부드럽게(ease) 전환
+          const a = outAng * easeInOut(frac);
+          px += Math.cos(a) * segLen;
+          py += Math.sin(a) * segLen;
+          pts.push({ x: px, y: py });
+          if (px > W + 60 || px < -60 || py < -60 || py > H + 60) break;
+        }
+        return pts;
+      }
+      function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 미세 격자
+        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx <= W; gx += 40) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+        }
+
+        // 금박(금 원자 구름) 표시 - 핵 주변 옅은 원
+        ctx.beginPath();
+        ctx.arc(NX, NY, 7 * PX_PER_UNIT, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.05)';
+        ctx.fill();
+
+        // 발사구(왼쪽 알파선원)
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('알파 선원 →', 8, 18);
+
+        // 입사 기준선(점선, 직진했을 경로)
+        ctx.strokeStyle = 'rgba(148,163,184,0.35)';
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(0, NY); ctx.lineTo(W, NY); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 입자 궤적
+        state.particles.forEach((p) => {
+          const upto = Math.min(p.idx, p.pts.length - 1);
+          ctx.beginPath();
+          for (let i = 0; i <= upto; i++) {
+            const pt = p.pts[i];
+            if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
+          }
+          ctx.strokeStyle = p.big ? 'rgba(239,68,68,0.85)' : 'rgba(96,165,250,0.7)';
+          ctx.lineWidth = p.big ? 2.2 : 1.6;
+          ctx.stroke();
+
+          // 현재 입자 머리
+          const head = p.pts[upto];
+          if (head) {
+            ctx.beginPath();
+            ctx.arc(head.x, head.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = p.big ? '#ef4444' : '#60a5fa';
+            ctx.fill();
+          }
+        });
+
+        // 핵 (가장 위에 그림)
+        const ng = ctx.createRadialGradient(NX, NY, 2, NX, NY, 14);
+        ng.addColorStop(0, '#ffd0d0');
+        ng.addColorStop(1, '#C53030');
+        ctx.beginPath();
+        ctx.arc(NX, NY, 11, 0, Math.PI * 2);
+        ctx.fillStyle = ng;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('+', NX, NY + 5);
+        ctx.fillStyle = '#fca5a5';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('금 원자핵 (Z=' + state.charge + ')', NX, NY + 28);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 계산/갱신 (현재 슬라이더 b 기준) -----
+      function updateResult() {
+        const theta = scatterAngle(state.impact, state.charge, state.energy);
+        const deg = theta * 180 / Math.PI;
+        document.getElementById('r-angle').textContent = deg.toFixed(1) + '°';
+        const rmin = closestApproach(state.impact, state.charge, state.energy);
+        document.getElementById('r-rmin').textContent = rmin.toFixed(2);
+
+        let verdict;
+        if (deg < 10) verdict = '거의 직진 (빈 공간 통과)';
+        else if (deg < 90) verdict = '소각 산란 (핵 근처 통과)';
+        else if (deg < 170) verdict = '큰 산란 (핵에 근접)';
+        else verdict = '되튐! (거의 정면 충돌)';
+        document.getElementById('r-verdict').textContent = verdict;
+      }
+
+      // ----- (2) 슬라이더 이벤트: input 시 즉시 갱신 -----
+      impactSlider.addEventListener('input', () => {
+        state.impact = Number(impactSlider.value);
+        document.getElementById('impact-val').textContent = state.impact.toFixed(1);
+        updateResult();
+      });
+      chargeSlider.addEventListener('input', () => {
+        state.charge = Number(chargeSlider.value);
+        document.getElementById('charge-val').textContent = state.charge;
+        updateResult();
+        draw();
+      });
+      energySlider.addEventListener('input', () => {
+        state.energy = Number(energySlider.value);
+        document.getElementById('energy-val').textContent = state.energy.toFixed(1);
+        updateResult();
+      });
+
+      // ----- 애니메이션 루프 (requestAnimationFrame) -----
+      function loop() {
+        if (!state.running) return;
+        let anyActive = false;
+        state.particles.forEach((p) => {
+          if (p.idx < p.pts.length - 1) {
+            p.idx += 2; // 진행 속도
+            anyActive = true;
+          } else {
+            p.done = true;
+          }
+        });
+        draw();
+        if (anyActive) {
+          requestAnimationFrame(loop);
+        } else {
+          state.running = false;
+        }
+      }
+      function startLoop() {
+        if (!state.running) {
+          state.running = true;
+          requestAnimationFrame(loop);
+        }
+      }
+
+      // ----- 발사 동작 -----
+      function fireOne() {
+        // 너무 많이 쌓이면 정리
+        if (state.particles.length > 40) state.particles = state.particles.slice(-20);
+        // 슬라이더 b 위쪽으로 한 발(현재 결과와 일치하도록)
+        state.particles.push(makeParticle(state.impact, +1));
+        updateResult();
+        startLoop();
+      }
+
+      function spray() {
+        // 여러 발: 대부분 큰 b(직진), 소수만 작은 b(큰 산란) — 금박 실험 재현
+        state.particles = [];
+        const N = 18;
+        for (let i = 0; i < N; i++) {
+          // b를 0~8 사이에서 뽑되, 큰 b가 더 자주 나오도록(빈 공간이 대부분)
+          let b;
+          const u = Math.random();
+          if (u < 0.12) b = Math.random() * 0.6;           // 극소수: 핵 정면 근처(큰 산란)
+          else b = 1.5 + Math.random() * 6.5;              // 대부분: 멀리 비껴감(직진)
+          const sign = Math.random() < 0.5 ? +1 : -1;
+          state.particles.push(makeParticle(b, sign));
+        }
+        startLoop();
+      }
+
+      function resetSim() {
+        state.running = false;
+        state.particles = [];
+        draw();
+        updateResult();
+      }
+
+      fireBtn.addEventListener('click', fireOne);
+      sprayBtn.addEventListener('click', spray);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '원자의 대부분은 빈 공간이라 알파 입자 대부분이 핵을 만나지 못하고 직진합니다.',
+        '금박에도 원자는 가득하지만, 원자의 대부분이 빈 공간이라는 점이 핵심입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'b가 작아 핵을 정면으로 겨냥할수록 쿨롱 척력이 커져 180°로 되튑니다.',
+        'tan(θ/2) = Z·k / (E·b) 에서 b가 작아지면 θ가 커집니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

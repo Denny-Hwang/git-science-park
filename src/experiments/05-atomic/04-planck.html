@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>플랑크의 흑체복사 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f4f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #111; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .row {
+      display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 4px;
+    }
+    .controls input[type="checkbox"] { accent-color: var(--primary); width: 18px; height: 18px; }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .swatch {
+      display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+      vertical-align: middle; margin-left: 4px; border: 1px solid #cbd5e0;
+    }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf2fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>플랑크의 흑체복사</h1>
+    <div class="en">Planck's Blackbody Radiation</div>
+    <div class="meta">1900년 · 막스 플랑크 (Max Planck) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" aria-label="온도에 따른 흑체복사 스펙트럼 곡선과 최대 세기 파장을 보여주는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="temp">온도 T: <span id="temp-val">5778</span> K
+            <span class="swatch" id="temp-swatch" aria-hidden="true"></span>
+          </label>
+          <input type="range" id="temp" min="1000" max="10000" step="50" value="5778"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <div class="row">
+            <input type="checkbox" id="classic" aria-describedby="hint-classic">
+            <label for="classic" style="margin:0;">고전 이론(레일리–진스) 비교 · 자외선 파탄 보기</label>
+          </div>
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋 (태양 5778K)</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        최대 세기 파장 λ<sub>max</sub>: <strong>—</strong> &nbsp; · &nbsp; 스펙트럼 영역: <strong id="band">—</strong>
+        &nbsp; · &nbsp; 온도: <strong id="tempout">—</strong>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 온도 T를 높이면 곡선 전체가 위로 솟고(복사가 강해지고),
+        봉우리(λ<sub>max</sub>)가 <strong>왼쪽(짧은 파장)으로 이동</strong>한다 — 빈의 변위 법칙.
+        그래서 더 뜨거운 물체는 <strong>붉은색 → 흰색 → 푸른색</strong> 순으로 빛난다.
+        <span id="hint-classic">'고전 이론 비교'를 켜면 레일리–진스 곡선이 짧은 파장에서 무한대로 발산하는
+        <strong>자외선 파탄(ultraviolet catastrophe)</strong>이 보인다. 플랑크의 에너지 양자화(E = hf)가 이 발산을 막았다.</span>
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>흑체복사 스펙트럼이 온도 T 하나로 결정되는 플랑크 법칙을 따름을 이해한다.</li>
+        <li>온도가 높을수록 봉우리가 짧은 파장으로 이동함(빈의 변위 법칙 λ<sub>max</sub>·T = 2.898×10⁻³ m·K)을 설명한다.</li>
+        <li>고전 이론(레일리–진스)이 짧은 파장에서 발산하는 '자외선 파탄'을 안다.</li>
+        <li>에너지 양자화(E = hf)가 자외선 파탄을 해결하며 양자역학을 열었음을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>모든 빛을 흡수하는 이상적인 물체(흑체)는 자기 온도에 따라 빛을 방출한다. 그 세기는 파장마다 다르며,
+        분포 전체가 <strong>오직 온도 T</strong>로 정해진다. 온도가 높아지면 전체 복사량이 급격히 커지고(슈테판–볼츠만, ∝T⁴),
+        가장 밝게 빛나는 파장 λ<sub>max</sub>는 짧아진다(빈의 변위 법칙).</p>
+        <p>19세기 말 고전 물리(레일리–진스 법칙)는 짧은 파장에서 세기가 1/λ⁴로 무한히 커진다고 예측했다 —
+        실제 관측과 완전히 어긋나는 <strong>자외선 파탄</strong>이다. 1900년 플랑크는 진동자가 에너지를
+        연속이 아니라 <strong>덩어리(양자) E = hf 단위</strong>로만 주고받는다고 가정하여 실제 스펙트럼을 정확히 재현했다.
+        이 가정이 양자 개념의 출발점이 되었다.</p>
+      </div>
+
+      <div class="formula-box">
+        B(λ,T) = (2hc² / λ⁵) · 1 / (e^(hc / λk<sub>B</sub>T) − 1)
+        <br>
+        빈의 변위 법칙: λ<sub>max</sub> · T = 2.898×10⁻³ m·K
+        <br>
+        에너지 양자: E = h·f &nbsp;(h = 6.626×10⁻³⁴ J·s)
+      </div>
+
+      <!-- SVG 다이어그램: 온도별 흑체복사 곡선과 봉우리 이동 -->
+      <svg width="420" height="240" viewBox="0 0 420 240" role="img"
+           aria-label="온도가 높아질수록 흑체복사 곡선의 봉우리가 짧은 파장 쪽으로 이동하며 높아지는 다이어그램">
+        <!-- 축 -->
+        <line x1="50" y1="200" x2="400" y2="200" stroke="#94a3b8" stroke-width="1.5"/>
+        <line x1="50" y1="200" x2="50" y2="20" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="200" y="228" font-size="11" fill="#6b7280">파장 λ (짧음 ← → 김)</text>
+        <text x="14" y="115" font-size="11" fill="#6b7280" transform="rotate(-90 14 115)">세기 B</text>
+        <!-- 저온(붉은) 곡선: 낮고 봉우리 오른쪽 -->
+        <path d="M50 200 C 150 198, 230 150, 270 158 C 300 165, 340 190, 400 198"
+              fill="none" stroke="#dc2626" stroke-width="2"/>
+        <text x="300" y="150" font-size="11" fill="#dc2626">3000K (붉은빛)</text>
+        <!-- 중온(노랑/흰) 곡선 -->
+        <path d="M50 200 C 120 190, 175 70, 205 80 C 250 95, 320 180, 400 196"
+              fill="none" stroke="#eab308" stroke-width="2"/>
+        <text x="208" y="72" font-size="11" fill="#a16207">5778K (태양·흰빛)</text>
+        <!-- 고온(파랑) 곡선: 높고 봉우리 왼쪽 -->
+        <path d="M50 200 C 95 175, 120 28, 150 36 C 200 52, 300 175, 400 194"
+              fill="none" stroke="#2563eb" stroke-width="2"/>
+        <text x="120" y="26" font-size="11" fill="#2563eb">10000K (푸른빛)</text>
+        <!-- 봉우리 이동 화살표 -->
+        <line x1="270" y1="158" x2="150" y2="36" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="180" y="118" font-size="10" fill="#6b7280">봉우리 이동 →</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "더 뜨거운 물체는 더 붉게 빛난다"고 생각하기 쉽다.
+        실제로는 반대다 — 온도가 오르면 봉우리가 <em>짧은(파란) 파장</em>으로 이동하므로
+        붉은색 → 주황 → 흰색 → 푸른색으로 변한다. 또 "양자화는 빛에만 해당한다"는 오해도 있는데,
+        플랑크가 처음 양자화한 것은 빛 자체가 아니라 흑체 벽 <em>진동자의 에너지</em>였다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 흑체의 온도가 높아질수록 최대 복사 파장 λ<sub>max</sub>는?</p>
+          <label><input type="radio" name="q1" value="correct"> 짧아진다 (봉우리가 파란 쪽으로 이동)</label>
+          <label><input type="radio" name="q1" value="wrong"> 길어진다 (봉우리가 빨간 쪽으로 이동)</label>
+          <label><input type="radio" name="q1" value="wrong"> 변하지 않는다</label>
+        </div>
+        <div class="q">
+          <p>2. 고전 이론(레일리–진스)의 '자외선 파탄'을 해결한 플랑크의 핵심 가정은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 빛의 속도가 일정하다</label>
+          <label><input type="radio" name="q2" value="correct"> 에너지가 E = hf 단위의 덩어리(양자)로만 교환된다</label>
+          <label><input type="radio" name="q2" value="wrong"> 흑체는 모든 빛을 반사한다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 막스 플랑크 (Max Planck, 1858~1947)</h3>
+        <p>독일의 이론물리학자로 열역학과 복사 이론을 연구했다. 1900년 흑체복사 스펙트럼을 정확히 설명하기 위해
+        에너지가 hf의 정수배로만 교환된다는 '양자 가설'을 도입했고, 이때 등장한 비례상수가 곧
+        <strong>플랑크 상수 h (6.626×10⁻³⁴ J·s)</strong>다. 본인은 이를 "절망에서 나온 수학적 트릭"이라며
+        오래 받아들이기를 주저했으나, 이 가설은 현대 양자역학의 출발점이 되었다.
+        1918년 노벨 물리학상을 받았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1859년 — 키르히호프가 '흑체' 개념과 복사 법칙의 보편성을 제시</li>
+          <li>1879~1884년 — 슈테판·볼츠만이 총복사량이 T⁴에 비례함을 확립</li>
+          <li>1893년 — 빈이 변위 법칙(λ<sub>max</sub>·T = 일정)을 발견</li>
+          <li>1900년 6월 — 레일리–진스 법칙이 짧은 파장에서 발산('자외선 파탄')</li>
+          <li>1900년 12월 — 플랑크가 에너지 양자화로 흑체복사 스펙트럼을 완전히 설명</li>
+          <li>1905년 — 아인슈타인이 광양자설로 양자 개념을 빛 자체로 확장(광전효과)</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 플랑크의 흑체복사 설명은 에너지가 연속이 아니라 불연속적인
+        '양자'로 교환된다는 사실을 처음 드러냈다. 고전 물리로는 풀 수 없던 자외선 파탄을 해결하면서
+        1900년 12월 14일은 흔히 <strong>양자역학이 탄생한 날</strong>로 불린다. 이후 아인슈타인의 광양자,
+        보어의 원자모형, 드브로이의 물질파로 이어지며 20세기 물리학의 패러다임을 바꿨다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 (SI) -----
+      const H = 6.62607015e-34;   // 플랑크 상수 J·s
+      const C = 2.99792458e8;     // 광속 m/s
+      const KB = 1.380649e-23;    // 볼츠만 상수 J/K
+      const WIEN = 2.897771955e-3; // 빈의 변위 상수 m·K
+
+      // ----- 상태 -----
+      const DEFAULTS = { T: 5778, classic: false };
+      const state = { T: DEFAULTS.T, classic: DEFAULTS.classic };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 플랑크 분광복사휘도 B(λ,T) (단위 임의, 상대값) -----
+      function planck(lambdaM, T) {
+        const a = (2 * H * C * C) / Math.pow(lambdaM, 5);
+        const x = (H * C) / (lambdaM * KB * T);
+        const denom = Math.expm1(x); // e^x - 1 (수치 안정)
+        return a / denom;
+      }
+
+      // ----- 고전 레일리–진스 B(λ,T) = 2c·kB·T / λ⁴ -----
+      function rayleighJeans(lambdaM, T) {
+        return (2 * C * KB * T) / Math.pow(lambdaM, 4);
+      }
+
+      // ----- 파장(nm) → RGB 근사 변환 (가시광선) -----
+      function wavelengthToRGB(wl) {
+        let r = 0, g = 0, b = 0;
+        if (wl >= 380 && wl < 440) { r = -(wl - 440) / (440 - 380); g = 0; b = 1; }
+        else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / (490 - 440); b = 1; }
+        else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / (510 - 490); }
+        else if (wl >= 510 && wl < 580) { r = (wl - 510) / (580 - 510); g = 1; b = 0; }
+        else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / (645 - 580); b = 0; }
+        else if (wl >= 645 && wl <= 750) { r = 1; g = 0; b = 0; }
+        let factor = 1;
+        if (wl >= 380 && wl < 420) factor = 0.3 + 0.7 * (wl - 380) / (420 - 380);
+        else if (wl >= 645 && wl <= 750) factor = 0.3 + 0.7 * (750 - wl) / (750 - 645);
+        const gamma = 0.8;
+        const adjust = (c) => c <= 0 ? 0 : Math.round(255 * Math.pow(c * factor, gamma));
+        return { r: adjust(r), g: adjust(g), b: adjust(b) };
+      }
+
+      // ----- 흑체의 겉보기 색(온도 → RGB). 가시광 적분 근사 -----
+      // λ_max가 가시광 밖일 때를 포함해, 온도에 따라 붉은색→흰색→푸른색을 보이도록 한다.
+      function blackbodyColor(T) {
+        let R = 0, G = 0, B = 0, sum = 0;
+        for (let wl = 380; wl <= 750; wl += 5) {
+          const intensity = planck(wl * 1e-9, T);
+          const c = wavelengthToRGB(wl);
+          R += intensity * c.r; G += intensity * c.g; B += intensity * c.b; sum += intensity;
+        }
+        if (sum === 0) return { r: 80, g: 0, b: 0 };
+        R /= sum; G /= sum; B /= sum;
+        const max = Math.max(R, G, B) || 1;
+        // 최대 채널을 255로 정규화해 색조(hue)를 살린다
+        return { r: Math.round(255 * R / max), g: Math.round(255 * G / max), b: Math.round(255 * B / max) };
+      }
+
+      // ----- λ_max (nm) = 빈의 변위 법칙 -----
+      function lambdaMaxNm(T) {
+        return (WIEN / T) * 1e9;
+      }
+
+      // ----- 스펙트럼 영역/색 이름 -----
+      function bandName(nmRaw) {
+        if (nmRaw < 380) return '자외선 (UV)';
+        if (nmRaw > 780) return '적외선 (IR)';
+        if (nmRaw < 450) return '보라/파랑 (가시광)';
+        if (nmRaw < 495) return '파랑 (가시광)';
+        if (nmRaw < 570) return '초록 (가시광)';
+        if (nmRaw < 590) return '노랑 (가시광)';
+        if (nmRaw < 620) return '주황 (가시광)';
+        return '빨강 (가시광)';
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 그래프 표시 파장 범위 (nm)
+      const WL_MIN = 100, WL_MAX = 2500;
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, W, H);
+
+        // 플롯 영역
+        const padL = 56, padR = 18, padT = 22, padB = 46;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+        const x0 = padL, y0 = H - padB;
+
+        const xOf = (nm) => x0 + ((nm - WL_MIN) / (WL_MAX - WL_MIN)) * plotW;
+
+        // --- 세로 스케일: 모든 온도에서 봉우리가 적절히 보이도록 동적 정규화 ---
+        // 플랑크 곡선의 최대값을 기준으로, 곡선이 항상 플롯에 꽉 차게 그린다.
+        let peak = 0;
+        for (let nm = WL_MIN; nm <= WL_MAX; nm += 4) {
+          const v = planck(nm * 1e-9, state.T);
+          if (v > peak) peak = v;
+        }
+        const yMax = peak * 1.15;
+        const yOf = (val) => y0 - Math.min(val / yMax, 1.05) * plotH;
+
+        // --- 가시광선 색띠 (배경) ---
+        for (let nm = 380; nm <= 750; nm += 2) {
+          const c = wavelengthToRGB(nm);
+          ctx.fillStyle = 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.16)';
+          ctx.fillRect(xOf(nm), padT, Math.max(1, xOf(nm + 2) - xOf(nm)), plotH);
+        }
+
+        // --- 축 ---
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0, padT); ctx.lineTo(x0, y0); ctx.lineTo(x0 + plotW, y0);
+        ctx.stroke();
+
+        // 파장 눈금
+        ctx.fillStyle = '#9aa6b2';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        [200, 500, 1000, 1500, 2000, 2500].forEach((nm) => {
+          if (nm < WL_MIN || nm > WL_MAX) return;
+          const px = xOf(nm);
+          ctx.beginPath();
+          ctx.moveTo(px, y0); ctx.lineTo(px, y0 + 4);
+          ctx.strokeStyle = '#64748b'; ctx.stroke();
+          ctx.fillText(nm, px, y0 + 18);
+        });
+        ctx.fillText('파장 λ (nm)', x0 + plotW / 2, H - 8);
+        ctx.save();
+        ctx.translate(16, padT + plotH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('복사 세기 B(λ,T)', 0, 0);
+        ctx.restore();
+        ctx.textAlign = 'left';
+
+        const curveRGB = blackbodyColor(state.T);
+        const curveCol = 'rgb(' + curveRGB.r + ',' + curveRGB.g + ',' + curveRGB.b + ')';
+
+        // --- 고전 곡선(레일리–진스): 자외선 파탄 ---
+        if (state.classic) {
+          ctx.beginPath();
+          let started = false;
+          for (let nm = WL_MIN; nm <= WL_MAX; nm += 2) {
+            const v = rayleighJeans(nm * 1e-9, state.T);
+            const py = yOf(v);
+            if (!started) { ctx.moveTo(xOf(nm), py); started = true; }
+            else ctx.lineTo(xOf(nm), py);
+          }
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#fca5a5';
+          ctx.fillText('고전(레일리–진스) → 자외선 파탄', x0 + 8, padT + 14);
+        }
+
+        // --- 플랑크 곡선 (채움 + 외곽선) ---
+        ctx.beginPath();
+        ctx.moveTo(xOf(WL_MIN), y0);
+        for (let nm = WL_MIN; nm <= WL_MAX; nm += 2) {
+          ctx.lineTo(xOf(nm), yOf(planck(nm * 1e-9, state.T)));
+        }
+        ctx.lineTo(xOf(WL_MAX), y0);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(' + curveRGB.r + ',' + curveRGB.g + ',' + curveRGB.b + ',0.18)';
+        ctx.fill();
+
+        ctx.beginPath();
+        let st = false;
+        for (let nm = WL_MIN; nm <= WL_MAX; nm += 2) {
+          const py = yOf(planck(nm * 1e-9, state.T));
+          if (!st) { ctx.moveTo(xOf(nm), py); st = true; } else ctx.lineTo(xOf(nm), py);
+        }
+        ctx.strokeStyle = curveCol;
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+
+        // --- 봉우리 λ_max 표시 ---
+        const lmNm = lambdaMaxNm(state.T);
+        if (lmNm >= WL_MIN && lmNm <= WL_MAX) {
+          const px = xOf(lmNm);
+          const py = yOf(planck(lmNm * 1e-9, state.T));
+          ctx.strokeStyle = '#facc15';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, y0); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#facc15'; ctx.fill();
+          ctx.fillStyle = '#fde68a';
+          ctx.textAlign = 'center';
+          ctx.fillText('λmax ≈ ' + Math.round(lmNm) + ' nm', px, py - 8);
+          ctx.textAlign = 'left';
+        }
+
+        // --- 온도/색 표시 ---
+        ctx.fillStyle = curveCol;
+        ctx.beginPath();
+        ctx.arc(W - padR - 10, padT + 6, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#e2e8f0';
+        ctx.textAlign = 'right';
+        ctx.fillText('T = ' + state.T + ' K', W - padR - 22, padT + 10);
+        ctx.textAlign = 'left';
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const lmNm = lambdaMaxNm(state.T);
+        document.querySelector('#result strong').textContent = Math.round(lmNm) + ' nm';
+        document.getElementById('band').textContent = bandName(lmNm);
+        document.getElementById('tempout').textContent = state.T + ' K';
+        const c = blackbodyColor(state.T);
+        document.getElementById('temp-swatch').style.background = 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+      }
+
+      // ----- 슬라이더/체크박스 -----
+      const tempSlider = document.getElementById('temp');
+      const tempValEl = document.getElementById('temp-val');
+      const classicCb = document.getElementById('classic');
+
+      function syncLabels() {
+        tempValEl.textContent = state.T;
+        classicCb.checked = state.classic;
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      tempSlider.addEventListener('input', () => {
+        state.T = Number(tempSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      classicCb.addEventListener('change', () => {
+        state.classic = classicCb.checked;
+        draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.T = DEFAULTS.T;
+        state.classic = DEFAULTS.classic;
+        tempSlider.value = String(DEFAULTS.T);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 온도가 오르면 λmax는 짧아지고(빈의 변위 법칙), 에너지 양자화 E=hf가 자외선 파탄을 해결했습니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 빈의 변위 법칙(λmax·T=일정)과 플랑크의 양자 가설(E=hf)을 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

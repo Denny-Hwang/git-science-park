@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보어의 원자 모형 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f4f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0b1020; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .level-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .level-btns .lvl {
+      flex: 1 1 auto; min-width: 44px; padding: 8px 0; border: 1px solid #cbd5e0;
+      border-radius: 6px; background: #fff; color: var(--text); cursor: pointer;
+      font-size: 0.95rem; font-weight: 600;
+    }
+    .level-btns .lvl.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .level-btns .lvl:hover { border-color: var(--primary-light); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .row-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf2fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .swatch {
+      display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+      vertical-align: middle; margin: 0 4px; border: 1px solid #94a3b8;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>보어의 원자 모형</h1>
+    <div class="en">Bohr's Atomic Model</div>
+    <div class="meta">1913년 · 닐스 보어 (Niels Bohr) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" aria-label="수소 원자의 전자가 높은 궤도에서 낮은 궤도로 도약하며 광자를 방출하는 시뮬레이션과 방출 스펙트럼"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label id="ni-label">시작 준위 n<sub>i</sub> (높은 궤도): <span id="ni-val">3</span></label>
+          <div class="level-btns" id="ni-btns" role="group" aria-labelledby="ni-label"></div>
+        </div>
+
+        <div class="ctrl">
+          <label id="nf-label">도착 준위 n<sub>f</sub> (낮은 궤도): <span id="nf-val">2</span></label>
+          <div class="level-btns" id="nf-btns" role="group" aria-labelledby="nf-label"></div>
+        </div>
+
+        <div class="ctrl row-btns">
+          <button type="button" class="btn" id="jump-btn">⚡ 전이(도약) 실행</button>
+          <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        에너지 차 ΔE: <strong id="r-de">—</strong> ·
+        방출 파장 λ: <strong id="r-lambda">—</strong> ·
+        색/계열: <span class="swatch" id="r-swatch" style="background:#000"></span><strong id="r-series">—</strong>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 전자는 궤도 사이를 <strong>연속적으로 미끄러지지 않고 '도약(점프)'</strong> 한다.
+        높은 준위 n<sub>i</sub>에서 낮은 준위 n<sub>f</sub>로 떨어질 때, 두 준위의 <strong>에너지 차이만큼</strong> 정해진
+        색(파장)의 광자 한 개를 내놓는다. 그래서 수소는 무지개처럼 연속된 빛이 아니라 <strong>정해진 위치의 선(線)</strong>으로만
+        빛난다(선 스펙트럼). n<sub>f</sub>=2(발머 계열)일 때만 가시광선이 보이고, n<sub>f</sub>=1(라이먼)은 자외선,
+        n<sub>f</sub>=3(파셴)은 적외선이라 흰 선으로 표시된다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>전자는 양자화된 특정 궤도(에너지 준위)에만 존재할 수 있음을 이해한다.</li>
+        <li>준위 에너지 Eₙ = −13.6 / n² eV 의 의미와 n이 커질수록 에너지가 0에 가까워짐을 안다.</li>
+        <li>전자가 높은 준위에서 낮은 준위로 도약할 때 그 차이만큼의 광자가 방출됨을 설명한다.</li>
+        <li>방출 파장 λ = 1240 / ΔE(eV) nm 로 색과 계열(라이먼·발머·파셴)을 계산한다.</li>
+        <li>선(불연속) 스펙트럼이 에너지 준위의 양자화에서 비롯됨을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>보어는 수소 원자의 전자가 아무 위치에나 있을 수 없고, <strong>양자화된 궤도</strong>에만 머문다고 가정했다.
+        각 궤도(주양자수 n = 1, 2, 3 …)의 에너지는 <strong>Eₙ = −13.6 / n² eV</strong> 로 정해진다. n = 1이 가장 안정한
+        바닥상태(−13.6 eV)이고, n이 커질수록 에너지가 높아져(0에 가까워져) 핵에서 멀어진다.</p>
+        <p>전자가 높은 준위 n<sub>i</sub>에서 낮은 준위 n<sub>f</sub>로 떨어지면, 두 준위의 에너지 차이가
+        <strong>광자 한 개</strong>로 방출된다:</p>
+        <p><strong>ΔE = E<sub>nf</sub> 로의 하강 = 13.6 (1/n<sub>f</sub>² − 1/n<sub>i</sub>²) eV</strong>.
+        이 에너지가 곧 광자의 에너지이므로 파장은 <strong>λ = 1240 / ΔE(eV) nm</strong> 가 된다.
+        n<sub>f</sub>에 따라 계열이 나뉜다: n<sub>f</sub>=1 라이먼(자외선), n<sub>f</sub>=2 발머(가시광선),
+        n<sub>f</sub>=3 파셴(적외선).</p>
+      </div>
+
+      <div class="formula-box">
+        Eₙ = −13.6 / n²  (eV)
+        <br>
+        ΔE = 13.6 · ( 1/n_f² − 1/n_i² )  (eV)
+        <br>
+        λ = 1240 / ΔE  (nm)
+      </div>
+
+      <!-- SVG 다이어그램: 에너지 준위 사다리와 도약 -->
+      <svg width="420" height="260" viewBox="0 0 420 260" role="img"
+           aria-label="수소 원자의 에너지 준위와 전자가 n=3에서 n=2로 도약하며 광자를 방출하는 다이어그램">
+        <!-- 준위 선 (간격이 위로 갈수록 촘촘해짐: 1/n²) -->
+        <!-- n=1: y=230, n=2: y=130, n=3: y=85, n=4: y=63, n=5: y=50 -->
+        <line x1="60" y1="230" x2="300" y2="230" stroke="#2B6CB0" stroke-width="2.5"/>
+        <line x1="60" y1="130" x2="300" y2="130" stroke="#2B6CB0" stroke-width="2"/>
+        <line x1="60" y1="85"  x2="300" y2="85"  stroke="#2B6CB0" stroke-width="2"/>
+        <line x1="60" y1="63"  x2="300" y2="63"  stroke="#4a8fd4" stroke-width="1.5"/>
+        <line x1="60" y1="50"  x2="300" y2="50"  stroke="#4a8fd4" stroke-width="1.5"/>
+        <text x="305" y="234" font-size="11" fill="#6b7280">n=1 (−13.6 eV)</text>
+        <text x="305" y="134" font-size="11" fill="#6b7280">n=2 (−3.40 eV)</text>
+        <text x="305" y="89"  font-size="11" fill="#6b7280">n=3 (−1.51 eV)</text>
+        <text x="305" y="67"  font-size="11" fill="#6b7280">n=4</text>
+        <text x="305" y="54"  font-size="11" fill="#6b7280">n=5</text>
+        <!-- 도약 화살표 n=3 -> n=2 -->
+        <line x1="150" y1="85" x2="150" y2="130" stroke="#d97706" stroke-width="2"/>
+        <polygon points="150,130 146,121 154,121" fill="#d97706"/>
+        <!-- 방출 광자 (파동) -->
+        <path d="M165 107 q6 -8 12 0 q6 8 12 0 q6 -8 12 0" fill="none" stroke="#22c55e" stroke-width="2"/>
+        <text x="195" y="111" font-size="11" fill="#16a34a">광자 hν</text>
+        <text x="20" y="115" font-size="11" fill="#d97706">도약</text>
+        <text x="120" y="20" font-size="12" fill="#2B6CB0">에너지 ↑</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "전자가 궤도 사이를 점점 미끄러지듯 천천히 내려오면서 빛을 낸다"고 생각하기 쉽다.
+        실제로는 전자가 중간 위치에 머물 수 없으며 한 궤도에서 다른 궤도로 <em>순간적으로 도약</em>한다.
+        방출되는 빛도 모든 색이 섞인 연속광이 아니라, 두 준위의 정해진 에너지 차이에 해당하는 <em>딱 하나의 색</em>이다.
+        그래서 수소 스펙트럼은 무지개가 아니라 몇 개의 가는 선으로만 나타난다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 수소 원자가 연속이 아닌 선(불연속) 스펙트럼을 내는 이유는?</p>
+          <label><input type="radio" name="q1" value="correct"> 에너지 준위가 양자화되어 정해진 차이의 광자만 방출하기 때문</label>
+          <label><input type="radio" name="q1" value="wrong"> 전자가 핵 주위를 너무 빠르게 돌기 때문</label>
+          <label><input type="radio" name="q1" value="wrong"> 수소 원자가 너무 작아 빛을 일부만 통과시키기 때문</label>
+        </div>
+        <div class="q">
+          <p>2. 수소의 가시광선 영역 방출선(발머 계열)이 나오려면 전자가 도착하는 준위 n<sub>f</sub>는?</p>
+          <label><input type="radio" name="q2" value="wrong"> n_f = 1 (라이먼)</label>
+          <label><input type="radio" name="q2" value="correct"> n_f = 2 (발머)</label>
+          <label><input type="radio" name="q2" value="wrong"> n_f = 3 (파셴)</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 닐스 보어 (Niels Bohr, 1885~1962)</h3>
+        <p>덴마크의 물리학자로, 1913년 러더퍼드의 핵 모형과 플랑크·아인슈타인의 양자 개념을 결합해
+        수소 원자의 선 스펙트럼을 설명하는 원자 모형을 제시했다. 전자가 양자화된 궤도에만 존재하고
+        궤도 사이를 도약할 때만 빛을 흡수·방출한다는 가정으로, 당시 수수께끼였던 수소의 발머 계열 파장을
+        정확히 계산해 냈다. 1922년 노벨 물리학상을 받았으며, 코펜하겐에 이론물리연구소를 세워 양자역학 발전의
+        중심지로 만들었다. 훗날 하이젠베르크와 함께 양자역학의 '코펜하겐 해석'을 이끌었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1885년 — 발머가 수소 가시광선 선의 파장을 맞히는 경험식(발머 공식)을 발견</li>
+          <li>1900년 — 플랑크가 에너지 양자 가설(E = hν)을 제시</li>
+          <li>1905년 — 아인슈타인이 광량자(광자) 개념으로 광전효과를 설명</li>
+          <li>1911년 — 러더퍼드가 원자핵의 존재를 밝힌 핵 모형 제안(고전역학으로는 불안정)</li>
+          <li>1913년 — 보어가 양자화된 궤도 모형으로 수소 선 스펙트럼을 정량적으로 설명</li>
+          <li>1925~26년 — 하이젠베르크·슈뢰딩거의 양자역학으로 보어 모형이 발전·대체됨</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 보어 모형은 고전물리로는 설명할 수 없던 수소의 선 스펙트럼을
+        '에너지의 양자화'와 '준위 간 도약'이라는 양자 가정으로 정확히 예측한 최초의 원자 모형이다.
+        완전한 양자역학으로 가는 결정적 디딤돌이 되었으며, 원자가 정해진 색의 빛만 내는 이유,
+        즉 물질이 빛과 어떻게 주고받는지를 처음으로 정량적으로 보여 주었다. 오늘날 네온사인·불꽃 반응·
+        별빛 분석(분광학)의 원리가 모두 여기에서 출발한다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상수 -----
+      const RY = 13.6;          // 리드베리 에너지 (eV)
+      const HC = 1240;          // λ(nm) = HC / E(eV)
+      const NMAX = 6;           // 최대 준위
+      const DEFAULTS = { ni: 3, nf: 2 };
+      const state = { ni: DEFAULTS.ni, nf: DEFAULTS.nf, t: 0, animating: false };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 파장(nm) → RGB 근사 변환 (가시광 380~750nm) -----
+      function wavelengthToRGB(wl) {
+        let r = 0, g = 0, b = 0;
+        if (wl >= 380 && wl < 440) { r = -(wl - 440) / (440 - 380); g = 0; b = 1; }
+        else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / (490 - 440); b = 1; }
+        else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / (510 - 490); }
+        else if (wl >= 510 && wl < 580) { r = (wl - 510) / (580 - 510); g = 1; b = 0; }
+        else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / (645 - 580); b = 0; }
+        else if (wl >= 645 && wl <= 750) { r = 1; g = 0; b = 0; }
+        let factor = 1;
+        if (wl >= 380 && wl < 420) factor = 0.3 + 0.7 * (wl - 380) / (420 - 380);
+        else if (wl >= 645 && wl <= 750) factor = 0.3 + 0.7 * (750 - wl) / (750 - 645);
+        const gamma = 0.8;
+        const adjust = (c) => c <= 0 ? 0 : Math.round(255 * Math.pow(c * factor, gamma));
+        return { r: adjust(r), g: adjust(g), b: adjust(b) };
+      }
+
+      // 가시광 밖(자외선/적외선)은 흰색으로 표현
+      function photonColor(lambda, visible) {
+        if (visible) {
+          const c = wavelengthToRGB(lambda);
+          return 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+        }
+        return '#e5e7eb';
+      }
+
+      // ----- 물리 계산: ni -> nf 전이의 ΔE, λ, 계열, 색 -----
+      function computeTransition(ni, nf) {
+        const dE = RY * (1 / (nf * nf) - 1 / (ni * ni)); // eV, ni>nf 이면 양수(방출)
+        const lambda = HC / dE;                          // nm
+        const visible = lambda >= 380 && lambda <= 750;
+        let series;
+        if (nf === 1) series = '라이먼 (자외선)';
+        else if (nf === 2) series = '발머 (가시광선)';
+        else if (nf === 3) series = '파셴 (적외선)';
+        else series = '적외선';
+        return { dE: dE, lambda: lambda, visible: visible, series: series };
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 원자 중심 및 궤도 반지름
+      function atomGeom() {
+        const W = canvas.width;
+        const cx = W * 0.34;
+        const cy = canvas.height * 0.42;
+        const r0 = 22; // n=1 반지름 기준
+        return { cx: cx, cy: cy, r0: r0 };
+      }
+      function orbitR(n, r0) { return r0 + (n - 1) * 26; }
+
+      // 전자의 현재 위치 (애니메이션 진행도 p: 0=ni, 1=nf)
+      function electronPos(p) {
+        const g = atomGeom();
+        const ri = orbitR(state.ni, g.r0);
+        const rf = orbitR(state.nf, g.r0);
+        const r = ri + (rf - ri) * p;
+        const angle = -Math.PI / 4 + p * Math.PI * 1.5; // 도약하며 약간 회전
+        return { x: g.cx + r * Math.cos(angle), y: g.cy + r * Math.sin(angle), r: r, angle: angle };
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0b1020';
+        ctx.fillRect(0, 0, W, H);
+
+        const g = atomGeom();
+        const tr = computeTransition(state.ni, state.nf);
+        const pcol = photonColor(tr.lambda, tr.visible);
+
+        // 동심원 궤도
+        for (let n = 1; n <= NMAX; n++) {
+          const r = orbitR(n, g.r0);
+          ctx.beginPath();
+          ctx.arc(g.cx, g.cy, r, 0, Math.PI * 2);
+          const isEnd = (n === state.ni || n === state.nf);
+          ctx.strokeStyle = isEnd ? 'rgba(74,143,212,0.95)' : 'rgba(120,140,170,0.35)';
+          ctx.lineWidth = isEnd ? 2 : 1;
+          ctx.stroke();
+          // 준위 라벨
+          ctx.fillStyle = isEnd ? '#9ec5ef' : 'rgba(150,165,190,0.7)';
+          ctx.font = '11px sans-serif';
+          ctx.fillText('n=' + n, g.cx + r - 14, g.cy - 4);
+        }
+
+        // 핵
+        ctx.beginPath();
+        ctx.arc(g.cx, g.cy, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#f87171';
+        ctx.fill();
+        ctx.fillStyle = '#fecaca';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('핵 (+)', g.cx - 14, g.cy + 24);
+
+        // 전자 위치 (애니메이션 진행도)
+        const p = Math.min(state.t, 1);
+        const epos = electronPos(p);
+
+        // 도약 경로 잔상 (ni 궤도 -> nf 궤도)
+        if (state.animating || state.t > 0) {
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(217,119,6,0.5)';
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.5;
+          const start = electronPos(0);
+          ctx.moveTo(start.x, start.y);
+          for (let s = 0; s <= p; s += 0.05) {
+            const q = electronPos(s);
+            ctx.lineTo(q.x, q.y);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 전자
+        ctx.beginPath();
+        ctx.arc(epos.x, epos.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#60a5fa';
+        ctx.fill();
+        ctx.strokeStyle = '#dbeafe';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = '#bfdbfe';
+        ctx.fillText('e⁻', epos.x + 8, epos.y - 6);
+
+        // 방출 광자 (전이 진행 중/완료 시 핵 바깥으로 퍼져나가는 파동)
+        if (state.t > 0.05) {
+          const ph = (state.t - 0.05) * 1.0; // 광자 진행도
+          const px = g.cx + (W - g.cx + 40) * Math.min(ph, 1.2);
+          const py = g.cy - 70;
+          const amp = 7, wlen = 16;
+          ctx.beginPath();
+          ctx.strokeStyle = pcol;
+          ctx.lineWidth = 2.2;
+          for (let x = -40; x <= 40; x += 2) {
+            const yy = py + amp * Math.sin((x) / wlen * Math.PI * 2);
+            if (x === -40) ctx.moveTo(px + x, yy);
+            else ctx.lineTo(px + x, yy);
+          }
+          ctx.stroke();
+          // 광자 머리 점
+          ctx.beginPath();
+          ctx.arc(px + 40, py, 3, 0, Math.PI * 2);
+          ctx.fillStyle = pcol;
+          ctx.fill();
+          ctx.fillStyle = '#cbd5e0';
+          ctx.font = '11px sans-serif';
+          ctx.fillText('광자 hν', px - 6, py - 14);
+        }
+
+        // ----- 하단: 방출 스펙트럼 띠 + 이번 전이 선 -----
+        const specTop = H - 56;
+        const specH = 26;
+        const specL = 40, specR = W - 20;
+        const specW = specR - specL;
+        const WL_MIN = 380, WL_MAX = 750;
+
+        // 가시광 그라데이션 배경
+        for (let xx = 0; xx <= specW; xx++) {
+          const wl = WL_MIN + (WL_MAX - WL_MIN) * (xx / specW);
+          const c = wavelengthToRGB(wl);
+          ctx.fillStyle = 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+          ctx.fillRect(specL + xx, specTop, 1, specH);
+        }
+        // 어둡게 깔아 선이 도드라지게
+        ctx.fillStyle = 'rgba(11,16,32,0.55)';
+        ctx.fillRect(specL, specTop, specW, specH);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(specL, specTop, specW, specH);
+
+        // 발머 계열 기준선들(가시광)을 옅게 표시
+        for (let ni2 = 3; ni2 <= 6; ni2++) {
+          const t2 = computeTransition(ni2, 2);
+          if (t2.lambda >= WL_MIN && t2.lambda <= WL_MAX) {
+            const xpos = specL + specW * (t2.lambda - WL_MIN) / (WL_MAX - WL_MIN);
+            const c = wavelengthToRGB(t2.lambda);
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.5)';
+            ctx.lineWidth = 2;
+            ctx.moveTo(xpos, specTop);
+            ctx.lineTo(xpos, specTop + specH);
+            ctx.stroke();
+          }
+        }
+
+        // 현재 전이의 방출선 (가시광이면 위치에, 아니면 띠 밖 안내)
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('방출 스펙트럼', specL, specTop - 8);
+        if (tr.visible) {
+          const xpos = specL + specW * (tr.lambda - WL_MIN) / (WL_MAX - WL_MIN);
+          ctx.beginPath();
+          ctx.strokeStyle = pcol;
+          ctx.lineWidth = 3;
+          ctx.moveTo(xpos, specTop - 3);
+          ctx.lineTo(xpos, specTop + specH + 3);
+          ctx.stroke();
+          ctx.fillStyle = pcol;
+          ctx.fillText(tr.lambda.toFixed(0) + ' nm', Math.min(xpos - 16, specR - 60), specTop + specH + 16);
+        } else {
+          ctx.fillStyle = '#e5e7eb';
+          const side = tr.lambda < WL_MIN ? '◀ 자외선 (가시광 밖)' : '적외선 (가시광 밖) ▶';
+          ctx.fillText(side + ' · λ ≈ ' + tr.lambda.toFixed(0) + ' nm', specL, specTop + specH + 16);
+        }
+
+        // 같은 준위 선택 경고
+        if (state.ni <= state.nf) {
+          ctx.fillStyle = '#fca5a5';
+          ctx.font = '12px sans-serif';
+          ctx.fillText('※ n_i 는 n_f 보다 커야 빛이 방출됩니다.', g.cx - 60, g.cy + atomGeom().r0 + 150 > H ? H - 80 : 28);
+        }
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const tr = computeTransition(state.ni, state.nf);
+        const deEl = document.getElementById('r-de');
+        const lamEl = document.getElementById('r-lambda');
+        const serEl = document.getElementById('r-series');
+        const sw = document.getElementById('r-swatch');
+        if (state.ni <= state.nf) {
+          deEl.textContent = '—';
+          lamEl.textContent = '—';
+          serEl.textContent = 'n_i > n_f 필요';
+          sw.style.background = '#000';
+          return;
+        }
+        deEl.textContent = tr.dE.toFixed(2) + ' eV';
+        lamEl.textContent = tr.lambda.toFixed(0) + ' nm';
+        serEl.textContent = tr.series;
+        sw.style.background = photonColor(tr.lambda, tr.visible);
+      }
+
+      // ----- 레벨 선택 버튼 생성 -----
+      const niBtns = document.getElementById('ni-btns');
+      const nfBtns = document.getElementById('nf-btns');
+      function buildLevelButtons(container, which) {
+        for (let n = 1; n <= NMAX; n++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'lvl';
+          b.textContent = String(n);
+          b.dataset.n = String(n);
+          b.setAttribute('aria-label', which + ' 준위 ' + n);
+          b.addEventListener('click', () => {
+            state[which] = n;
+            syncLabels();
+            updateResult();
+            startAnimation();
+          });
+          container.appendChild(b);
+        }
+      }
+      buildLevelButtons(niBtns, 'ni');
+      buildLevelButtons(nfBtns, 'nf');
+
+      function syncLabels() {
+        document.getElementById('ni-val').textContent = state.ni;
+        document.getElementById('nf-val').textContent = state.nf;
+        niBtns.querySelectorAll('.lvl').forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.n) === state.ni);
+        });
+        nfBtns.querySelectorAll('.lvl').forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.n) === state.nf);
+        });
+      }
+
+      // ----- 애니메이션 (requestAnimationFrame) -----
+      let rafId = null;
+      let lastTs = 0;
+      function tick(ts) {
+        if (!lastTs) lastTs = ts;
+        const dt = (ts - lastTs) / 1000;
+        lastTs = ts;
+        if (state.animating) {
+          state.t += dt * 0.9; // 전이 + 광자 비행 속도
+          if (state.t >= 1.6) {
+            state.t = 1.6;
+            state.animating = false;
+          }
+          draw();
+          if (state.animating) {
+            rafId = requestAnimationFrame(tick);
+          }
+        }
+      }
+      function startAnimation() {
+        if (state.ni <= state.nf) { draw(); return; } // 방출 불가
+        if (rafId) cancelAnimationFrame(rafId);
+        state.t = 0;
+        state.animating = true;
+        lastTs = 0;
+        rafId = requestAnimationFrame(tick);
+      }
+
+      // ----- 버튼 이벤트 -----
+      document.getElementById('jump-btn').addEventListener('click', startAnimation);
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        if (rafId) cancelAnimationFrame(rafId);
+        state.ni = DEFAULTS.ni;
+        state.nf = DEFAULTS.nf;
+        state.t = 0;
+        state.animating = false;
+        syncLabels();
+        updateResult();
+        draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 에너지 준위가 양자화되어 정해진 차이의 광자만 방출하며, 가시광선은 n_f=2(발머 계열)에서 나옵니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 준위가 양자화되어 정해진 색의 빛만 나오며, 가시광선은 발머 계열(n_f=2)입니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      startAnimation();
+    })();
+  </script>
+</body>
+</html>

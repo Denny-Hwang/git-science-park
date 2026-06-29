@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>미켈슨-몰리 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f4f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0d1117; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef4fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .null-val { color: #16a34a; }
+    .result-box p { margin: 4px 0; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>미켈슨-몰리 실험</h1>
+    <div class="en">Michelson–Morley Experiment</div>
+    <div class="meta">1887년 · 앨버트 미켈슨 (Albert Michelson), 에드워드 몰리 (Edward Morley) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" aria-label="마이컬슨 간섭계 모식도와 검출부의 간섭무늬 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="vwind">가정한 에테르 바람 속도 v: <span id="vwind-val">30</span> km/s</label>
+          <input type="range" id="vwind" min="0" max="100" step="1" value="30" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="armlen">간섭계 팔 길이 L: <span id="armlen-val">11.0</span> m</label>
+          <input type="range" id="armlen" min="1" max="20" step="0.5" value="11.0" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="angle">장치 회전각 θ: <span id="angle-val">0</span>°</label>
+          <input type="range" id="angle" min="0" max="360" step="1" value="0" aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <p>① 에테르 가정 시 <strong>예측 무늬 이동</strong>: <strong id="predicted">—</strong> (파장 λ 단위)</p>
+        <p>② 실제 관측 무늬 이동: <strong class="null-val" id="observed">≈ 0.00 λ</strong> (귀무 결과)</p>
+        <p>③ 결론: <strong class="null-val">에테르 없음 — 광속 불변</strong></p>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 에테르 바람 속도 v나 팔 길이 L을 키우면
+        <strong>고전(에테르) 이론이 예측하는 무늬 이동</strong>은 점점 커진다.
+        그런데 <strong>장치를 회전시켜도 실제 검출부의 무늬는 거의 움직이지 않는다(≈ 0)</strong>.
+        예측과 관측이 다르다는 이 '귀무 결과'가 바로 위대한 발견의 출발점이다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>당시 빛이 '에테르(aether)'라는 매질을 통해 전달된다고 믿었던 배경을 이해한다.</li>
+        <li>마이컬슨 간섭계가 직교하는 두 팔의 빛 속도 차이를 어떻게 측정하는지 안다.</li>
+        <li>에테르 가설이 예측한 무늬 이동 공식 ΔN ≈ (L/λ)·(v/c)² 의 의미를 설명한다.</li>
+        <li>실제 관측이 ≈ 0(귀무 결과)이었음과, 그것이 광속 불변·특수상대성으로 이어졌음을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>19세기 물리학자들은 빛이 파동이므로 그것을 전달하는 매질 '에테르'가 우주에 가득 차 있다고 믿었다.
+        지구가 에테르 속을 초속 약 30 km로 공전한다면, 지구에는 '에테르 바람'이 불 것이고
+        빛의 속도는 진행 방향에 따라 달라져야 한다.</p>
+        <p>마이컬슨 간섭계는 광원에서 나온 빛을 <strong>반투명 거울(빔스플리터)</strong>로 둘로 갈라
+        <strong>서로 직교하는 두 팔</strong>로 보낸 뒤, 각 팔 끝의 거울에서 반사시켜 다시 합친다.
+        두 빛의 경로에 걸린 시간 차이가 있으면 합쳐질 때 <strong>간섭무늬</strong>가 생긴다.
+        장치를 90° 회전시켜 두 팔의 역할을 바꾸면, 에테르가 있다면 무늬가 이동해야 한다.</p>
+        <p>하지만 미켈슨과 몰리가 아무리 정밀하게 측정하고 장치를 회전시켜도
+        <strong>무늬 이동은 예측의 1/40 이하, 사실상 0</strong>이었다. 에테르 바람은 검출되지 않았다.</p>
+      </div>
+
+      <div class="formula-box">
+        예상 무늬 이동: ΔN ≈ (L / λ) · (v / c)²
+        <br>
+        에테르 가정 시 경로차에서 비롯됨
+        <br>
+        실제 관측: ΔN ≈ 0  (귀무 결과)  →  c = 일정
+      </div>
+
+      <!-- SVG 다이어그램: 광원 → 빔스플리터 → 두 직교 팔의 거울 → 검출부 -->
+      <svg width="420" height="260" viewBox="0 0 420 260" role="img"
+           aria-label="마이컬슨 간섭계: 광원에서 나온 빛이 빔스플리터로 갈라져 두 직교 팔의 거울에서 반사된 뒤 검출부로 모이는 경로 다이어그램">
+        <!-- 광원 -->
+        <circle cx="34" cy="150" r="9" fill="#d97706"/>
+        <text x="14" y="178" font-size="11">광원</text>
+        <!-- 입사광 → 빔스플리터 -->
+        <line x1="43" y1="150" x2="160" y2="150" stroke="#d97706" stroke-width="2"/>
+        <!-- 빔스플리터(반투명 거울, 45°) -->
+        <line x1="146" y1="164" x2="174" y2="136" stroke="#2B6CB0" stroke-width="4"/>
+        <text x="120" y="200" font-size="11" fill="#2B6CB0">반투명 거울</text>
+        <text x="135" y="214" font-size="11" fill="#2B6CB0">(빔스플리터)</text>
+        <!-- 수평 팔 (오른쪽 거울) -->
+        <line x1="160" y1="150" x2="350" y2="150" stroke="#647288" stroke-width="2" stroke-dasharray="5 3"/>
+        <rect x="350" y="128" width="6" height="44" fill="#94a3b8"/>
+        <text x="320" y="120" font-size="11">거울 1</text>
+        <!-- 수직 팔 (위쪽 거울) -->
+        <line x1="160" y1="150" x2="160" y2="40" stroke="#647288" stroke-width="2" stroke-dasharray="5 3"/>
+        <rect x="138" y="34" width="44" height="6" fill="#94a3b8"/>
+        <text x="186" y="44" font-size="11">거울 2</text>
+        <!-- 합쳐진 빛 → 검출부(아래) -->
+        <line x1="160" y1="150" x2="160" y2="234" stroke="#16a34a" stroke-width="2"/>
+        <rect x="142" y="234" width="36" height="14" fill="#16a34a" opacity="0.85"/>
+        <text x="126" y="260" font-size="11" fill="#16a34a">검출부 (간섭무늬)</text>
+        <!-- 팔 길이 L 표시 -->
+        <text x="250" y="144" font-size="11" fill="#6b7280">L</text>
+        <text x="150" y="100" font-size="11" fill="#6b7280">L</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "무늬가 움직이지 않았으니 실험은 실패했다"고 생각하기 쉽다.
+        실제로는 <em>아무 변화가 없었다는 것</em>(귀무 결과, null result)이야말로 결정적 발견이었다.
+        그것은 에테르가 존재하지 않으며, 빛의 속도가 관측자의 운동과 무관하게 일정함을 뜻했고,
+        결국 아인슈타인의 특수상대성이론으로 가는 길을 열었다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 미켈슨-몰리 실험의 결과는?</p>
+          <label><input type="radio" name="q1" value="correct"> 에테르 바람이 검출되지 않았다 (무늬 이동 ≈ 0)</label>
+          <label><input type="radio" name="q1" value="wrong"> 예측대로 큰 무늬 이동이 관측되었다</label>
+          <label><input type="radio" name="q1" value="wrong"> 빛이 사라져 무늬가 생기지 않았다</label>
+        </div>
+        <div class="q">
+          <p>2. 이 '귀무 결과'가 시사한 가장 중요한 결론은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 간섭계의 정밀도가 부족했다</label>
+          <label><input type="radio" name="q2" value="correct"> 에테르는 없으며 빛의 속도는 일정하다(광속 불변)</label>
+          <label><input type="radio" name="q2" value="wrong"> 지구는 공전하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 앨버트 미켈슨 (Albert A. Michelson, 1852~1931) &amp; 에드워드 몰리 (Edward W. Morley, 1838~1923)</h3>
+        <p>미켈슨은 폴란드 태생의 미국 물리학자로, 빛의 속도를 정밀 측정하는 데 평생을 바쳤다.
+        그가 발명한 '마이컬슨 간섭계'는 극도로 미세한 길이 차이를 빛의 간섭으로 잡아내는 정밀 기기였다.
+        1907년 미국인 최초로 노벨 물리학상을 수상했다.</p>
+        <p>몰리는 미국의 화학자로, 정밀 측정과 실험 설계에 뛰어났다. 두 사람은 1887년 클리블랜드에서
+        무거운 돌판을 수은 위에 띄워 진동 없이 부드럽게 회전시킬 수 있는 정교한 간섭계로 함께 실험을 수행했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1801년 — 토머스 영의 간섭 실험 이후 빛의 파동설이 확립되며 '에테르'가 매질로 가정됨</li>
+          <li>1865년 — 맥스웰이 빛을 전자기파로 설명, 에테르 가설이 더욱 굳어짐</li>
+          <li>1881년 — 미켈슨이 단독으로 첫 간섭계 실험을 수행(정밀도 부족)</li>
+          <li>1887년 — 미켈슨과 몰리가 정교한 간섭계로 재실험, 무늬 이동 ≈ 0(귀무 결과)</li>
+          <li>1892년~ — 로런츠·피츠제럴드가 '길이 수축'으로 결과를 설명하려 시도</li>
+          <li>1905년 — 아인슈타인이 특수상대성이론을 발표, 광속 불변을 출발점으로 삼음</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 미켈슨-몰리 실험은 '역사상 가장 유명한 실패한 실험'으로 불리지만,
+        그 귀무 결과는 19세기 물리학의 토대였던 에테르 개념을 무너뜨렸다.
+        빛의 속도가 관측자의 운동과 무관하게 일정하다는 사실은 아인슈타인의 특수상대성이론(1905)의
+        핵심 가정이 되었고, 시간과 공간에 대한 인류의 이해를 근본적으로 바꾸었다.
+        '아무 일도 일어나지 않은 것'이 가장 위대한 발견이 된 대표적 사례다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 -----
+      const C = 299792.458;   // 광속 (km/s)
+      const LAMBDA_NM = 550;  // 사용 광원의 파장 (nm) — 무늬 이동 계산 기준
+
+      // ----- 상태 (v: km/s, L: m, angle: deg) -----
+      const DEFAULTS = { v: 30, L: 11.0, angle: 0 };
+      const state = { v: DEFAULTS.v, L: DEFAULTS.L, angle: DEFAULTS.angle };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 계산: 에테르 가정 시 예측 무늬 이동 ΔN (λ 단위) -----
+      // 장치 90° 회전 시: ΔN = (2L/λ)·(v/c)².  여기서는 (L/λ)·(v/c)² 규모로 표기.
+      // 회전각 θ에 따른 정현 변화를 곱해 회전 의존성을 보여준다.
+      function predictedShift() {
+        const Lm = state.L;                 // m
+        const lambdaM = LAMBDA_NM * 1e-9;   // m
+        const beta2 = Math.pow(state.v / C, 2);
+        const baseN = (Lm / lambdaM) * beta2; // (L/λ)(v/c)²
+        // 회전 의존: 두 직교 팔의 경로차는 cos(2θ)로 진동, 회전에 따른 진폭이 |1 - cos(2θ)|/2
+        const rotFactor = (1 - Math.cos(2 * state.angle * Math.PI / 180)) / 2;
+        return baseN * rotFactor;
+      }
+
+      // 회전 무관 '최대 예측치'(v, L만 의존) — 박스에 함께 보여주면 직관적
+      function predictedMax() {
+        const Lm = state.L;
+        const lambdaM = LAMBDA_NM * 1e-9;
+        const beta2 = Math.pow(state.v / C, 2);
+        return (Lm / lambdaM) * beta2;
+      }
+
+      // ----- 애니메이션 위상 (빛 펄스가 경로를 따라 흐르는 효과) -----
+      let phase = 0;
+      let rafId = null;
+
+      // ----- (3) draw(): state(+phase)만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, W, H);
+
+        // 간섭계는 왼쪽 영역, 검출부 무늬는 오른쪽에 별도 표시
+        const interW = 360;          // 간섭계 영역 폭
+        const cx = 150, cy = H / 2;  // 빔스플리터 중심
+        const armPx = 110;           // 화면상 팔 길이(시각화용)
+
+        // 장치 회전 적용
+        ctx.save();
+        ctx.translate(cx, cy);
+        const rot = state.angle * Math.PI / 180;
+        ctx.rotate(rot);
+
+        // 두 팔(수평 = 거울1, 수직 = 거울2)
+        ctx.strokeStyle = '#3b4a5e';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(armPx, 0); ctx.stroke();   // 수평 팔
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -armPx); ctx.stroke();  // 수직 팔
+        ctx.setLineDash([]);
+
+        // 광원 → 빔스플리터 입사광
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(-armPx - 12, 0); ctx.lineTo(0, 0); ctx.stroke();
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath(); ctx.arc(-armPx - 18, 0, 7, 0, Math.PI * 2); ctx.fill();
+
+        // 빔스플리터(45° 반투명 거울)
+        ctx.strokeStyle = '#2B6CB0';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(-12, 12); ctx.lineTo(12, -12); ctx.stroke();
+
+        // 거울 1 (수평 팔 끝)
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(armPx, -16, 5, 32);
+        // 거울 2 (수직 팔 끝)
+        ctx.fillRect(-16, -armPx - 5, 32, 5);
+
+        // 검출부 방향(아래)
+        ctx.strokeStyle = '#16a34a';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, armPx); ctx.stroke();
+        ctx.fillStyle = '#16a34a';
+        ctx.fillRect(-14, armPx, 28, 10);
+
+        // 빛 펄스 애니메이션 (각 경로를 따라 흐르는 점)
+        const t = (phase % 1);
+        ctx.fillStyle = '#fde68a';
+        // 입사광 펄스
+        const p1x = -armPx - 12 + (armPx + 12) * t;
+        ctx.beginPath(); ctx.arc(p1x, 0, 3, 0, Math.PI * 2); ctx.fill();
+        // 수평 팔 펄스
+        ctx.beginPath(); ctx.arc(armPx * t, 0, 3, 0, Math.PI * 2); ctx.fill();
+        // 수직 팔 펄스
+        ctx.beginPath(); ctx.arc(0, -armPx * t, 3, 0, Math.PI * 2); ctx.fill();
+        // 검출부 방향 펄스
+        ctx.fillStyle = '#86efac';
+        ctx.beginPath(); ctx.arc(0, armPx * t, 3, 0, Math.PI * 2); ctx.fill();
+
+        ctx.restore();
+
+        // 라벨 (회전과 무관하게 고정)
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('광원', cx - armPx - 34, cy + 26);
+        ctx.fillText('빔스플리터', cx - 30, cy + 26);
+
+        // ===== 검출부 간섭무늬 (오른쪽) =====
+        // 실제 관측은 회전해도 무늬가 거의 움직이지 않음 → 위상 이동을 v로부터 만들되 극히 작게.
+        const barX = interW + 30;
+        const barW = W - barX - 16;
+        const cyR = H / 2;
+        const ringMax = H * 0.42;
+
+        // 실제 관측 위상 이동(≈0): 귀무 결과를 표현하기 위해 거의 0에 가깝게.
+        // (예측치는 크지만 실제는 ~0임을 시각적으로 대비)
+        const observedShift = predictedShift() * 0.0; // 관측 ≈ 0 (귀무 결과)
+        const fringeK = 0.10; // 무늬 촘촘함(화면 표시용)
+
+        // 동심원 간섭무늬 (마이컬슨 간섭계 특유의 원형 무늬)
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(barX, 8, barW, H - 16);
+        ctx.clip();
+        for (let r = 0; r < ringMax; r += 1) {
+          const inten = Math.pow(Math.cos(fringeK * r + observedShift * Math.PI * 2), 2);
+          const g = Math.round(40 + 180 * inten);
+          ctx.strokeStyle = 'rgb(' + Math.round(g * 0.4) + ',' + g + ',' + Math.round(g * 0.45) + ')';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(barX + barW / 2, cyR, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // 검출부 테두리/라벨
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, 8, barW, H - 16);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('검출부 간섭무늬', barX + 6, H - 16);
+        ctx.fillStyle = '#86efac';
+        ctx.fillText('이동 ≈ 0', barX + 6, 24);
+      }
+
+      // ----- 애니메이션 루프 -----
+      function loop() {
+        phase += 0.012;
+        draw();
+        rafId = requestAnimationFrame(loop);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const predNow = predictedShift();
+        const predMaxV = predictedMax();
+        // 회전각이 0이면 회전에 의한 변화가 0이므로 최대 예측치도 함께 안내
+        const predEl = document.getElementById('predicted');
+        predEl.textContent = predNow.toFixed(3) + ' λ  (회전 시 최대 ' + predMaxV.toFixed(3) + ' λ)';
+        // 관측은 항상 ≈ 0
+        document.getElementById('observed').textContent = '≈ 0.000 λ';
+      }
+
+      // ----- 슬라이더 -----
+      const vSlider = document.getElementById('vwind');
+      const lSlider = document.getElementById('armlen');
+      const aSlider = document.getElementById('angle');
+      const vVal = document.getElementById('vwind-val');
+      const lVal = document.getElementById('armlen-val');
+      const aVal = document.getElementById('angle-val');
+
+      function syncLabels() {
+        vVal.textContent = state.v;
+        lVal.textContent = state.L.toFixed(1);
+        aVal.textContent = state.angle;
+      }
+
+      // ----- (2) 슬라이더 이벤트: input 시 즉시 갱신 -----
+      vSlider.addEventListener('input', () => {
+        state.v = Number(vSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      lSlider.addEventListener('input', () => {
+        state.L = Number(lSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      aSlider.addEventListener('input', () => {
+        state.angle = Number(aSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.v = DEFAULTS.v;
+        state.L = DEFAULTS.L;
+        state.angle = DEFAULTS.angle;
+        vSlider.value = String(DEFAULTS.v);
+        lSlider.value = String(DEFAULTS.L);
+        aSlider.value = String(DEFAULTS.angle);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 무늬 이동이 없었던 귀무 결과는 에테르가 없으며 광속이 일정함을 뜻했습니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 핵심은 "무늬 이동 ≈ 0(귀무 결과) → 에테르 없음, 광속 불변"입니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 + 애니메이션 시작 -----
+      syncLabels();
+      updateResult();
+      draw();
+      rafId = requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

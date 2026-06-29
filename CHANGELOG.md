@@ -64,16 +64,26 @@
   - `04-energy-field/05-maxwell` — 맥스웰 방정식 (전자기파, c=f·λ=1/√(μ₀ε₀)).
   - `04-energy-field/06-hertz` — 헤르츠의 전자기파 (공진·거리에 따른 수신, 무선의 토대).
   - `04-energy-field/07-boltzmann` — 볼츠만의 통계역학 (맥스웰-볼츠만 분포, S=k·ln W).
-- 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 전 페이지의 탭 전환·슬라이더 반응·콘솔 에러를 자동 점검.
+- **Phase 4 실험 9종 추가** (`05-atomic` 카테고리 완성) — 동일한 3탭·Canvas 규격:
+  - `05-atomic/01-michelson-morley` — 미켈슨-몰리 (간섭계 귀무 결과, 광속 불변).
+  - `05-atomic/02-roentgen` — 뢴트겐 X선 (I=I₀·e^(−μx), 물질별 투과).
+  - `05-atomic/03-thomson` — 톰슨 음극선 (E·B 편향으로 e/m, v=E/B).
+  - `05-atomic/04-planck` — 플랑크 흑체복사 (빈의 변위, 자외선 파탄/양자화).
+  - `05-atomic/05-photoelectric` — 광전 효과 (KEmax=hf−W, 문턱 진동수).
+  - `05-atomic/06-millikan` — 밀리컨 기름방울 (전하 양자화, q=mgd/V).
+  - `05-atomic/07-rutherford` — 러더퍼드 산란 (원자핵 발견, 충돌 파라미터).
+  - `05-atomic/08-bohr` — 보어 원자 모형 (Eₙ=−13.6/n², 선 스펙트럼).
+  - `05-atomic/09-franck-hertz` — 프랑크-헤르츠 (4.9eV 간격 전류 급감, 준위 양자화).
+- 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 전 페이지의 탭 전환·슬라이더/버튼 반응·콘솔 에러를 자동 점검.
 
 ### Changed
 
-- `src/data/experiments.json`: 구현 완료한 23개 실험(id 1–23)의 `status`를 `ready`로 전환 — `01-ancient`(4/4)·`02-scientific-revolution`(7/7)·`03-precision-era`(5/5)·`04-energy-field`(7/7) 카테고리 100% 완료.
-- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 30개는 "준비중" 비활성 유지).
+- `src/data/experiments.json`: 구현 완료한 32개 실험(id 1–32)의 `status`를 `ready`로 전환 — `01-ancient`·`02-scientific-revolution`·`03-precision-era`·`04-energy-field`·`05-atomic` 카테고리 100% 완료.
+- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 21개는 "준비중" 비활성 유지).
 
 ### 예정 (Planned)
 
-- 남은 30개 실험의 인터랙티브 페이지 단계적 구현 — `05-atomic`(9)·`06-quantum`(7)·`07-relativity`(7)·`08-modern`(7).
+- 남은 21개 실험의 인터랙티브 페이지 단계적 구현 — `06-quantum`(7)·`07-relativity`(7)·`08-modern`(7).
 - Canvas 공통 유틸리티·레이아웃 셸(shell) 추출로 중복 축소.
 
 ---

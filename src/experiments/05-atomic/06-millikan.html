@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>밀리컨의 기름방울 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f3f6fa;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0e1726; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eef4fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .status-line { margin-top: 8px; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>밀리컨의 기름방울 실험</h1>
+    <div class="en">Millikan's Oil Drop Experiment</div>
+    <div class="meta">1909년 · 로버트 밀리컨 (Robert A. Millikan) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="평행판 축전기 사이에서 전하를 띤 기름방울이 전기력과 중력의 균형에 따라 위아래로 움직이는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="voltage">판 전압 V: <span id="voltage-val">0</span> V</label>
+          <input type="range" id="voltage" min="0" max="1000" step="1" value="0"
+            aria-describedby="voltage-val">
+        </div>
+
+        <div class="control-row">
+          <label for="radius">기름방울 크기(반지름 r): <span id="radius-val">1.00</span> µm</label>
+          <input type="range" id="radius" min="0.4" max="2.0" step="0.01" value="1.00"
+            aria-describedby="radius-val">
+        </div>
+
+        <div class="control-row">
+          <label for="charges">방울의 전하 개수 n (× e): <span id="charges-val">3</span> 개</label>
+          <input type="range" id="charges" min="1" max="5" step="1" value="3"
+            aria-describedby="charges-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="balanceBtn">⚖ 평형 전압으로 맞추기</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>평형 전압 V₀: <strong id="r-vbal">—</strong></div>
+          <div>산출 전하 q: <strong id="r-q">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>q / e (기본 전하 배수): <strong id="r-qe">—</strong></div>
+          <div>방울 질량 m: <strong id="r-mass">—</strong></div>
+        </div>
+        <div class="status-line" id="r-status">상태: —</div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 전압이 낮으면 중력이 이겨 방울이 <em>하강</em>하고, 너무 높으면 전기력이 이겨
+        <em>상승</em>합니다. 두 힘이 정확히 평형을 이루는 전압에서만 방울이 <em>정지(뜸)</em> 합니다. 이때 산출되는
+        전하 q는 전하 개수 n을 1~5로 바꿔도 항상 <strong>기본 전하 e = 1.602×10⁻¹⁹ C 의 정수배(q/e = n)</strong>로만
+        나옵니다. 전하는 연속이 아니라 알갱이(양자화)라는 증거입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>평행판 사이 전기장 E = V/d 와 전기력 qE 의 개념을 이해한다.</li>
+        <li>전기력(qE)과 중력(mg)의 평형 조건으로 전하 q = mgd/V 를 유도한다.</li>
+        <li>측정된 전하가 항상 기본 전하 e의 정수배임을 확인한다(전하의 양자화).</li>
+        <li>기본 전하 e ≈ 1.602×10⁻¹⁹ C 의 값과 의미를 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>전하 q를 띤 기름방울을 간격 d인 두 평행판 사이에 띄운다. 판에 전압 V를 걸면 사이에는
+        균일한 전기장 <em>E = V/d</em>가 생기고, 방울은 위로 향하는 전기력 <em>F<sub>E</sub> = qE</em>와
+        아래로 향하는 중력 <em>F<sub>g</sub> = mg</em>를 받는다.</p>
+        <p>전압을 조절해 두 힘을 평형(<em>qE = mg</em>)으로 만들면 방울은 공중에 <strong>정지</strong>한다.
+        이때 전하는 <em>q = mg / E = mgd / V</em>로 구할 수 있다. 밀리컨은 수많은 방울에서 q를 측정했고,
+        그 값들이 모두 어떤 최소 단위 <em>e</em>의 정수배(q = n·e)임을 발견했다. 즉 전하는 임의의 값을
+        가질 수 없고 <strong>알갱이처럼 양자화</strong>되어 있다.</p>
+      </div>
+
+      <div class="formula-box">
+        E = V / d<br>
+        평형: q·E = m·g<br>
+        q = m·g·d / V = n · e &nbsp;(e ≈ 1.602×10⁻¹⁹ C)
+      </div>
+
+      <!-- SVG 다이어그램: 평행판 사이의 힘 평형 -->
+      <svg width="320" height="220" viewBox="0 0 320 220" role="img"
+        aria-label="두 평행판 사이에서 위로 향하는 전기력과 아래로 향하는 중력이 평형을 이루는 기름방울 다이어그램">
+        <!-- 위 판 (+) -->
+        <rect x="40" y="30" width="240" height="14" fill="#2B6CB0"/>
+        <text x="290" y="42" font-size="14" fill="#2B6CB0">＋</text>
+        <!-- 아래 판 (-) -->
+        <rect x="40" y="176" width="240" height="14" fill="#6b7280"/>
+        <text x="290" y="189" font-size="14" fill="#6b7280">－</text>
+        <!-- 간격 d 표시 -->
+        <line x1="30" y1="44" x2="30" y2="176" stroke="#9ca3af" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="14" y="115" font-size="11" fill="#6b7280">d</text>
+        <!-- 기름방울 -->
+        <circle cx="160" cy="110" r="13" fill="#facc15" stroke="#b45309" stroke-width="1.5"/>
+        <text x="153" y="114" font-size="11" fill="#7c2d12">q</text>
+        <!-- 전기력 (위) -->
+        <line x1="160" y1="97" x2="160" y2="58" stroke="#16a34a" stroke-width="2.5"/>
+        <polygon points="160,52 156,62 164,62" fill="#16a34a"/>
+        <text x="168" y="74" font-size="11" fill="#16a34a">F = qE</text>
+        <!-- 중력 (아래) -->
+        <line x1="160" y1="123" x2="160" y2="160" stroke="#dc2626" stroke-width="2.5"/>
+        <polygon points="160,166 156,156 164,156" fill="#dc2626"/>
+        <text x="168" y="150" font-size="11" fill="#dc2626">mg</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        전기력 qE(위)와 중력 mg(아래)가 같아지면 방울이 정지한다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "전하는 물처럼 연속적이어서 아무 값이나 가질 수 있다"고 생각하기 쉽다.
+        밀리컨의 실험은 측정된 전하가 항상 어떤 최소 단위 <em>e</em>의 정수배라는 사실, 즉 전하가
+        <em>알갱이(입자)처럼 양자화</em>되어 있음을 직접 보여 주었다. 1.5e 나 2.7e 같은 전하는 존재하지 않는다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>밀리컨의 기름방울 실험이 보여준 가장 중요한 결과는?</p>
+        <label><input type="radio" name="q1" value="wrong"> 전하는 무게에 비례해 아무 값이나 가진다</label>
+        <label><input type="radio" name="q1" value="correct"> 전하가 기본 전하 e의 정수배로 양자화되어 있다</label>
+        <label><input type="radio" name="q1" value="wrong"> 기름방울은 전기를 띠지 않는다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>전기력과 중력이 평형을 이룰 때 방울의 전하 q를 구하는 식은? (간격 d, 전압 V, 질량 m)</p>
+        <label><input type="radio" name="q2" value="wrong"> q = V / (m·g·d)</label>
+        <label><input type="radio" name="q2" value="correct"> q = m·g·d / V</label>
+        <label><input type="radio" name="q2" value="wrong"> q = m·g·V / d</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 로버트 밀리컨 (Robert A. Millikan, 1868~1953)</h3>
+        <p>미국의 실험물리학자로 시카고 대학에서 정밀 측정에 몰두했다. 1909년부터 대학원생
+        하비 플레처(Harvey Fletcher)와 함께 분무기로 만든 미세한 기름방울을 평행판 축전기 사이에
+        띄우고, 전압을 조절해 방울을 정지·낙하·상승시키며 개별 방울의 전하를 정밀하게 측정했다.</p>
+        <p>수백 개의 방울에서 측정한 전하가 모두 어떤 최소 단위의 정수배임을 밝혀 기본 전하 e의 값을
+        결정했다. 이 공로와 광전효과 연구로 1923년 노벨 물리학상을 받았다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1897년 — J.J. 톰슨, 음극선 실험으로 전자를 발견하고 전하 대 질량비(e/m)를 측정</li>
+          <li>1909년 — 밀리컨, 기름방울 실험 시작 (초기에는 물방울을 사용했으나 증발 문제로 기름으로 전환)</li>
+          <li>1913년 — 기본 전하 e ≈ 1.59×10⁻¹⁹ C 발표 (현재 값 1.602×10⁻¹⁹ C에 근접)</li>
+          <li>1923년 — 기본 전하 측정과 광전효과 연구로 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 톰슨이 전자의 존재와 e/m을 보였다면, 밀리컨은 전하 자체의
+        최소 단위 e를 직접 측정해 <strong>전하가 양자화되어 있다</strong>는 사실을 확립했다. e의 정확한
+        값을 알게 되자 전자의 질량(e/m과 결합)까지 산출할 수 있었고, 이는 원자·아원자 물리학을
+        정량 과학으로 끌어올린 결정적 토대가 되었다. 자연의 기본 상수를 정밀하게 재는 일이 얼마나
+        강력한지를 보여 준 대표적 실험이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리 상수 -----
+      const E_CHARGE = 1.602e-19;   // 기본 전하 e (C)
+      const G = 9.8;                // 중력가속도 (m/s^2)
+      const PLATE_GAP = 0.005;      // 평행판 간격 d = 5 mm = 0.005 m
+      const OIL_DENSITY = 920;      // 기름 밀도 (kg/m^3)
+
+      // ----- 상태 -----
+      const state = {
+        voltage: 0,        // 판 전압 V
+        radius: 1.00,      // 기름방울 반지름 (µm)
+        charges: 3,        // 전하 개수 n (× e)
+        posFrac: 0.5,      // 방울 위치(0=상단판, 1=하단판)
+        running: false,
+        lastTs: null
+      };
+
+      // 시각화 상수 (캔버스 좌표)
+      const TOP_PLATE = 60;      // 위 판 아래쪽 y
+      const BOT_PLATE = 360;     // 아래 판 위쪽 y
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const voltageSlider = document.getElementById('voltage');
+      const radiusSlider = document.getElementById('radius');
+      const chargesSlider = document.getElementById('charges');
+      const balanceBtn = document.getElementById('balanceBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      // 방울 질량 m = 밀도 × 부피 = ρ × (4/3)πr³
+      function dropMass() {
+        const r = state.radius * 1e-6; // µm -> m
+        return OIL_DENSITY * (4 / 3) * Math.PI * r * r * r;
+      }
+      // 실제 전하 q = n·e
+      function dropCharge() {
+        return state.charges * E_CHARGE;
+      }
+      // 평형 전압 V0: q·(V/d) = m·g  =>  V0 = m·g·d / q
+      function balanceVoltage() {
+        return (dropMass() * G * PLATE_GAP) / dropCharge();
+      }
+      // 현재 전압에서 산출되는 전하 q = m·g·d / V (V>0일 때만)
+      function measuredCharge() {
+        if (state.voltage <= 0) return null;
+        return (dropMass() * G * PLATE_GAP) / state.voltage;
+      }
+      // 알짜 힘(위 양수): qE - mg.  E = V/d
+      function netForceUp() {
+        const E = state.voltage / PLATE_GAP;
+        return dropCharge() * E - dropMass() * G;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0e1726';
+        ctx.fillRect(0, 0, W, H);
+
+        const plateX = 70, plateW = W - 140;
+        const charged = state.voltage > 0;
+
+        // 위 판 (+)
+        ctx.fillStyle = charged ? '#2B6CB0' : '#3a4a63';
+        ctx.fillRect(plateX, TOP_PLATE - 10, plateW, 10);
+        // 아래 판 (-)
+        ctx.fillStyle = charged ? '#7a8aa3' : '#3a4a63';
+        ctx.fillRect(plateX, BOT_PLATE, plateW, 10);
+
+        // 판 부호
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('＋  ＋  ＋  ＋  ＋  ＋', W / 2, TOP_PLATE - 16);
+        ctx.fillText('－  －  －  －  －  －', W / 2, BOT_PLATE + 24);
+
+        // 전기장 선 (전압 있을 때만)
+        if (charged) {
+          ctx.strokeStyle = 'rgba(74,143,212,0.30)';
+          ctx.lineWidth = 1;
+          const lines = 7;
+          for (let i = 0; i < lines; i++) {
+            const x = plateX + (plateW / (lines - 1)) * i;
+            ctx.beginPath();
+            ctx.moveTo(x, TOP_PLATE);
+            ctx.lineTo(x, BOT_PLATE);
+            ctx.stroke();
+          }
+        }
+
+        // 방울 위치
+        const range = BOT_PLATE - TOP_PLATE;
+        const r = 6 + state.radius * 9; // 반지름 시각화
+        const y = TOP_PLATE + state.posFrac * range;
+        const x = W / 2;
+
+        // 방울
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#facc15';
+        ctx.fill();
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // 하이라이트
+        ctx.beginPath();
+        ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.fill();
+        // 전하 표시
+        ctx.fillStyle = '#7c2d12';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('−'.repeat(state.charges), x, y + 4);
+
+        // 힘 화살표
+        const net = netForceUp();
+        drawForceArrows(x, y, r, net);
+
+        // 상단 상태 텍스트
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('V = ' + Math.round(state.voltage) + ' V', 16, 24);
+        ctx.fillText('n = ' + state.charges + 'e', 16, 42);
+        ctx.textAlign = 'right';
+        ctx.fillText('d = 5 mm', W - 16, 24);
+        ctx.textAlign = 'left';
+      }
+
+      function drawForceArrows(x, y, r, net) {
+        // 전기력 (위, 초록)
+        const E = state.voltage / PLATE_GAP;
+        const fe = dropCharge() * E;
+        const fg = dropMass() * G;
+        const maxF = Math.max(fe, fg, 1e-30);
+        const eLen = 18 + 42 * (fe / maxF);
+        const gLen = 18 + 42 * (fg / maxF);
+
+        // 전기력 위쪽
+        if (state.voltage > 0) {
+          ctx.strokeStyle = '#22c55e';
+          ctx.fillStyle = '#22c55e';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x + r + 14, y);
+          ctx.lineTo(x + r + 14, y - eLen);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + r + 14, y - eLen - 6);
+          ctx.lineTo(x + r + 10, y - eLen + 2);
+          ctx.lineTo(x + r + 18, y - eLen + 2);
+          ctx.fill();
+        }
+        // 중력 아래쪽
+        ctx.strokeStyle = '#ef4444';
+        ctx.fillStyle = '#ef4444';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x - r - 14, y);
+        ctx.lineTo(x - r - 14, y + gLen);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - r - 14, y + gLen + 6);
+        ctx.lineTo(x - r - 18, y + gLen - 2);
+        ctx.lineTo(x - r - 10, y + gLen - 2);
+        ctx.fill();
+        ctx.lineWidth = 1;
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function fmtCharge(q) {
+        // q (C) -> "x.xx ×10⁻¹⁹ C"
+        return (q / 1e-19).toFixed(2) + ' ×10⁻¹⁹ C';
+      }
+
+      function updateResult() {
+        document.getElementById('r-vbal').textContent = Math.round(balanceVoltage()) + ' V';
+        document.getElementById('r-mass').textContent =
+          (dropMass() / 1e-15).toFixed(2) + ' ×10⁻¹⁵ kg';
+
+        const q = measuredCharge();
+        const qEl = document.getElementById('r-q');
+        const qeEl = document.getElementById('r-qe');
+        if (q === null) {
+          qEl.textContent = '— (전압 0)';
+          qeEl.textContent = '—';
+        } else {
+          qEl.textContent = fmtCharge(q);
+          qeEl.textContent = (q / E_CHARGE).toFixed(2) + ' e';
+        }
+        updateStatus();
+      }
+
+      function updateStatus() {
+        const el = document.getElementById('r-status');
+        const net = netForceUp();
+        const fg = dropMass() * G;
+        const rel = Math.abs(net) / (fg || 1);
+        if (rel < 0.02) {
+          el.textContent = '상태: ⚖ 평형 — 방울이 정지(뜸). q = ' +
+            (state.charges) + 'e (정수배 확인!)';
+          el.style.color = '#16a34a';
+        } else if (net > 0) {
+          el.textContent = '상태: ⬆ 전기력이 우세 — 방울 상승';
+          el.style.color = '#2563eb';
+        } else {
+          el.textContent = '상태: ⬇ 중력이 우세 — 방울 하강';
+          el.style.color = '#dc2626';
+        }
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      voltageSlider.addEventListener('input', () => {
+        state.voltage = Number(voltageSlider.value);
+        document.getElementById('voltage-val').textContent = Math.round(state.voltage);
+        updateResult();
+        draw();
+      });
+      radiusSlider.addEventListener('input', () => {
+        state.radius = Number(radiusSlider.value);
+        document.getElementById('radius-val').textContent = state.radius.toFixed(2);
+        updateResult();
+        draw();
+      });
+      chargesSlider.addEventListener('input', () => {
+        state.charges = Number(chargesSlider.value);
+        document.getElementById('charges-val').textContent = state.charges;
+        updateResult();
+        draw();
+      });
+
+      // 평형 전압으로 맞추기
+      balanceBtn.addEventListener('click', () => {
+        const v0 = Math.min(1000, Math.max(0, Math.round(balanceVoltage())));
+        state.voltage = v0;
+        voltageSlider.value = String(v0);
+        document.getElementById('voltage-val').textContent = v0;
+        state.posFrac = 0.5;
+        updateResult();
+        draw();
+      });
+
+      // 리셋
+      function resetSim() {
+        state.voltage = 0;
+        state.radius = 1.00;
+        state.charges = 3;
+        state.posFrac = 0.5;
+        voltageSlider.value = '0';
+        radiusSlider.value = '1.00';
+        chargesSlider.value = '3';
+        document.getElementById('voltage-val').textContent = '0';
+        document.getElementById('radius-val').textContent = '1.00';
+        document.getElementById('charges-val').textContent = '3';
+        updateResult();
+        draw();
+      }
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- 애니메이션 루프 (requestAnimationFrame) -----
+      function loop(ts) {
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = Math.min(0.05, (ts - state.lastTs) / 1000);
+        state.lastTs = ts;
+
+        const fg = dropMass() * G;
+        const net = netForceUp();
+        const rel = net / (fg || 1); // 상대 알짜력 (+위/-아래)
+
+        // 평형 부근이면 살짝 떨림만, 아니면 방향대로 이동
+        if (Math.abs(rel) < 0.02) {
+          // 정지 (미세한 브라운 운동 느낌)
+          state.posFrac += (Math.random() - 0.5) * 0.002;
+        } else {
+          const speed = Math.max(-1, Math.min(1, rel)) * 0.35; // frac/s
+          state.posFrac -= speed * dt; // 위(net>0)면 frac 감소
+        }
+        // 경계 clamp
+        if (state.posFrac < 0.04) state.posFrac = 0.04;
+        if (state.posFrac > 0.96) state.posFrac = 0.96;
+
+        updateStatus();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '측정된 전하가 항상 e의 정수배라는 것이 핵심입니다(전하의 양자화).',
+        '전하가 기본 전하 e의 정수배(알갱이)로만 나타난다는 점이 핵심입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'qE = mg, E = V/d 이므로 q = m·g·d / V 입니다.',
+        '평형 조건 qE = mg 에 E = V/d 를 대입해 보세요.');
+
+      // ----- 초기 렌더 + 애니메이션 시작 -----
+      updateResult();
+      draw();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

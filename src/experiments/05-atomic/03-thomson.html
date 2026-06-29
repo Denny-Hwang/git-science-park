@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>톰슨의 음극선 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f4f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #0b1020; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #ebf3fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .balance-tag {
+      display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 999px;
+      font-size: 0.85rem; font-weight: 700;
+    }
+    .balance-tag.on { background: #dcfce7; color: #15803d; }
+    .balance-tag.off { background: #fee2e2; color: #b91c1c; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>톰슨의 음극선 실험</h1>
+    <div class="en">Thomson's Cathode Ray Experiment</div>
+    <div class="meta">1897년 · J.J. 톰슨 (J.J. Thomson) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="360" role="img"
+        aria-label="음극선관에서 전자 빔이 전기장과 자기장에 의해 휘어 형광 스크린에 광점을 만드는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="voltage">가속 전압 V<sub>a</sub>: <span id="voltage-val">2000</span> V</label>
+          <input type="range" id="voltage" min="500" max="6000" step="50" value="2000"
+            aria-describedby="voltage-val">
+        </div>
+
+        <div class="control-row">
+          <label for="efield">전기장 세기 E (편향판 전압): <span id="efield-val">200</span> V</label>
+          <input type="range" id="efield" min="0" max="600" step="5" value="200"
+            aria-describedby="efield-val">
+        </div>
+
+        <div class="control-row">
+          <label for="bfield">자기장 세기 B: <span id="bfield-val">0.40</span> mT</label>
+          <input type="range" id="bfield" min="0" max="1.5" step="0.01" value="0.40"
+            aria-describedby="bfield-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="balanceBtn">⚖ 자동 균형 맞추기</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>스크린 빔 편향: <strong id="r-defl">—</strong></div>
+          <div>균형 속도 v = E/B: <strong id="r-vel">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>추정 e/m (상대값): <strong id="r-em">—</strong></div>
+          <div>전기력 : 자기력 = <strong id="r-force">—</strong></div>
+        </div>
+        <span class="balance-tag off" id="balance-tag">⚠ 편향 발생 중</span>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 전기장만 걸면 빔이 (+)극(위쪽) 쪽으로 휘고, 자기장만 걸면 반대쪽으로 휩니다.
+        음극선이 (+)극으로 끌리므로 입자는 <em>음전하(전자)</em>임을 알 수 있습니다. 두 장을 함께 걸어
+        <strong>편향이 0이 되도록(직진)</strong> 맞추면 전기력 = 자기력 (qE = qvB)이 되어 속도 v = E/B를 구하고,
+        이어 e/m을 산출합니다. 어떤 기체를 음극에 써도 같은 e/m이 나옵니다 — 모든 원자에 공통인 입자라는 증거입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>음극선이 (+)극으로 휘는 것으로 음전하 입자(전자)임을 추론한다.</li>
+        <li>전기장과 자기장이 하전 입자에 주는 힘(qE, qvB)을 비교한다.</li>
+        <li>전기력 = 자기력 균형(qE = qvB)으로 속도 v = E/B를 구하는 속도선택기 원리를 이해한다.</li>
+        <li>편향량으로부터 비전하 e/m을 산출하는 방법을 익힌다.</li>
+        <li>기체 종류와 무관하게 같은 e/m이 나옴 → 모든 원자에 공통인 입자임을 이해한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>음극선관은 음극(cathode)에서 튀어나온 입자 빔을 가속 전압 <em>V<sub>a</sub></em>로 가속시킨 뒤,
+        평행 편향판(전기장 <em>E</em>)과 자기장 <em>B</em> 영역을 지나게 한다. 빔은 마지막으로 형광 스크린에 부딪혀
+        밝은 광점을 만든다.</p>
+        <p>전기장만 걸면 입자는 한쪽으로 휘고, 자기장만 걸면 (로런츠 힘 방향이 반대라) 반대쪽으로 휜다.
+        두 힘의 크기를 같게 맞추면(<em>qE = qvB</em>) 빔은 <strong>휘지 않고 직진</strong>한다. 이때 속도는
+        <em>v = E/B</em>로 결정된다(속도선택기). 속도 v를 알면, 전기장만 걸었을 때의 편향량과 결합해
+        입자의 비전하 <em>e/m</em>을 구할 수 있다.</p>
+      </div>
+
+      <div class="formula-box">
+        전기력 F<sub>E</sub> = qE &nbsp;|&nbsp; 자기력 F<sub>B</sub> = qvB<br>
+        균형 시: qE = qvB → v = E / B<br>
+        e/m = E / (B² · d)  (편향 d로부터 산출)
+      </div>
+
+      <!-- SVG 다이어그램: 음극선관 구조 -->
+      <svg width="420" height="200" viewBox="0 0 420 200" role="img"
+        aria-label="음극선관 구조: 음극, 양극(가속), 편향판, 자기장 영역, 형광 스크린">
+        <!-- 관 외형 -->
+        <rect x="14" y="60" width="392" height="80" rx="10" fill="none" stroke="#2B6CB0" stroke-width="2"/>
+        <!-- 음극 -->
+        <line x1="30" y1="72" x2="30" y2="128" stroke="#dc2626" stroke-width="4"/>
+        <text x="14" y="156" font-size="10" fill="#dc2626">음극(−)</text>
+        <!-- 양극(가속) -->
+        <line x1="80" y1="78" x2="80" y2="122" stroke="#16a34a" stroke-width="3"/>
+        <text x="62" y="156" font-size="10" fill="#16a34a">양극(+)</text>
+        <!-- 편향판 -->
+        <line x1="170" y1="76" x2="230" y2="76" stroke="#2563eb" stroke-width="4"/>
+        <text x="176" y="70" font-size="10" fill="#2563eb">+판</text>
+        <line x1="170" y1="124" x2="230" y2="124" stroke="#2563eb" stroke-width="4"/>
+        <text x="176" y="138" font-size="10" fill="#2563eb">−판</text>
+        <!-- 빔 -->
+        <line x1="30" y1="100" x2="380" y2="86" stroke="#fbbf24" stroke-width="2.5"/>
+        <!-- 스크린 -->
+        <line x1="380" y1="62" x2="380" y2="138" stroke="#9333ea" stroke-width="4"/>
+        <text x="350" y="156" font-size="10" fill="#9333ea">형광 스크린</text>
+        <circle cx="380" cy="86" r="5" fill="#fde68a" stroke="#9333ea"/>
+        <!-- 빔 방향 -->
+        <text x="100" y="40" font-size="11" fill="#374151">전자 빔 진행 방향 →</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        음극에서 나온 빔이 가속·편향 영역을 지나 형광 스크린에 광점을 만든다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "음극선은 빛(전자기파)이다" 또는 "원자가 가장 작은 입자다"라고 생각하기 쉽다.
+        톰슨은 음극선이 전기장·자기장에서 휘는 것을 보여 <em>전하를 띤 물질 입자</em>임을 증명했고,
+        그 비전하 e/m이 수소 이온보다 약 1,800배나 커서(질량이 훨씬 작아서) <em>원자보다 작은 입자(전자)</em>가
+        존재함을 밝혔다. 즉 원자는 더 이상 쪼갤 수 없는 최소 단위가 아니다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>전기장과 자기장의 힘을 같게(qE = qvB) 맞추면 음극선 빔은 어떻게 되는가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 위쪽으로 더 크게 휜다</label>
+        <label><input type="radio" name="q1" value="correct"> 휘지 않고 직진한다 (편향 0)</label>
+        <label><input type="radio" name="q1" value="wrong"> 빔이 멈춰 사라진다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>음극선이 전기장에서 (+)극 쪽으로 휘는 사실로부터 알 수 있는 것은?</p>
+        <label><input type="radio" name="q2" value="wrong"> 입자가 (+)전하를 띤다</label>
+        <label><input type="radio" name="q2" value="correct"> 입자가 (−)전하를 띤다 (전자)</label>
+        <label><input type="radio" name="q2" value="wrong"> 입자에 전하가 없다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: J.J. 톰슨 (Joseph John Thomson, 1856~1940)</h3>
+        <p>영국의 물리학자로 케임브리지 캐번디시 연구소 소장을 지냈다. 1897년 음극선이 전기장과 자기장에서
+        휘는 정도를 정밀 측정해 음극선이 음전하를 띤 입자(훗날 '전자'로 명명)임을 증명하고, 그 비전하 e/m을
+        구했다. 이로써 원자가 더 이상 쪼갤 수 없는 최소 단위가 아님을 처음 밝혔다.</p>
+        <p>전자의 발견으로 1906년 노벨 물리학상을 받았다. 그가 제안한 '건포도 푸딩 모형(plum pudding model)'은
+        이후 제자 러더퍼드의 원자핵 발견으로 수정되었다. 그의 문하에서 7명의 노벨상 수상자가 배출되었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1869년 — 히토르프, 진공관에서 음극선(cathode ray) 현상 관찰</li>
+          <li>1879년 — 크룩스, 음극선이 입자의 흐름이라 주장(논쟁 시작)</li>
+          <li>1897년 — 톰슨, 음극선의 전기·자기 편향을 정량 측정해 e/m 산출, 전자 발견</li>
+          <li>1909년 — 밀리컨, 기름방울 실험으로 전자의 전하량 e를 측정 → 전자 질량 m 확정</li>
+          <li>1911년 — 러더퍼드, 알파 입자 산란으로 원자핵 발견(건포도 푸딩 모형 폐기)</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 2,000년 넘게 "쪼갤 수 없는 최소 단위"로 여겨지던 원자(atom, '나눌 수 없는')
+        속에서 더 작은 입자인 전자를 끄집어낸 사건이다. 어떤 기체를 음극에 써도 같은 e/m이 나온다는 사실은
+        전자가 모든 원자에 공통으로 들어 있는 보편적 구성 요소임을 뜻했다. 이로써 입자물리학과 원자 구조 연구의
+        시대가 열렸고, 곧이어 원자핵·양자역학으로 이어지는 현대 물리학의 출발점이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        voltage: 2000,   // 가속 전압 Va (V)
+        efield: 200,     // 편향판 전압 -> 전기장 세기 E (상대 단위)
+        bfield: 0.40     // 자기장 세기 B (mT)
+      };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const voltageSlider = document.getElementById('voltage');
+      const efieldSlider = document.getElementById('efield');
+      const bfieldSlider = document.getElementById('bfield');
+      const balanceBtn = document.getElementById('balanceBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 (교육용 상대 스케일) -----
+      // 가속 전압 Va로 얻는 빔 속도: 1/2 m v^2 = qVa -> v ∝ sqrt(Va)
+      // 여기서는 비전하가 일정한 단일 입자(전자)를 가정하므로 v = K_v * sqrt(Va).
+      const K_V = 0.9;            // 속도 스케일 상수
+      const K_E = 1.0;            // 전기력 스케일 상수
+      const K_B = 1.0;            // 자기력 스케일 상수
+      const EM_BASE = 1.76;       // 전자 e/m 기준 상대값(×10^11 C/kg 느낌의 표시용)
+
+      function beamSpeed() {
+        // 상대 속도 (임의 단위)
+        return K_V * Math.sqrt(state.voltage);
+      }
+      function electricForce() {
+        // F_E ∝ E (편향판 전압)
+        return K_E * state.efield;
+      }
+      function magneticForce() {
+        // F_B ∝ B * v
+        return K_B * state.bfield * 1000 * beamSpeed() / 100; // 단위 정합용 환산
+      }
+      // 스크린에서의 알짜 편향(px). + 는 위(+판) 방향.
+      // 전기력은 위쪽(+판) 방향으로, 자기력은 아래쪽 방향으로 작용한다고 정의.
+      function netDeflectionPx() {
+        const net = electricForce() - magneticForce();
+        // 가속이 클수록(속도 빠를수록) 편향판 통과 시간이 짧아 편향이 작아짐: /sqrt(Va)
+        const k = 0.9 / Math.sqrt(state.voltage);
+        return net * k * 6;
+      }
+      // 균형 속도 v = E/B (B>0 일 때만 의미)
+      function balanceVelocity() {
+        if (state.bfield <= 0) return null;
+        return state.efield / (state.bfield); // 상대 단위
+      }
+      // 추정 e/m: 균형 시 v=E/B를 알면 e/m ∝ E / (B^2 * d_relative)
+      // 여기서는 전기장만 걸었을 때의 기준 편향을 d로 사용해 상대값 산출.
+      function estimateEM() {
+        if (state.bfield <= 0 || state.efield <= 0) return null;
+        // 균형이 맞을수록 EM_BASE에 가깝게, 어긋나면 그에 비례해 빗나가도록.
+        const v = balanceVelocity();
+        // 표준 식 형태: e/m = E / (B^2 * d). d는 편향판 길이에 대응(상수로 둠).
+        const dConst = 320; // 상대 기하 상수
+        const em = (state.efield) / (state.bfield * state.bfield * dConst) * 100;
+        return { em: em, v: v };
+      }
+
+      function isBalanced() {
+        const fe = electricForce();
+        const fb = magneticForce();
+        if (fe === 0 && fb === 0) return false;
+        const ratio = Math.abs(fe - fb) / Math.max(fe, fb, 1);
+        return ratio < 0.04; // 4% 이내면 균형(직진)으로 간주
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0b1020';
+        ctx.fillRect(0, 0, W, H);
+
+        const axisY = H / 2;            // 빔 기준선
+        const xCathode = 40;
+        const xAnode = 110;
+        const xPlateStart = 200;
+        const xPlateEnd = 320;
+        const xScreen = W - 36;
+
+        // ----- 음극선관 외형 -----
+        ctx.strokeStyle = '#3b4a66';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(20, 60, W - 56, H - 120);
+
+        // ----- 음극(−) -----
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(xCathode, axisY - 26); ctx.lineTo(xCathode, axisY + 26); ctx.stroke();
+        ctx.fillStyle = '#fca5a5';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('음극(−)', xCathode - 16, H - 90);
+
+        // ----- 양극(가속, +) : 가운데 구멍으로 빔 통과 -----
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(xAnode, axisY - 22); ctx.lineTo(xAnode, axisY - 6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(xAnode, axisY + 6); ctx.lineTo(xAnode, axisY + 22); ctx.stroke();
+        ctx.fillStyle = '#86efac';
+        ctx.fillText('가속(+)', xAnode - 14, H - 90);
+        ctx.fillText('Vₐ=' + state.voltage + 'V', xAnode - 18, 52);
+
+        // ----- 편향판 (전기장 E) -----
+        const plateGap = 34;
+        ctx.lineWidth = 5;
+        // 위 = (+)판
+        ctx.strokeStyle = state.efield > 0 ? '#60a5fa' : '#475569';
+        ctx.beginPath(); ctx.moveTo(xPlateStart, axisY - plateGap); ctx.lineTo(xPlateEnd, axisY - plateGap); ctx.stroke();
+        // 아래 = (−)판
+        ctx.beginPath(); ctx.moveTo(xPlateStart, axisY + plateGap); ctx.lineTo(xPlateEnd, axisY + plateGap); ctx.stroke();
+        ctx.fillStyle = '#93c5fd';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('+ (E)', xPlateStart + 6, axisY - plateGap - 6);
+        ctx.fillText('−', xPlateStart + 6, axisY + plateGap + 16);
+
+        // 전기장 화살표(위 방향 = 양전하 받는 힘 표시, 음전하는 위 +판으로 끌림)
+        if (state.efield > 0) {
+          ctx.strokeStyle = 'rgba(96,165,250,0.5)';
+          ctx.lineWidth = 1;
+          for (let x = xPlateStart + 14; x < xPlateEnd; x += 26) {
+            ctx.beginPath(); ctx.moveTo(x, axisY + plateGap - 6); ctx.lineTo(x, axisY - plateGap + 6); ctx.stroke();
+          }
+        }
+
+        // ----- 자기장 영역 표시 (편향판 영역에 겹침, 화면 안/밖 점 표시) -----
+        if (state.bfield > 0) {
+          ctx.fillStyle = 'rgba(168,85,247,0.35)';
+          for (let x = xPlateStart + 8; x < xPlateEnd; x += 20) {
+            for (let y = axisY - plateGap + 6; y < axisY + plateGap; y += 18) {
+              ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill();
+            }
+          }
+          ctx.fillStyle = '#d8b4fe';
+          ctx.font = '11px sans-serif';
+          ctx.fillText('B (자기장)', xPlateStart - 2, 52);
+        }
+
+        // ----- 형광 스크린 -----
+        ctx.strokeStyle = '#a855f7';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(xScreen, 64); ctx.lineTo(xScreen, H - 64); ctx.stroke();
+        ctx.fillStyle = '#c4b5fd';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('형광 스크린', xScreen - 70, 52);
+
+        // ----- 빔 경로 -----
+        // 편향판 진입 전: 직진. 편향판 구간: 포물선처럼 휘기 시작. 이후: 직선으로 스크린까지.
+        const defl = netDeflectionPx();
+        const yHitMax = (H / 2) - 70; // clamp 한계
+        // 편향판 끝에서의 누적 변위(스크린 변위의 일부)
+        const yAtPlateEnd = axisY - defl * 0.4;
+        const yAtScreen = axisY - defl;
+        const yScreenClamped = Math.max(axisY - yHitMax, Math.min(axisY + yHitMax, yAtScreen));
+
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(xCathode, axisY);
+        ctx.lineTo(xPlateStart, axisY);
+        // 편향판 구간: 곡선
+        ctx.quadraticCurveTo((xPlateStart + xPlateEnd) / 2, axisY, xPlateEnd, yAtPlateEnd);
+        // 편향판 이후 직선으로 스크린까지
+        const yScreenForLine = Math.max(axisY - yHitMax, Math.min(axisY + yHitMax,
+          yAtPlateEnd + (yAtScreen - yAtPlateEnd)));
+        ctx.lineTo(xScreen, yScreenForLine);
+        ctx.stroke();
+
+        // 빔 발광 효과
+        ctx.shadowColor = '#fde047';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // ----- 스크린 광점 -----
+        ctx.beginPath();
+        ctx.arc(xScreen, yScreenForLine, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#fef08a';
+        ctx.shadowColor = '#fde047';
+        ctx.shadowBlur = 16;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 기준선(편향 0 위치) 표시
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(xPlateEnd, axisY); ctx.lineTo(xScreen, axisY); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 직진 여부 라벨
+        if (isBalanced()) {
+          ctx.fillStyle = '#4ade80';
+          ctx.font = 'bold 14px sans-serif';
+          ctx.fillText('⚖ 균형! 빔 직진 (qE = qvB)', xPlateEnd - 40, H - 78);
+        }
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const defl = netDeflectionPx();
+        const deflEl = document.getElementById('r-defl');
+        const velEl = document.getElementById('r-vel');
+        const emEl = document.getElementById('r-em');
+        const forceEl = document.getElementById('r-force');
+        const tag = document.getElementById('balance-tag');
+
+        // 스크린 편향 (상대 px -> mm 느낌의 상대값으로 표시)
+        const dir = defl > 0.5 ? '↑(위/+극)' : (defl < -0.5 ? '↓(아래)' : '직진');
+        deflEl.textContent = Math.abs(defl).toFixed(1) + ' (상대) ' + dir;
+
+        // 균형 속도 v = E/B
+        const v = balanceVelocity();
+        velEl.textContent = (v === null) ? 'B=0 (측정 불가)' : v.toFixed(0) + ' (상대 단위)';
+
+        // 추정 e/m
+        const est = estimateEM();
+        if (est === null) {
+          emEl.textContent = 'E·B 필요';
+        } else if (isBalanced()) {
+          emEl.textContent = '≈ ' + EM_BASE.toFixed(2) + ' ×10¹¹ C/kg';
+        } else {
+          emEl.textContent = est.em.toFixed(2) + ' (미균형, 부정확)';
+        }
+
+        // 힘 비율
+        const fe = electricForce();
+        const fb = magneticForce();
+        forceEl.textContent = fe.toFixed(0) + ' : ' + fb.toFixed(0);
+
+        // 균형 태그
+        if (isBalanced()) {
+          tag.textContent = '✅ 균형(직진): v = E/B 측정 가능';
+          tag.className = 'balance-tag on';
+        } else {
+          tag.textContent = '⚠ 편향 발생 중 — E와 B를 맞춰 직진시키세요';
+          tag.className = 'balance-tag off';
+        }
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      voltageSlider.addEventListener('input', () => {
+        state.voltage = Number(voltageSlider.value);
+        document.getElementById('voltage-val').textContent = state.voltage;
+        requestAnimationFrame(render);
+      });
+      efieldSlider.addEventListener('input', () => {
+        state.efield = Number(efieldSlider.value);
+        document.getElementById('efield-val').textContent = state.efield;
+        requestAnimationFrame(render);
+      });
+      bfieldSlider.addEventListener('input', () => {
+        state.bfield = Number(bfieldSlider.value);
+        document.getElementById('bfield-val').textContent = state.bfield.toFixed(2);
+        requestAnimationFrame(render);
+      });
+
+      // 자동 균형: 현재 E에 맞춰 B를 조정해 전기력 = 자기력이 되게 함.
+      // F_E = K_E*E,  F_B = K_B * B*1000 * v /100  ->  B = F_E * 100 / (K_B*1000*v)
+      balanceBtn.addEventListener('click', () => {
+        const fe = electricForce();
+        const v = beamSpeed();
+        if (state.efield <= 0) { return; }
+        let bNeeded = fe * 100 / (K_B * 1000 * v);
+        // 슬라이더 범위로 clamp
+        bNeeded = Math.max(0, Math.min(1.5, bNeeded));
+        state.bfield = Math.round(bNeeded * 100) / 100;
+        bfieldSlider.value = state.bfield;
+        document.getElementById('bfield-val').textContent = state.bfield.toFixed(2);
+        requestAnimationFrame(render);
+      });
+
+      // ----- 리셋 -----
+      function resetSim() {
+        state.voltage = 2000;
+        state.efield = 200;
+        state.bfield = 0.40;
+        voltageSlider.value = 2000;
+        efieldSlider.value = 200;
+        bfieldSlider.value = 0.40;
+        document.getElementById('voltage-val').textContent = '2000';
+        document.getElementById('efield-val').textContent = '200';
+        document.getElementById('bfield-val').textContent = '0.40';
+        requestAnimationFrame(render);
+      }
+      resetBtn.addEventListener('click', resetSim);
+
+      // 렌더 = 결과 갱신 + 다시 그리기
+      function render() {
+        updateResult();
+        draw();
+      }
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '전기력과 자기력이 상쇄되어 빔은 직진합니다. 이때 v = E/B 입니다.',
+        '균형(qE = qvB)에서는 두 힘이 상쇄되어 편향이 0이 됩니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '(+)극으로 끌리므로 입자는 음전하(전자)입니다.',
+        '(+)극 쪽으로 휜다는 것은 입자가 (−)전하임을 뜻합니다.');
+
+      // ----- 초기 렌더 -----
+      render();
+    })();
+  </script>
+</body>
+</html>

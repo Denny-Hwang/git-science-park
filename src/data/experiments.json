@@ -522,7 +522,7 @@
         "미켈슨",
         "상대성"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 25,
@@ -541,7 +541,7 @@
         "방사선",
         "음극선관"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 26,
@@ -560,7 +560,7 @@
         "e/m",
         "톰슨"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 27,
@@ -579,7 +579,7 @@
         "자외선 파탄",
         "양자"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 28,
@@ -598,7 +598,7 @@
         "문턱 진동수",
         "빛의 입자성"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 29,
@@ -617,7 +617,7 @@
         "밀리컨",
         "양자화"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 30,
@@ -636,7 +636,7 @@
         "러더퍼드",
         "원자 모형"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 31,
@@ -655,7 +655,7 @@
         "양자 도약",
         "수소 원자"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 32,
@@ -674,7 +674,7 @@
         "문턱 에너지",
         "수은"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 33,

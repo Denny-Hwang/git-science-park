@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>광전 효과 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f3f6fa;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0f1a2b; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf2fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .badge-emit { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; }
+    .badge-emit.yes { background: #dcfce7; color: #15803d; }
+    .badge-emit.no { background: #fee2e2; color: #b91c1c; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>광전 효과</h1>
+    <div class="en">Photoelectric Effect</div>
+    <div class="meta">1905년 · 알베르트 아인슈타인 (Albert Einstein) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="360" role="img"
+        aria-label="빛이 금속판에 닿아 전자가 방출되는 광전 효과 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="freq">빛의 진동수 f: <span id="freq-val">7.50</span> ×10¹⁴ Hz</label>
+          <input type="range" id="freq" min="2" max="15" step="0.05" value="7.5"
+            aria-describedby="freq-val">
+        </div>
+
+        <div class="control-row">
+          <label for="intensity">빛의 세기 (광자 수): <span id="intensity-val">5</span></label>
+          <input type="range" id="intensity" min="1" max="10" step="1" value="5"
+            aria-describedby="intensity-val">
+        </div>
+
+        <div class="control-row">
+          <label>금속 선택 (일함수 W): <span id="metal-val">세슘 (Cs) 2.10 eV</span></label>
+          <div class="btn-row" role="group" aria-label="금속 선택">
+            <button type="button" class="btn preset active" data-w="2.10" data-name="세슘 (Cs)">세슘 2.10 eV</button>
+            <button type="button" class="btn preset" data-w="2.90" data-name="나트륨 (Na)">나트륨 2.90 eV</button>
+            <button type="button" class="btn preset" data-w="4.30" data-name="아연 (Zn)">아연 4.30 eV</button>
+            <button type="button" class="btn preset" data-w="5.10" data-name="금 (Au)">금 5.10 eV</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>문턱 진동수 f₀: <strong id="r-f0">—</strong></div>
+          <div>광자 에너지 E = hf: <strong id="r-ephoton">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>최대 운동에너지 KEₘₐₓ: <strong id="r-ke">—</strong></div>
+          <div>전자 방출: <strong id="r-emit">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 먼저 진동수 f를 문턱 진동수 f₀보다 <em>낮게</em> 둔 채로
+        빛의 세기를 최대까지 올려 보세요. 아무리 밝게 해도 전자는 단 한 개도 나오지 않습니다.
+        반대로 f를 f₀ 이상으로 올리면, 세기가 1이어도 곧바로 전자가 방출됩니다. 빛이 아무리 밝아도
+        진동수가 낮으면 전자가 안 나오는 이 현상은 고전 파동론으로는 설명할 수 없습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>전자 방출 여부가 빛의 '세기'가 아니라 '진동수'에 좌우됨을 이해한다.</li>
+        <li>문턱 진동수 f₀와 일함수 W = h·f₀ 의 관계를 안다.</li>
+        <li>광전 방정식 KEₘₐₓ = h·f − W 를 적용해 방출 전자의 운동에너지를 계산한다.</li>
+        <li>빛의 세기는 방출 전자의 '개수(전류)'에만 영향을 줌을 구분한다.</li>
+        <li>광전 효과가 빛의 입자성(광자) 증거임을 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>금속 표면에 빛을 비추면 전자(광전자)가 튀어나온다. 고전 파동론은 "밝은 빛(센 빛)을
+        오래 비추면 에너지가 쌓여 전자가 나올 것"이라 예측했지만, 실제 실험은 전혀 달랐다.</p>
+        <p>아인슈타인은 빛이 진동수 f에 비례하는 에너지 덩어리(광자, photon) <em>E = h·f</em> 로
+        이루어져 있다고 보았다. 전자 하나는 광자 하나를 통째로 흡수한다. 전자를 금속 밖으로
+        떼어내는 데 필요한 최소 에너지가 일함수 <em>W</em> 이고, 이를 진동수로 나타낸 것이
+        문턱 진동수 <em>f₀ = W/h</em> 다.</p>
+        <p>광자 에너지가 일함수보다 작으면(<em>f &lt; f₀</em>) 전자는 떨어져 나오지 못한다.
+        세기를 키우면 광자 '개수'만 늘 뿐, 광자 한 개의 에너지(hf)는 그대로이기 때문에
+        여전히 전자가 나오지 않는다. <em>f ≥ f₀</em> 일 때만 방출이 일어나며, 남는 에너지가
+        전자의 최대 운동에너지가 된다.</p>
+      </div>
+
+      <div class="formula-box">
+        E = h · f<br>
+        W = h · f₀  →  f₀ = W / h<br>
+        KEₘₐₓ = h · f − W  (단, f ≥ f₀)
+      </div>
+
+      <!-- SVG 다이어그램: KEmax 대 진동수 그래프 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="진동수에 대한 최대 운동에너지 그래프. 문턱 진동수 f0 이상부터 기울기 h의 직선으로 증가한다">
+        <!-- 축 -->
+        <line x1="50" y1="180" x2="340" y2="180" stroke="#9ca3af" stroke-width="1.5"/>
+        <line x1="50" y1="180" x2="50" y2="20" stroke="#9ca3af" stroke-width="1.5"/>
+        <text x="300" y="198" font-size="11" fill="#6b7280">진동수 f</text>
+        <text x="8" y="30" font-size="11" fill="#6b7280">KEₘₐₓ</text>
+        <!-- 문턱 이전: KE=0 (x축에 붙음) -->
+        <line x1="50" y1="180" x2="150" y2="180" stroke="#dc2626" stroke-width="3"/>
+        <!-- 문턱 이후: 기울기 h 직선 -->
+        <line x1="150" y1="180" x2="330" y2="50" stroke="#2B6CB0" stroke-width="3"/>
+        <!-- 문턱 진동수 표시 -->
+        <line x1="150" y1="180" x2="150" y2="186" stroke="#374151" stroke-width="1.5"/>
+        <text x="138" y="200" font-size="11" fill="#374151">f₀</text>
+        <!-- 기울기 라벨 -->
+        <text x="250" y="95" font-size="11" fill="#2B6CB0">기울기 = h</text>
+        <!-- 방출 안 됨 라벨 -->
+        <text x="70" y="170" font-size="10" fill="#b91c1c">방출 안 됨</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        f &lt; f₀ 에서는 KEₘₐₓ = 0(방출 없음). f₀ 부터 기울기 h(플랑크 상수)의 직선으로 증가한다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "빛을 더 밝게(세게) 비추면 결국 전자가 나올 것"이라 생각하기 쉽다.
+        그러나 광자 한 개의 에너지는 진동수에만 달려 있어, 진동수가 문턱 미만이면 빛이 아무리 밝아도
+        전자는 나오지 않는다. 세기는 광자의 '개수'를 늘릴 뿐, 광자 한 개의 에너지는 키우지 못한다.
+        또 흔히 "센 빛일수록 전자가 빠르다"고 오해하지만, 전자의 속도(KEₘₐₓ)는 진동수가 결정한다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>문턱 진동수보다 낮은 빛의 '세기'를 아무리 키우면 전자는 어떻게 될까?</p>
+        <label><input type="radio" name="q1" value="wrong"> 세기가 커지면 결국 방출된다</label>
+        <label><input type="radio" name="q1" value="correct"> 방출되지 않는다</label>
+        <label><input type="radio" name="q1" value="wrong"> 더 빠르게 방출된다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>진동수가 문턱(f₀)보다 충분히 높은 빛에서, 빛의 세기를 두 배로 늘리면 무엇이 변할까?</p>
+        <label><input type="radio" name="q2" value="wrong"> 전자의 최대 운동에너지가 두 배가 된다</label>
+        <label><input type="radio" name="q2" value="correct"> 방출되는 전자의 개수(전류)가 늘어난다</label>
+        <label><input type="radio" name="q2" value="wrong"> 아무 변화도 없다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 알베르트 아인슈타인 (Albert Einstein, 1879~1955)</h3>
+        <p>독일 출신의 이론물리학자로, 1905년 한 해에 광전 효과·브라운 운동·특수상대성이론·질량과
+        에너지의 등가(E=mc²)에 관한 논문을 잇따라 발표해 이 해를 "기적의 해(Annus Mirabilis)"라 부른다.</p>
+        <p>그는 막스 플랑크가 흑체 복사를 설명하려 도입한 에너지 양자(量子) 개념을 빛 자체로 확장하여,
+        빛이 E = h·f 의 에너지를 갖는 광자(빛알)로 이루어졌다고 제안했다. 이 광양자 가설로 광전 효과를
+        정량적으로 설명했고, 바로 이 업적으로 1921년 노벨 물리학상을 받았다(상대성이론이 아니다).</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1887년 — 헤르츠(Heinrich Hertz)가 자외선을 비추면 방전이 쉬워지는 광전 현상을 우연히 관찰</li>
+          <li>1900년 — 플랑크(Max Planck)가 흑체 복사를 설명하며 에너지 양자(E = h·f) 개념 도입</li>
+          <li>1902년 — 레나르트(Philipp Lenard)가 방출 전자의 에너지가 빛 세기와 무관함을 실험으로 확인</li>
+          <li>1905년 — 아인슈타인, 광양자 가설로 광전 효과를 정량적으로 설명</li>
+          <li>1916년 — 밀리컨(Robert Millikan)이 정밀 실험으로 아인슈타인의 식을 검증하고 h를 측정</li>
+          <li>1921년 — 아인슈타인, 광전 효과 설명으로 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 광전 효과는 빛이 파동일 뿐 아니라 입자(광자)로도 행동함을 보인
+        결정적 증거로, 빛의 파동-입자 이중성을 확립했다. 플랑크의 양자 개념을 빛 자체로 확장한 이 발견은
+        뒤이은 보어의 원자 모형, 드브로이의 물질파, 그리고 양자역학 전체로 이어지는 양자 혁명의 문을 열었다.
+        고전 물리학으로는 설명할 수 없던 현상을 새로운 패러다임으로 풀어낸 대표적 사례다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 물리 상수 -----
+      // 플랑크 상수 h = 6.626e-34 J·s, 1 eV = 1.602e-19 J
+      // 진동수는 슬라이더에서 ×10^14 Hz 단위로 다룬다.
+      const H_JS = 6.626e-34;       // J·s
+      const EV_J = 1.602e-19;       // J / eV
+      const FREQ_UNIT = 1e14;       // 슬라이더 값 1 == 1e14 Hz
+      // 광자 에너지(eV) = h(J·s) * f(Hz) / EV_J. f = fVal * 1e14.
+      // 계수: H_JS * 1e14 / EV_J ≈ 0.4136 eV per (×10^14 Hz)
+      const E_PER_UNIT = (H_JS * FREQ_UNIT) / EV_J; // ≈ 0.41361 eV
+
+      // ----- 상태 -----
+      const state = {
+        freq: 7.5,        // ×10^14 Hz (슬라이더 단위)
+        intensity: 5,     // 광자 수(1~10)
+        W: 2.10,          // 일함수(eV)
+        metalName: '세슘 (Cs)',
+        t: 0              // 애니메이션 시각(프레임 누적)
+      };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const freqSlider = document.getElementById('freq');
+      const intensitySlider = document.getElementById('intensity');
+      const metalBtns = document.querySelectorAll('.btn.preset');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 계산 -----
+      function photonEnergy() {           // eV
+        return E_PER_UNIT * state.freq;
+      }
+      function thresholdFreqUnit() {      // ×10^14 Hz (= f0)
+        return state.W / E_PER_UNIT;
+      }
+      function keMax() {                  // eV (방출 안 되면 0)
+        const ke = photonEnergy() - state.W;
+        return ke > 0 ? ke : 0;
+      }
+      function isEmitting() {
+        return photonEnergy() >= state.W;
+      }
+
+      // ----- 입자(광자/전자) 시각화 -----
+      // 광자: 위에서 비스듬히 금속판으로 내려온다. 개수 = intensity.
+      // 전자: 방출 중일 때만, 금속판에서 위로(왼쪽 진공쪽) 튀어나온다. 속도 ∝ √KE.
+      const PLATE_X = 360;   // 금속판 좌측 표면 x(px)
+      const photons = [];
+      const electrons = [];
+
+      function rebuildPhotons() {
+        photons.length = 0;
+        const n = state.intensity;
+        for (let i = 0; i < n; i++) {
+          photons.push({
+            // 캔버스 좌상단에서 금속판을 향해 진행
+            x: Math.random() * (PLATE_X - 40),
+            y: 20 + Math.random() * 320,
+            phase: Math.random()
+          });
+        }
+      }
+
+      function spawnElectron(y) {
+        const ke = keMax();
+        // 화면 속도(px/frame): KE에 따라 √KE 비례. 최소 가시속도 보장.
+        const speed = 1.4 + Math.sqrt(ke) * 1.9;
+        electrons.push({
+          x: PLATE_X - 2,
+          y: y,
+          vx: -speed,
+          vy: (Math.random() - 0.5) * 1.2,
+          life: 0
+        });
+      }
+
+      // ----- (3) draw(): state(+입자 배열)만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경(진공) — 캔버스 자체 배경색 위에 금속판 영역 구분
+        // 금속판 (오른쪽)
+        ctx.fillStyle = '#7a8aa0';
+        ctx.fillRect(PLATE_X, 0, W - PLATE_X, H);
+        ctx.fillStyle = '#9fb0c6';
+        ctx.fillRect(PLATE_X, 0, 6, H);
+        ctx.fillStyle = '#cdd7e6';
+        ctx.font = '13px sans-serif';
+        ctx.save();
+        ctx.translate(W - 32, H / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.fillText('금속판 (' + state.metalName + ')', 0, 0);
+        ctx.restore();
+
+        const emitting = isEmitting();
+        // 광자(빛) — 진동수에 따라 색을 바꿈(낮음=빨강, 높음=보라/파랑)
+        const photonColor = freqToColor(state.freq);
+        photons.forEach((p) => {
+          // 비스듬한 짧은 파동선으로 표현
+          const sx = p.x, sy = p.y;
+          ctx.strokeStyle = photonColor;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(sx - 14, sy - 6);
+          ctx.lineTo(sx + 2, sy + 1);
+          ctx.stroke();
+          // 작은 머리
+          ctx.fillStyle = photonColor;
+          ctx.beginPath();
+          ctx.arc(sx + 4, sy + 2, 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // 전자
+        electrons.forEach((e) => {
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#34d399';
+          ctx.fill();
+          ctx.strokeStyle = '#a7f3d0';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          // e- 라벨 꼬리
+          ctx.fillStyle = 'rgba(167,243,208,0.5)';
+          ctx.fillRect(e.x - e.vx * 2, e.y - 1, 6, 2);
+        });
+
+        // 상태 텍스트
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('f = ' + state.freq.toFixed(2) + ' ×10¹⁴ Hz', 12, 22);
+        ctx.fillText('f₀ = ' + thresholdFreqUnit().toFixed(2) + ' ×10¹⁴ Hz', 12, 42);
+
+        if (emitting) {
+          ctx.fillStyle = '#34d399';
+          ctx.font = 'bold 14px sans-serif';
+          ctx.fillText('⚡ 전자 방출 중', 12, H - 16);
+        } else {
+          ctx.fillStyle = '#f87171';
+          ctx.font = 'bold 14px sans-serif';
+          ctx.fillText('✕ 방출 없음 (f < f₀)', 12, H - 16);
+        }
+      }
+
+      // 진동수(×10^14 Hz)를 대략적인 가시광 색으로 매핑(시각적 단서)
+      function freqToColor(f) {
+        // f 작음 → 붉은 계열, f 큼 → 보라/파랑 계열
+        const tt = Math.max(0, Math.min(1, (f - 2) / (15 - 2)));
+        const r = Math.round(230 - tt * 150);
+        const g = Math.round(120 - tt * 40);
+        const b = Math.round(80 + tt * 175);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      }
+
+      // ----- 결과 박스 갱신 -----
+      function updateResult() {
+        document.getElementById('r-f0').textContent =
+          thresholdFreqUnit().toFixed(2) + ' ×10¹⁴ Hz';
+        document.getElementById('r-ephoton').textContent =
+          photonEnergy().toFixed(2) + ' eV';
+
+        const emitting = isEmitting();
+        const keEl = document.getElementById('r-ke');
+        const emitEl = document.getElementById('r-emit');
+
+        if (emitting) {
+          keEl.textContent = keMax().toFixed(2) + ' eV';
+          emitEl.innerHTML = '<span class="badge-emit yes">방출됨 ✓</span>';
+        } else {
+          keEl.textContent = '0 eV (방출 없음)';
+          emitEl.innerHTML = '<span class="badge-emit no">방출 안 됨 ✕</span>';
+        }
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      freqSlider.addEventListener('input', () => {
+        state.freq = Number(freqSlider.value);
+        document.getElementById('freq-val').textContent = state.freq.toFixed(2);
+        updateResult();
+        draw();
+      });
+      intensitySlider.addEventListener('input', () => {
+        state.intensity = Number(intensitySlider.value);
+        document.getElementById('intensity-val').textContent = state.intensity;
+        rebuildPhotons();
+        updateResult();
+        draw();
+      });
+
+      // 금속(일함수) 선택
+      metalBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          metalBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.W = Number(btn.dataset.w);
+          state.metalName = btn.dataset.name;
+          document.getElementById('metal-val').textContent =
+            state.metalName + ' ' + state.W.toFixed(2) + ' eV';
+          updateResult();
+          draw();
+        });
+      });
+
+      // 리셋: 초기값 복원
+      function resetSim() {
+        state.freq = 7.5;
+        state.intensity = 5;
+        state.W = 2.10;
+        state.metalName = '세슘 (Cs)';
+
+        freqSlider.value = '7.5';
+        intensitySlider.value = '5';
+        document.getElementById('freq-val').textContent = '7.50';
+        document.getElementById('intensity-val').textContent = '5';
+        document.getElementById('metal-val').textContent = '세슘 (Cs) 2.10 eV';
+
+        metalBtns.forEach((b) => b.classList.remove('active'));
+        metalBtns[0].classList.add('active');
+
+        electrons.length = 0;
+        rebuildPhotons();
+        updateResult();
+        draw();
+      }
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- 애니메이션 루프 (requestAnimationFrame) -----
+      let emitAccumulator = 0;
+      function animate() {
+        state.t += 1;
+        const emitting = isEmitting();
+
+        // 광자 이동(금속판으로). 진동수 높을수록 약간 빠르게.
+        const pSpeed = 1.6 + state.freq * 0.18;
+        photons.forEach((p) => {
+          p.x += pSpeed;
+          p.y += pSpeed * 0.4;
+          if (p.x >= PLATE_X || p.y > canvas.height) {
+            // 금속판 도달 → 방출 중이면 전자 생성, 그리고 광자 재활용
+            const hitY = Math.min(canvas.height - 10, Math.max(10, p.y));
+            if (emitting && p.x >= PLATE_X) {
+              emitAccumulator += 1;
+            }
+            // 광자 리셋(좌상단 영역으로)
+            p.x = Math.random() * 60;
+            p.y = Math.random() * 200;
+          }
+        });
+
+        // 방출: 광자가 닿은 만큼 전자 생성(세기=광자수에 비례한 전류)
+        while (emitAccumulator >= 1) {
+          emitAccumulator -= 1;
+          if (emitting && electrons.length < 60) {
+            spawnElectron(Math.random() * canvas.height);
+          }
+        }
+
+        // 전자 이동(왼쪽 진공으로 튀어나감)
+        for (let i = electrons.length - 1; i >= 0; i--) {
+          const e = electrons[i];
+          e.x += e.vx;
+          e.y += e.vy;
+          e.life += 1;
+          if (e.x < -10 || e.y < -10 || e.y > canvas.height + 10) {
+            electrons.splice(i, 1);
+          }
+        }
+        // 방출 안 되면 남은 전자 점차 제거(이미 위 조건으로 빠져나감)
+        if (!emitting) electrons.length = 0;
+
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '광자 한 개의 에너지(hf)가 일함수보다 작으면, 세기를 키워 광자 수를 늘려도 전자는 방출되지 않습니다.',
+        '세기는 광자의 개수만 늘릴 뿐, 광자 한 개의 에너지(hf)는 진동수에만 달려 있습니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '세기를 키우면 광자 수가 늘어 방출 전자 수(전류)가 증가합니다. 최대 운동에너지는 진동수가 결정합니다.',
+        'KEₘₐₓ = hf − W 는 진동수가 결정합니다. 세기는 전자의 개수(전류)에만 영향을 줍니다.');
+
+      // ----- 초기 렌더 -----
+      rebuildPhotons();
+      updateResult();
+      draw();
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

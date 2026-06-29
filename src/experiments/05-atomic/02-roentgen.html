@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>뢴트겐의 X선 발견 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f4f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls select:focus-visible, .quiz-box button:focus-visible,
+    .controls .btn:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto;
+      background: #0b0d12; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls select {
+      width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+      font-size: 0.95rem; background: #fff; color: var(--text);
+    }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf1fa; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .line { margin: 2px 0; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>뢴트겐의 X선 발견</h1>
+    <div class="en">Röntgen's Discovery of X-rays</div>
+    <div class="meta">1895년 · 빌헬름 뢴트겐 (Wilhelm Röntgen) · 난이도 ⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="600" height="360" aria-label="X선원에서 나온 X선이 시편을 투과해 검출판에 영상을 만드는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="kv">관 전압(X선 에너지): <span id="kv-val">60</span> kV</label>
+          <input type="range" id="kv" min="30" max="120" step="1" value="60"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="material">시편 물질</label>
+          <select id="material" aria-describedby="result">
+            <option value="soft">살(연부 조직)</option>
+            <option value="bone" selected>뼈</option>
+            <option value="aluminum">알루미늄</option>
+            <option value="lead">납</option>
+          </select>
+        </div>
+
+        <div class="ctrl">
+          <label for="thick">두께 x: <span id="thick-val">2.0</span> cm</label>
+          <input type="range" id="thick" min="0.2" max="6.0" step="0.1" value="2.0"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="line">투과율 I/I₀: <strong id="r-trans">—</strong></div>
+        <div class="line">감쇠계수 μ: <strong id="r-mu">—</strong> cm⁻¹</div>
+        <div class="line">결과 해석: <strong id="r-interp">—</strong></div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> X선은 물질을 투과하지만 일부는 흡수된다.
+        <strong>밀도·원자번호가 큰 물질(뼈·납)일수록 X선을 많이 흡수</strong>해 검출판에 도달하는 빛이 줄고,
+        그래서 사진(필름)에서는 <strong>희게</strong> 나타난다. 반대로 살·공기처럼 잘 투과하는 곳은 검게 나온다.
+        관 전압(에너지)을 높이면 투과가 늘어 같은 물질도 더 검게, 두께 x를 키우면 흡수가 늘어 더 희게 변한다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>X선이 물질을 투과하지만 일부는 흡수되는 전자기파임을 이해한다.</li>
+        <li>투과 세기가 두께에 따라 지수적으로 감소함을 식 I = I₀·e<sup>−μx</sup> 로 설명한다.</li>
+        <li>감쇠계수 μ가 물질의 밀도·원자번호가 클수록 커진다는 것을 안다.</li>
+        <li>뼈·금속이 X선 사진에서 희게, 살·공기가 검게 보이는 이유를 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>X선은 파장이 매우 짧은 전자기파로, 가시광선과 달리 물질을 꿰뚫고 지나간다.
+        하지만 통과하는 동안 물질의 원자에 부딪혀 일부가 흡수·산란되어 세기가 줄어든다(감쇠).
+        남은 세기 I는 처음 세기 I₀에서 출발해 두께 x가 길어질수록 <strong>지수적으로</strong> 감소한다.</p>
+        <p>감쇠의 정도를 나타내는 값이 <strong>선형 감쇠계수 μ</strong>이다. μ는 물질마다 다르며,
+        <strong>밀도가 높고 원자번호(Z)가 큰 물질일수록 크다</strong>(공기 ≪ 살 &lt; 알루미늄 ≈ 뼈 ≪ 납).
+        또한 X선 에너지(관 전압)가 높을수록 μ는 작아져 더 잘 투과한다.
+        검출판(필름)은 도달한 X선이 많을수록 검게 변하므로, 흡수가 큰 뼈·금속 뒤쪽은 X선이 적게 도달해
+        <strong>희게(밝게)</strong> 남고, 살·공기 뒤쪽은 검게 나타난다.</p>
+      </div>
+
+      <div class="formula-box">
+        I = I₀ · e<sup>−μ·x</sup>
+        <br>
+        투과율 = I / I₀ = e<sup>−μ·x</sup>
+        <br>
+        μ ↑  (밀도·원자번호 Z ↑) ,  μ ↓  (에너지 ↑)
+      </div>
+
+      <!-- SVG 다이어그램: X선원 → 시편(살+뼈) → 검출판 -->
+      <svg width="440" height="220" viewBox="0 0 440 220" role="img"
+           aria-label="X선원에서 나온 X선이 살과 뼈를 투과해 검출판에 도달하는 경로 다이어그램">
+        <!-- X선원 -->
+        <circle cx="34" cy="110" r="12" fill="#2B6CB0"/>
+        <text x="14" y="140" font-size="11">X선원</text>
+        <!-- X선 광선 (광원 → 검출판, 평행) -->
+        <line x1="46" y1="110" x2="400" y2="50"  stroke="#4a8fd4" stroke-width="1.3"/>
+        <line x1="46" y1="110" x2="400" y2="90"  stroke="#4a8fd4" stroke-width="1.3"/>
+        <line x1="46" y1="110" x2="400" y2="130" stroke="#4a8fd4" stroke-width="1.3"/>
+        <line x1="46" y1="110" x2="400" y2="170" stroke="#4a8fd4" stroke-width="1.3"/>
+        <!-- 시편: 살(연한 사각형) + 뼈(진한 타원) -->
+        <rect x="190" y="40" width="60" height="140" rx="14" fill="#f3c9b8" stroke="#b06a52" stroke-width="1.5"/>
+        <ellipse cx="220" cy="110" rx="13" ry="46" fill="#dfe5ea" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="186" y="200" font-size="11">시편(살+뼈)</text>
+        <!-- 검출판 -->
+        <rect x="400" y="30" width="14" height="160" fill="#1f2937" stroke="#111827"/>
+        <text x="384" y="206" font-size="11">검출판</text>
+        <!-- 검출판 위 X선 영상: 뼈 그림자는 희게(밝게) 표시 -->
+        <rect x="401" y="86"  width="12" height="48" fill="#e5e7eb"/>
+        <text x="270" y="36" font-size="11" fill="#6b7280">뼈는 흡수↑ → 희게</text>
+        <text x="120" y="120" font-size="11" fill="#2B6CB0">투과 X선</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "X선 사진에서 뼈가 희게 나오는 건 뼈가 빛(X선)을 많이 통과시키기 때문"이라고
+        생각하기 쉽다. 사실은 정반대다. 뼈는 밀도·원자번호가 커서 X선을 <em>많이 흡수</em>하여 검출판에 도달하는
+        X선이 적고, 그래서 그 부분 필름이 덜 검게 변해 <em>희게</em> 남는다. 즉 흰색은 "많이 막혔다"는 뜻이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. X선 사진에서 뼈가 희게 나오는 이유는?</p>
+          <label><input type="radio" name="q1" value="correct"> 뼈가 X선을 더 많이 흡수해 투과가 적기 때문</label>
+          <label><input type="radio" name="q1" value="wrong"> 뼈가 X선을 더 잘 통과시키기 때문</label>
+          <label><input type="radio" name="q1" value="wrong"> 뼈가 스스로 빛을 내기 때문</label>
+        </div>
+        <div class="q">
+          <p>2. 같은 물질·두께에서 관 전압(X선 에너지)을 높이면 투과율 I/I₀ 는?</p>
+          <label><input type="radio" name="q2" value="wrong"> 낮아진다 (더 많이 흡수)</label>
+          <label><input type="radio" name="q2" value="correct"> 높아진다 (μ가 줄어 더 잘 투과)</label>
+          <label><input type="radio" name="q2" value="wrong"> 변하지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 빌헬름 뢴트겐 (Wilhelm Conrad Röntgen, 1845~1923)</h3>
+        <p>독일의 물리학자. 1895년 11월, 음극선관(크룩스관)을 검은 종이로 감싸고 실험하던 중
+        가까이 있던 형광 스크린이 빛나는 것을 우연히 발견했다. 정체불명의 이 새로운 방사선을
+        수학의 미지수 기호를 따 "X선(X-ray)"이라 이름 붙였다. 그는 아내 안나 베르타의 손을 찍어
+        뼈와 반지가 비치는 최초의 의료용 X선 사진을 남겼다. 1901년 제1회 노벨 물리학상을 수상했으며,
+        인류 복지를 위해 특허를 내지 않고 발견을 공개했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1869년 — 히토르프·크룩스 등이 음극선(진공관 방전) 연구를 진전시킴</li>
+          <li>1895년 11월 8일 — 뢴트겐이 형광 발광을 관찰하고 X선을 발견</li>
+          <li>1895년 12월 — 아내의 손 X선 사진 공개, 의학계·대중에 큰 충격</li>
+          <li>1896년 — 전 세계 병원에서 X선 진단이 빠르게 도입됨</li>
+          <li>1901년 — 뢴트겐, 제1회 노벨 물리학상 수상</li>
+          <li>이후 — X선 회절(브래그)로 결정·DNA 구조 규명 등 현대 과학의 핵심 도구가 됨</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> X선의 발견은 인체 내부를 자르지 않고 들여다보는 의료 영상의 시대를 열었다.
+        또한 곧이어 베크렐의 방사능(1896), 톰슨의 전자(1897) 발견으로 이어지며
+        원자 내부 구조를 탐구하는 "원자의 시대"의 문을 연 결정적 출발점이 되었다.
+        X선 회절은 결정 구조와 DNA 이중나선 규명에까지 쓰이며 과학 전반을 바꾸었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물질별 기준 감쇠계수 μ₀ (cm⁻¹, 약 60kV 기준 근사값) -----
+      // 밀도·원자번호가 클수록 μ가 크다: 살 < 알루미늄 < 뼈 ≪ 납
+      const MATERIALS = {
+        soft:     { name: "살(연부 조직)", mu0: 0.20, color: [243, 201, 184] },
+        bone:     { name: "뼈",            mu0: 0.60, color: [223, 229, 234] },
+        aluminum: { name: "알루미늄",       mu0: 0.85, color: [203, 213, 225] },
+        lead:     { name: "납",            mu0: 6.00, color: [120, 130, 145] }
+      };
+
+      // ----- 상태 (kV: 관 전압, material: 키, thick: cm) -----
+      const DEFAULTS = { kv: 60, material: "bone", thick: 2.0 };
+      const state = { kv: DEFAULTS.kv, material: DEFAULTS.material, thick: DEFAULTS.thick };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 에너지 의존성: 전압이 높을수록 μ 감소 -----
+      // 60kV를 기준으로 (60/kV)^1.2 배율 적용 (대략적 근사)
+      function muFor(matKey, kv) {
+        const mu0 = MATERIALS[matKey].mu0;
+        return mu0 * Math.pow(60 / kv, 1.2);
+      }
+
+      // ----- 투과율 I/I₀ = e^(−μ·x) -----
+      function transmittance(matKey, kv, thick) {
+        const mu = muFor(matKey, kv);
+        return Math.exp(-mu * thick);
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0b0d12';
+        ctx.fillRect(0, 0, W, H);
+
+        const cy = H / 2;
+        const srcX = 40;
+        const sampleX = 220;          // 시편 왼쪽
+        const sampleW = 90;           // 시편 폭(화면상)
+        const screenX = W - 56;       // 검출판 왼쪽
+        const screenW = 36;
+
+        const mat = MATERIALS[state.material];
+        // 시편 전체(살 같은 바탕)의 투과율과, 그 안 "뼈/내부 구조" 부분의 투과율
+        const tBase = transmittance(state.material, state.kv, state.thick);
+        // 시편 안쪽 더 두꺼운 흡수체(예: 손 안의 뼈) → 두께 1.6배로 더 어둡게(필름상 희게)
+        const tCore = transmittance(state.material, state.kv, state.thick * 1.6);
+
+        // --- X선 빔 (광원 → 검출판) ---
+        ctx.strokeStyle = 'rgba(120, 180, 240, 0.45)';
+        ctx.lineWidth = 1;
+        for (let k = -4; k <= 4; k++) {
+          ctx.beginPath();
+          ctx.moveTo(srcX + 10, cy);
+          ctx.lineTo(screenX, cy + k * (H / 11));
+          ctx.stroke();
+        }
+
+        // --- X선원 ---
+        ctx.beginPath();
+        ctx.arc(srcX, cy, 11, 0, Math.PI * 2);
+        ctx.fillStyle = '#4a8fd4';
+        ctx.fill();
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('X선원', srcX - 16, cy + 30);
+        ctx.fillText(state.kv + ' kV', srcX - 16, cy + 46);
+
+        // --- 시편 (살 바탕 + 내부 흡수체) ---
+        const c = mat.color;
+        const top = cy - 95, hgt = 190;
+        // 바탕
+        ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.85)';
+        roundRect(ctx, sampleX, top, sampleW, hgt, 18);
+        ctx.fill();
+        // 내부 흡수체(뼈 느낌의 진한 타원 두 개)
+        ctx.fillStyle = 'rgba(' +
+          Math.round(c[0] * 0.78) + ',' + Math.round(c[1] * 0.78) + ',' + Math.round(c[2] * 0.78) + ',0.95)';
+        ctx.beginPath();
+        ctx.ellipse(sampleX + sampleW * 0.38, cy, 12, 70, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(sampleX + sampleW * 0.66, cy, 12, 70, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('시편: ' + mat.name, sampleX - 4, top - 8);
+        ctx.fillText(state.thick.toFixed(1) + ' cm', sampleX + 22, top + hgt + 18);
+
+        // --- 검출판 위 X선 영상 ---
+        // 영상은 "필름" 느낌: 도달 X선이 많을수록 검게, 적을수록(흡수 많을수록) 희게.
+        // 화면에선 검출판 자체를 그리고, 그 위에 투과 X선이 만든 명암을 표시한다.
+        // 픽셀 밝기 brightness = 도달 X선량(투과율). 필름 가시화를 위해
+        // 표시색 = 255 * (1 - 투과율)  → 흡수 많으면(투과↓) 흰색.
+        ctx.fillStyle = '#000';
+        ctx.fillRect(screenX, top, screenW, hgt);
+
+        function shade(t) {
+          // t: 투과율(0~1). 필름상 흰 정도 = (1 - t)
+          const w = Math.round(255 * (1 - t));
+          return 'rgb(' + w + ',' + w + ',' + w + ')';
+        }
+
+        // 빔이 통과한 세로 영역만 영상이 맺힌다고 가정.
+        // 시편 그림자가 비치는 영역: 바탕(tBase), 내부 흡수체 영역(tCore)
+        // 위→아래로 영역을 나눠 칠한다.
+        // 바탕(시편 전체 그림자)
+        ctx.fillStyle = shade(tBase);
+        ctx.fillRect(screenX, top, screenW, hgt);
+        // 내부 흡수체(뼈) 그림자 — 더 희게
+        ctx.fillStyle = shade(tCore);
+        const coreH = 110, coreTop = cy - coreH / 2;
+        ctx.fillRect(screenX, coreTop, screenW * 0.42, coreH);
+        ctx.fillRect(screenX + screenW * 0.55, coreTop, screenW * 0.42, coreH);
+
+        // 검출판 테두리
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(screenX, top, screenW, hgt);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('검출판', screenX - 8, top + hgt + 18);
+      }
+
+      // ----- 둥근 사각형 헬퍼 -----
+      function roundRect(c, x, y, w, h, r) {
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.arcTo(x + w, y, x + w, y + h, r);
+        c.arcTo(x + w, y + h, x, y + h, r);
+        c.arcTo(x, y + h, x, y, r);
+        c.arcTo(x, y, x + w, y, r);
+        c.closePath();
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const mu = muFor(state.material, state.kv);
+        const t = transmittance(state.material, state.kv, state.thick);
+        const pct = t * 100;
+        document.getElementById('r-trans').textContent = pct.toFixed(1) + ' %';
+        document.getElementById('r-mu').textContent = mu.toFixed(2);
+
+        let interp;
+        if (t < 0.15) {
+          interp = '흡수 매우 큼 → 사진에 희게 나타남';
+        } else if (t < 0.5) {
+          interp = '흡수 큼 → 사진에 밝게(희게) 나타남';
+        } else if (t < 0.8) {
+          interp = '비교적 잘 투과 → 다소 검게 나타남';
+        } else {
+          interp = '대부분 투과 → 사진에 검게 나타남';
+        }
+        document.getElementById('r-interp').textContent = interp;
+      }
+
+      // ----- 슬라이더/셀렉트 값 표시 -----
+      const kvSlider = document.getElementById('kv');
+      const matSelect = document.getElementById('material');
+      const thickSlider = document.getElementById('thick');
+      const kvVal = document.getElementById('kv-val');
+      const thickVal = document.getElementById('thick-val');
+
+      function syncLabels() {
+        kvVal.textContent = state.kv;
+        thickVal.textContent = state.thick.toFixed(1);
+        matSelect.value = state.material;
+      }
+
+      // ----- (2) 입력 이벤트 -----
+      kvSlider.addEventListener('input', () => {
+        state.kv = Number(kvSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      matSelect.addEventListener('change', () => {
+        state.material = matSelect.value;
+        syncLabels(); updateResult(); draw();
+      });
+      thickSlider.addEventListener('input', () => {
+        state.thick = Number(thickSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.kv = DEFAULTS.kv;
+        state.material = DEFAULTS.material;
+        state.thick = DEFAULTS.thick;
+        kvSlider.value = String(DEFAULTS.kv);
+        matSelect.value = DEFAULTS.material;
+        thickSlider.value = String(DEFAULTS.thick);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 뼈는 X선을 많이 흡수해 희게 나오고, 에너지를 높이면 μ가 줄어 더 잘 투과합니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 흰색 = 흡수 많음(투과 적음), 에너지↑ = μ↓(투과↑) 임을 떠올려 보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

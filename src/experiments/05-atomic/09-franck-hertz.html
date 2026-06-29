@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프랑크-헤르츠 실험 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #2B6CB0;
+      --primary-light: #4a8fd4;
+      --bg: #f4f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 680px; height: auto; display: block; margin: 0 auto;
+      background: #0f172a; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #eaf2fb; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .row { display: flex; flex-wrap: wrap; gap: 6px 24px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">⚛️ 원자의 시대 (Atomic Age)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>프랑크-헤르츠 실험</h1>
+    <div class="en">Franck&ndash;Hertz Experiment</div>
+    <div class="meta">1914년 · 제임스 프랑크 (James Franck), 구스타프 헤르츠 (Gustav Hertz) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="680" height="440" aria-label="왼쪽은 수은 증기 가속관에서 전자가 가속되고 충돌하는 모식도, 오른쪽 아래는 전류-가속전압 곡선"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="voltage">가속 전압 V: <span id="voltage-val">15.0</span> V</label>
+          <input type="range" id="voltage" min="0" max="30" step="0.1" value="15.0" aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="excite">기체 들뜸 에너지 (기체 종류): <span id="excite-val">4.9</span> eV <span id="gas-name">(수은 Hg)</span></label>
+          <input type="range" id="excite" min="2.0" max="6.5" step="0.1" value="4.9" aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="row">
+          <span>현재 전압: <strong id="r-voltage">—</strong></span>
+          <span>상대 전류 I: <strong id="r-current">—</strong></span>
+        </div>
+        <div class="row" style="margin-top:4px;">
+          <span>들뜸 에너지 배수: <strong id="r-multiple">—</strong></span>
+          <span>다음 골(전류 급감)까지: <strong id="r-next">—</strong></span>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 전압을 천천히 올리면 전류가 늘다가
+        <strong>들뜸 에너지(수은 ≈ 4.9 eV)의 정수배(4.9V·9.8V·14.7V…)</strong>마다 뚝 떨어진다.
+        떨어지는 순간 전자가 4.9eV에 도달해 수은 원자와 <strong>비탄성 충돌</strong>로 에너지를 통째로 넘겨주기 때문이다.
+        전류가 일정 간격마다 급감하는 것이 곧 <strong>원자가 '정해진 양'의 에너지만 흡수</strong>한다는, 에너지 준위 양자화의 직접 증거다.
+        들뜸 에너지 슬라이더를 바꾸면 골 간격이 함께 바뀐다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>가속 전압을 올릴 때 전류가 일정 전압 간격마다 급감하는 현상을 이해한다.</li>
+        <li>전류 급감 간격이 원자의 들뜸 에너지(수은 ≈ 4.9 eV)와 같음을 안다.</li>
+        <li>탄성 충돌과 비탄성 충돌의 차이, 그리고 임계 에너지의 의미를 설명한다.</li>
+        <li>이 실험이 원자 에너지 준위의 양자화를 직접 증명한다는 점을 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>음극에서 나온 전자는 가속 전압 V로 가속되며 운동에너지 eV를 얻는다. 가는 길에 수은 원자와 부딪치는데,
+        전자의 에너지가 들뜸 에너지(수은의 경우 약 4.9 eV)보다 작으면 거의 에너지를 잃지 않는 <strong>탄성 충돌</strong>만 한다.</p>
+        <p>전자의 에너지가 4.9 eV에 이르면, 수은 원자가 그 에너지를 통째로 흡수해 들뜬상태가 되는 <strong>비탄성 충돌</strong>이 일어난다.
+        에너지를 잃은 전자는 수집극(anode) 앞의 작은 감속 전압을 넘지 못해, 모이는 전류가 급격히 줄어든다.</p>
+        <p>전압을 더 올리면 전자는 충돌 후 다시 가속되어 두 번째로 4.9 eV에 도달하고, 또 한 번 비탄성 충돌을 일으킨다.
+        그래서 전류는 <strong>4.9 V 간격(4.9, 9.8, 14.7 …)</strong>마다 반복해서 떨어지는 톱니 모양 곡선을 그린다.
+        만약 원자가 임의의 에너지를 흡수할 수 있었다면 이런 규칙적인 골은 나타나지 않는다.</p>
+      </div>
+
+      <div class="formula-box">
+        전자 운동에너지: E = e · V
+        <br>
+        비탄성 충돌 조건: e · V = n · E_excite
+        <br>
+        수은의 임계: E_excite ≈ 4.9 eV  →  골 간격 ΔV ≈ 4.9 V
+      </div>
+
+      <!-- SVG 다이어그램: 전류-전압 곡선 + 4.9V 간격 골 -->
+      <svg width="440" height="220" viewBox="0 0 440 220" role="img"
+           aria-label="가속 전압이 커질수록 전류가 늘다가 4.9V, 9.8V, 14.7V마다 급감하는 톱니 모양 전류-전압 곡선">
+        <!-- 축 -->
+        <line x1="40" y1="180" x2="420" y2="180" stroke="#475569" stroke-width="1.5"/>
+        <line x1="40" y1="180" x2="40" y2="20" stroke="#475569" stroke-width="1.5"/>
+        <text x="200" y="208" font-size="12" fill="#475569">가속 전압 V</text>
+        <text x="8" y="100" font-size="12" fill="#475569" transform="rotate(-90 8 100)">전류 I</text>
+        <!-- 톱니 곡선 (4.9V 간격으로 상승 후 급감) -->
+        <polyline fill="none" stroke="#2B6CB0" stroke-width="2.5"
+          points="40,178 70,150 100,118 100,150 130,118 160,86 160,124 190,92 220,60 220,104 250,72 280,42 280,90 320,58 360,34"/>
+        <!-- 골 위치 점선 -->
+        <line x1="100" y1="180" x2="100" y2="118" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="160" y1="180" x2="160" y2="86" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="220" y1="180" x2="220" y2="60" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="280" y1="180" x2="280" y2="42" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="86"  y="195" font-size="10" fill="#dc2626">4.9</text>
+        <text x="146" y="195" font-size="10" fill="#dc2626">9.8</text>
+        <text x="204" y="195" font-size="10" fill="#dc2626">14.7</text>
+        <text x="266" y="195" font-size="10" fill="#dc2626">19.6</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "전압을 올리면 전류는 그냥 계속 커진다(옴의 법칙처럼 비례한다)"고 생각하기 쉽다.
+        실제로는 원자가 <em>특정한 양(4.9 eV)의 에너지만</em> 흡수할 수 있어, 전자가 그 에너지에 도달할 때마다 충돌로 에너지를 잃고 전류가 떨어진다.
+        또한 전류가 떨어지는 것은 전자가 '사라져서'가 아니라, 에너지를 잃어 수집극 앞 감속 전압을 넘지 못하기 때문이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 전류가 4.9 V 간격마다 떨어지는 이유로 가장 옳은 것은?</p>
+          <label><input type="radio" name="q1" value="correct"> 수은 원자가 4.9 eV의 양자화된 에너지만 흡수(비탄성 충돌)하기 때문</label>
+          <label><input type="radio" name="q1" value="wrong"> 전압이 높아지면 전선의 저항이 4.9 V마다 커지기 때문</label>
+          <label><input type="radio" name="q1" value="wrong"> 전자가 4.9 V마다 음극으로 되돌아가기 때문</label>
+        </div>
+        <div class="q">
+          <p>2. 전자의 에너지가 4.9 eV보다 작을 때 수은 원자와의 충돌은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 비탄성 충돌로 에너지를 모두 잃는다</label>
+          <label><input type="radio" name="q2" value="correct"> 탄성 충돌로 에너지를 거의 잃지 않는다</label>
+          <label><input type="radio" name="q2" value="wrong"> 충돌 자체가 일어나지 않는다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 제임스 프랑크 (James Franck, 1882~1964) · 구스타프 헤르츠 (Gustav Hertz, 1887~1975)</h3>
+        <p>두 독일 물리학자는 1914년 베를린에서 수은 증기를 채운 진공관 속 전자의 가속·충돌 실험으로
+        원자가 불연속적인(양자화된) 에너지만 흡수한다는 사실을 전기 측정만으로 직접 보여 주었다.
+        이 공로로 1925년 노벨 물리학상을 공동 수상했다. 구스타프 헤르츠는 전자기파를 발견한
+        하인리히 헤르츠(Heinrich Hertz)의 조카다. 프랑크는 훗날 미국으로 망명해 맨해튼 계획에 참여했으나
+        원폭의 군사적 사용에 반대한 「프랑크 보고서(Franck Report)」를 주도했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1900년 — 플랑크가 흑체복사를 설명하며 에너지 양자(quantum) 개념 도입</li>
+          <li>1905년 — 아인슈타인이 광전효과로 빛 에너지의 양자화를 제시</li>
+          <li>1913년 — 보어가 원자의 전자가 불연속 에너지 준위에 있다는 모형 발표</li>
+          <li>1914년 — 프랑크와 헤르츠가 전자 충돌 실험으로 들뜸 에너지(수은 4.9 eV)를 직접 측정</li>
+          <li>1925년 — 두 사람이 노벨 물리학상 공동 수상</li>
+          <li>이후 — 보어 모형과 양자론의 결정적 실험적 검증으로 자리매김</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 프랑크-헤르츠 실험은 분광학(빛)이 아니라 순전히 전기적인 측정만으로
+        원자 에너지 준위의 양자화를 직접 보여 준 최초의 실험이다. 1913년 보어 모형이 예측한 불연속 에너지 준위가
+        실제로 존재함을 독립적으로 확인하여 초기 양자론을 든든히 떠받쳤다. "원자는 정해진 양의 에너지만 흡수한다"는
+        양자역학의 핵심 사실을 누구나 곡선의 골로 눈으로 볼 수 있게 만든 점에서 교육적 가치도 크다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 (V: 가속 전압[V], excite: 들뜸 에너지[eV]) -----
+      const DEFAULTS = { V: 15.0, excite: 4.9 };
+      const state = { V: DEFAULTS.V, excite: DEFAULTS.excite };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const V_MAX = 30;       // 슬라이더 최대 전압
+      const RETARD = 1.0;     // 수집극 앞 감속 전압(V) — 곡선 시작 오프셋 느낌
+
+      // ----- 전류 모형 I(V): 톱니(상승 후 급감) 곡선 -----
+      // 들뜸 에너지 e(eV)의 정수배 직전까지 전류가 오르다가, 배수마다 비탄성 충돌로 급감.
+      // 물리적으로 정확한 정량값이 아닌, 현상(주기적 급감)을 충실히 재현하는 정성 모형.
+      function currentAt(v) {
+        const e = state.excite;
+        if (v <= 0) return 0;
+        // 각 주기 안에서의 위상(0~e). 직전 배수 이후 얼마나 올라왔는가.
+        const phase = ((v % e) + e) % e;     // 0 ~ e
+        const cyclesPassed = Math.floor(v / e); // 지나온 골 개수
+        // 한 주기 내 상승분: 0에서 시작해 e에 가까울수록 큼
+        const rise = phase / e;              // 0~1
+        // 골 직후의 잔류 전류(완전히 0이 되진 않음) + 누적 상승(전압이 커질수록 전반적으로 전류 베이스 상승)
+        const baseline = 0.18 + 0.06 * cyclesPassed;
+        // 톱니: 위로 부드럽게 오르다 배수 직전 최대, 배수 넘는 순간 급감
+        let i = baseline + (0.75) * Math.pow(rise, 1.4);
+        // 골(배수) 부근에서 급격히 떨어지는 모양 강조: phase가 e에 매우 근접하면 살짝 더 위로(피크), 그 다음 주기 시작에서 baseline로 리셋되며 급감이 표현됨
+        return Math.max(0, i);
+      }
+
+      // 현재 V의 상대 전류(0~1 근방). 표시는 0~100%로 정규화.
+      function relativeCurrent(v) {
+        const raw = currentAt(v);
+        // 곡선 최대치 근사로 정규화 (cyclesPassed가 늘면 baseline이 커지므로 V_MAX 기준 최대로 나눔)
+        const maxRaw = currentAt(V_MAX - 0.001) + 0.3;
+        return Math.min(1, raw / maxRaw);
+      }
+
+      // ----- 충돌 애니메이션용 시간 -----
+      let t = 0;
+
+      // ----- (3) draw(): state(+t)만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, W, H);
+
+        // 영역 분할: 위쪽 = 가속관 모식도, 아래쪽 = 전류-전압 그래프
+        const tubeH = 200;
+        drawTube(W, tubeH);
+        drawGraph(0, tubeH, W, H - tubeH);
+      }
+
+      // --- 가속관 모식도 (음극 → 그리드 가속 → 수은 충돌 → 수집극) ---
+      function drawTube(W, h) {
+        const padL = 40, padR = 40;
+        const cathodeX = padL;
+        const gridX = W - padR - 90;
+        const anodeX = W - padR;
+        const midY = h / 2;
+
+        // 관 외곽
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(padL - 14, 18, (anodeX) - (padL - 14) + 14, h - 36);
+
+        // 음극 (cathode)
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(cathodeX - 8, midY - 34, 8, 68);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('음극(K)', cathodeX - 10, h - 6);
+
+        // 그리드 (가속 전극)
+        ctx.strokeStyle = '#60a5fa';
+        ctx.lineWidth = 2;
+        for (let y = 26; y < h - 26; y += 12) {
+          ctx.beginPath();
+          ctx.moveTo(gridX, y);
+          ctx.lineTo(gridX, y + 7);
+          ctx.stroke();
+        }
+        ctx.fillStyle = '#93c5fd';
+        ctx.fillText('그리드(G) +' + state.V.toFixed(1) + 'V', gridX - 42, h - 6);
+
+        // 수집극 (anode)
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillRect(anodeX - 2, 26, 6, h - 52);
+        ctx.fillStyle = '#cbd5e0';
+        ctx.fillText('수집극(A)', anodeX - 56, 16);
+
+        // 수은 원자 (배경에 점점이)
+        const atomXs = [];
+        for (let x = cathodeX + 30; x < gridX - 8; x += 46) atomXs.push(x);
+        atomXs.forEach((ax, idx) => {
+          const ay = midY + (idx % 2 === 0 ? -24 : 26) + 8 * Math.sin(idx);
+          ctx.beginPath();
+          ctx.arc(ax, ay, 9, 0, Math.PI * 2);
+          ctx.fillStyle = '#1e3a5f';
+          ctx.fill();
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // 비탄성 충돌이 일어나는가? (전자가 한 주기 안에서 들뜸 에너지에 도달하는지)
+        const reaches = state.V >= state.excite; // 적어도 한 번 비탄성 충돌 가능
+        // 충돌 지점: 전자가 들뜸 에너지에 도달하는 위치를 그리드 직전 쪽으로 표현
+        const collideAt = atomXs.length ? atomXs[atomXs.length - 1] : gridX - 20;
+
+        // 전자 애니메이션 (음극 → 그리드 방향으로 가속)
+        const nEl = 4;
+        for (let i = 0; i < nEl; i++) {
+          let prog = ((t * 0.012) + i / nEl) % 1; // 0~1
+          // 가속: 뒤로 갈수록 빨라지는 느낌 -> prog를 제곱으로 가속 표현
+          const eased = Math.pow(prog, 1.6);
+          let ex = cathodeX + eased * (gridX - cathodeX);
+          let ey = midY + Math.sin((prog * 6) + i) * 14;
+
+          // 비탄성 충돌 순간: 충돌 지점 근처에서 전자가 에너지를 잃고 잠깐 색이 바뀜
+          const collided = reaches && ex >= collideAt - 4 && ex <= collideAt + 18;
+          ctx.beginPath();
+          ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+          ctx.fillStyle = collided ? '#f87171' : '#38bdf8';
+          ctx.fill();
+          // 속도 꼬리
+          ctx.strokeStyle = collided ? 'rgba(248,113,113,0.5)' : 'rgba(56,189,248,0.5)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(ex, ey);
+          ctx.lineTo(ex - 10 - eased * 8, ey);
+          ctx.stroke();
+        }
+
+        // 충돌 표시 (들뜸 광 방출 느낌)
+        if (reaches) {
+          const flick = 0.4 + 0.6 * Math.abs(Math.sin(t * 0.06));
+          ctx.globalAlpha = flick;
+          ctx.beginPath();
+          ctx.arc(collideAt, midY, 13, 0, Math.PI * 2);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = '11px sans-serif';
+          ctx.fillText('비탄성 충돌', collideAt - 28, midY - 18);
+        }
+
+        // 범례
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('가속관 모식도 (전자: 파랑, 충돌 후: 빨강)', padL - 14, h - 22 < 0 ? 12 : padL);
+      }
+
+      // --- 전류-전압 그래프 ---
+      function drawGraph(ox, oy, w, h) {
+        const padL = 48, padR = 24, padT = 18, padB = 30;
+        const gx = ox + padL, gy = oy + padT;
+        const gw = w - padL - padR, gh = h - padT - padB;
+
+        // 축
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx, gy);
+        ctx.lineTo(gx, gy + gh);
+        ctx.lineTo(gx + gw, gy + gh);
+        ctx.stroke();
+
+        // 축 라벨
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('전류 I', gx + 4, gy + 12);
+        ctx.fillText('가속 전압 V (V)', gx + gw - 110, gy + gh + 24);
+
+        // 좌표 변환
+        const xOf = (v) => gx + (v / V_MAX) * gw;
+        const maxRaw = currentAt(V_MAX - 0.001) + 0.3;
+        const yOf = (raw) => gy + gh - (Math.min(1, raw / maxRaw)) * (gh - 6);
+
+        // 들뜸 에너지 배수(골) 세로 점선 + 라벨
+        ctx.font = '10px sans-serif';
+        for (let n = 1; n * state.excite <= V_MAX + 0.001; n++) {
+          const vv = n * state.excite;
+          const px = xOf(vv);
+          ctx.strokeStyle = 'rgba(220,38,38,0.55)';
+          ctx.setLineDash([3, 3]);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(px, gy);
+          ctx.lineTo(px, gy + gh);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#f87171';
+          ctx.fillText(vv.toFixed(1), px - 9, gy + gh + 14);
+        }
+
+        // X축 눈금
+        ctx.fillStyle = '#64748b';
+        for (let v = 0; v <= V_MAX; v += 5) {
+          const px = xOf(v);
+          ctx.beginPath();
+          ctx.moveTo(px, gy + gh);
+          ctx.lineTo(px, gy + gh + 4);
+          ctx.strokeStyle = '#475569';
+          ctx.stroke();
+        }
+
+        // I-V 곡선
+        ctx.strokeStyle = '#2B6CB0';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        let started = false;
+        for (let px = 0; px <= gw; px++) {
+          const v = (px / gw) * V_MAX;
+          const yy = yOf(currentAt(v));
+          if (!started) { ctx.moveTo(gx + px, yy); started = true; }
+          else ctx.lineTo(gx + px, yy);
+        }
+        ctx.stroke();
+
+        // 현재 V 위치 표시
+        const cvx = xOf(state.V);
+        const cvy = yOf(currentAt(state.V));
+        ctx.strokeStyle = '#fbbf24';
+        ctx.setLineDash([2, 2]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cvx, gy);
+        ctx.lineTo(cvx, gy + gh);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(cvx, cvy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fill();
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = '#fde68a';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('현재 V', cvx + 6, gy + 12);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const rel = relativeCurrent(state.V);
+        const e = state.excite;
+        const multiple = state.V / e; // 들뜸 에너지의 몇 배 전압인가
+        const cyclesPassed = Math.floor((state.V) / e);
+        const nextDip = (cyclesPassed + 1) * e; // 다음 골 전압
+        const toNext = Math.max(0, nextDip - state.V);
+
+        document.getElementById('r-voltage').textContent = state.V.toFixed(1) + ' V';
+        document.getElementById('r-current').textContent = (rel * 100).toFixed(0) + ' %';
+        document.getElementById('r-multiple').textContent = multiple.toFixed(2) + ' 배 (×' + e.toFixed(1) + 'eV)';
+        if (nextDip > V_MAX + 0.001) {
+          document.getElementById('r-next').textContent = '범위 밖';
+        } else {
+          document.getElementById('r-next').textContent =
+            toNext.toFixed(1) + ' V 후 (' + nextDip.toFixed(1) + 'V)';
+        }
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const vSlider = document.getElementById('voltage');
+      const eSlider = document.getElementById('excite');
+      const vVal = document.getElementById('voltage-val');
+      const eVal = document.getElementById('excite-val');
+      const gasName = document.getElementById('gas-name');
+
+      function gasLabel(e) {
+        if (Math.abs(e - 4.9) <= 0.15) return '(수은 Hg)';
+        if (Math.abs(e - 2.1) <= 0.15) return '(나트륨 Na 근사)';
+        if (Math.abs(e - 5.1) <= 0.2)  return '(네온 Ne 근사)';
+        return '(가상 기체)';
+      }
+
+      function syncLabels() {
+        vVal.textContent = state.V.toFixed(1);
+        eVal.textContent = state.excite.toFixed(1);
+        gasName.textContent = gasLabel(state.excite);
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      vSlider.addEventListener('input', () => {
+        state.V = Number(vSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      eSlider.addEventListener('input', () => {
+        state.excite = Number(eSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.V = DEFAULTS.V;
+        state.excite = DEFAULTS.excite;
+        vSlider.value = String(DEFAULTS.V);
+        eSlider.value = String(DEFAULTS.excite);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 수은 원자는 4.9eV의 양자화된 에너지만 흡수하므로, 전자가 그 에너지에 도달할 때(비탄성 충돌)마다 전류가 급감합니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 임계 에너지(4.9eV) 미만에서는 탄성 충돌, 도달 시 비탄성 충돌로 에너지를 통째로 넘겨준다는 점을 다시 살펴보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 애니메이션 루프 -----
+      function loop() {
+        t += 1;
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
