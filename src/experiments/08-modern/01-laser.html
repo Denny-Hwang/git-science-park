@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>레이저의 원리 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #234E52;
+      --primary-light: #3a7a80;
+      --bg: #f2f6f6;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #0e1a1b; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e8f1f1; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .badge-lasing {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.85rem; font-weight: 700; color: #fff;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔬 현대 물리학 (Modern Physics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자·난이도) -->
+  <header>
+    <h1>레이저의 원리</h1>
+    <div class="en">How a Laser Works</div>
+    <div class="meta">1960년 · 시어도어 메이먼 (Theodore Maiman) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="320" role="img"
+        aria-label="이득 매질의 원자와 두 거울로 이루어진 공진기 안에서 펌핑과 유도 방출로 광자가 증폭되어 레이저 빔이 방출되는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="pump">펌핑 세기 (펌프율): <span id="pump-val">30</span> %</label>
+          <input type="range" id="pump" min="0" max="100" step="1" value="30"
+            aria-describedby="pump-val">
+        </div>
+
+        <div class="control-row">
+          <label for="mirror">출력 거울 반사율: <span id="mirror-val">95</span> %</label>
+          <input type="range" id="mirror" min="80" max="99" step="1" value="95"
+            aria-describedby="mirror-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>반전 분포: <strong id="r-inversion">—</strong></div>
+          <div>발진 여부: <span id="r-lasing" class="badge-lasing">—</span></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>문턱 대비: <strong id="r-threshold">—</strong></div>
+          <div>출력 세기(상대): <strong id="r-output">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 펌프율이 낮을 때는 원자들이 제멋대로(여러 방향·위상) <em>자발 방출</em>만 합니다.
+        펌프율을 올려 들뜬 원자가 바닥 상태보다 많아지면(<strong>반전 분포</strong>) 광자 하나가 다른 들뜬 원자를 자극해
+        <em>똑같은</em> 광자를 복제하는 <strong>유도 방출</strong> 연쇄가 일어납니다. <strong>문턱(threshold)</strong>을 넘는 순간
+        거울 사이를 왕복하던 광자가 폭증해 한쪽 거울로 결맞는(coherent) 단색 빔이 뿜어져 나옵니다.
+        출력 거울 반사율을 낮추면 손실이 커져 발진 문턱이 더 높아집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>자발 방출과 유도 방출(stimulated emission)의 차이를 구분한다.</li>
+        <li>레이저 발진의 필수 조건인 반전 분포(population inversion)를 이해한다.</li>
+        <li>펌핑·이득 매질·공진기(두 거울)의 역할과 문턱(threshold) 개념을 익힌다.</li>
+        <li>유도 방출이 만드는 빛의 결맞음(coherence)·단색성·지향성을 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>LASER는 <em>Light Amplification by Stimulated Emission of Radiation</em>(유도 방출에 의한 빛의 증폭)의 약자다.
+        들뜬 상태의 원자에 적절한 에너지의 광자가 지나가면, 그 원자는 입사 광자와 <strong>같은 파장·위상·진행 방향</strong>을 가진
+        광자를 하나 더 방출한다. 광자 하나가 둘이 되는 이 <strong>유도 방출</strong>이 빛 증폭의 핵심이다.</p>
+        <p>유도 방출이 흡수를 이기려면 들뜬 원자 수(N₂)가 바닥 상태 원자 수(N₁)보다 많아야 한다. 이 비정상적 상태가
+        <strong>반전 분포</strong>이며, 외부에서 에너지를 퍼붓는 <strong>펌핑</strong>으로 만든다. 이득 매질을 두 거울 사이(<strong>공진기</strong>)에
+        두면 광자가 왕복하며 증폭되고, 이득이 거울·투과 등의 손실을 넘는 <strong>문턱</strong>을 초과하면 발진이 시작된다.
+        한쪽 거울을 부분 투과로 만들어 그 틈으로 결맞는 단색 빔을 꺼낸다.</p>
+      </div>
+
+      <div class="formula-box">
+        N₂ &gt; N₁  (반전 분포 조건)<br>
+        이득(gain) ≥ 손실(loss)  →  발진(문턱 초과)<br>
+        유도 방출: 1 광자 → 2 광자 (같은 위상·방향·파장)
+      </div>
+
+      <!-- SVG 다이어그램: 공진기와 유도 방출 -->
+      <svg width="380" height="200" viewBox="0 0 380 200" role="img"
+        aria-label="왼쪽 완전 반사 거울과 오른쪽 부분 투과 거울 사이에 이득 매질이 놓이고, 펌핑으로 들뜬 원자가 유도 방출로 광자를 복제해 오른쪽으로 빔이 나오는 공진기 다이어그램">
+        <!-- 거울 -->
+        <rect x="30" y="40" width="10" height="110" fill="#234E52"/>
+        <rect x="320" y="40" width="6" height="110" fill="#3a7a80"/>
+        <text x="12" y="170" font-size="10" fill="#374151">완전반사</text>
+        <text x="296" y="170" font-size="10" fill="#374151">부분투과</text>
+        <!-- 이득 매질 박스 -->
+        <rect x="55" y="55" width="250" height="80" fill="none" stroke="#9ca3af" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="120" y="50" font-size="10" fill="#6b7280">이득 매질 (들뜬 원자)</text>
+        <!-- 펌핑 화살표 -->
+        <line x1="90" y1="20" x2="90" y2="52" stroke="#d97706" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="150" y1="20" x2="150" y2="52" stroke="#d97706" stroke-width="2" marker-end="url(#ar)"/>
+        <line x1="210" y1="20" x2="210" y2="52" stroke="#d97706" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="98" y="16" font-size="10" fill="#d97706">펌핑</text>
+        <!-- 광자 복제 (유도 방출) -->
+        <circle cx="100" cy="95" r="6" fill="#10b981"/>
+        <circle cx="160" cy="88" r="6" fill="#10b981"/>
+        <circle cx="160" cy="102" r="6" fill="#10b981"/>
+        <circle cx="220" cy="80" r="6" fill="#10b981"/>
+        <circle cx="220" cy="95" r="6" fill="#10b981"/>
+        <circle cx="220" cy="110" r="6" fill="#10b981"/>
+        <line x1="106" y1="95" x2="154" y2="90" stroke="#10b981" stroke-width="1.5"/>
+        <line x1="106" y1="95" x2="154" y2="100" stroke="#10b981" stroke-width="1.5"/>
+        <!-- 출력 빔 -->
+        <line x1="326" y1="95" x2="375" y2="95" stroke="#10b981" stroke-width="5"/>
+        <text x="332" y="118" font-size="10" fill="#10b981">결맞는 빔</text>
+        <defs>
+          <marker id="ar" markerWidth="6" markerHeight="6" refX="3" refY="5" orient="auto">
+            <path d="M0,0 L6,0 L3,6 z" fill="#d97706"/>
+          </marker>
+        </defs>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        왼쪽 거울은 완전 반사, 오른쪽은 부분 투과. 광자 하나가 들뜬 원자를 자극해 같은 광자를 복제하며 연쇄 증폭된다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "레이저는 그냥 매우 밝은(센) 빛이다"라고 생각하기 쉽다. 핵심은 밝기가 아니라
+        <em>결맞음</em>이다. 보통 전구 빛은 자발 방출이라 방향·위상·파장이 제각각이지만, 레이저 빛은 유도 방출로 복제되어
+        모든 광자가 같은 위상·방향·파장을 가진다. 또한 펌핑만 하면 무조건 레이저가 되는 것이 아니라,
+        <strong>반전 분포</strong>가 형성되고 이득이 손실을 넘는 <strong>문턱</strong>을 초과해야만 발진한다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>레이저 발진(lasing)에 <strong>반드시</strong> 필요한 조건은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 매질의 온도가 절대 0도일 것</label>
+        <label><input type="radio" name="q1" value="correct"> 반전 분포(population inversion)가 형성될 것</label>
+        <label><input type="radio" name="q1" value="wrong"> 두 거울이 모두 완전 반사일 것</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>레이저 빛이 보통 전구 빛과 결정적으로 다른 점은?</p>
+        <label><input type="radio" name="q2" value="wrong"> 단순히 더 밝다(센 빛)</label>
+        <label><input type="radio" name="q2" value="correct"> 위상·방향·파장이 일치하는 결맞는 빛이다</label>
+        <label><input type="radio" name="q2" value="wrong"> 광자가 아니라 전자로 이루어져 있다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 시어도어 메이먼 (Theodore Maiman, 1927~2007)</h3>
+        <p>미국의 물리학자·공학자. 휴즈 연구소(Hughes Research Laboratories)에서 1960년 5월 16일,
+        합성 루비 결정을 이득 매질로 사용해 <strong>세계 최초로 작동하는 레이저</strong>를 만들었다.
+        플래시 램프로 루비를 펌핑하여 694.3 nm의 붉은 결맞는 빛을 발생시켰다.</p>
+        <p>이론적 토대는 아인슈타인이 마련했다. 1917년 아인슈타인은 흑체복사를 설명하며 <em>유도 방출</em>의
+        존재를 예측했고, 이후 찰스 타운스(Charles Townes)와 아서 숄로(Arthur Schawlow), 고든 굴드(Gordon Gould)
+        등이 메이저(MASER)와 광학 레이저의 원리를 발전시켜 메이먼의 실현으로 이어졌다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1917년 — 아인슈타인, 유도 방출(stimulated emission) 개념을 이론적으로 예측</li>
+          <li>1954년 — 타운스 등, 마이크로파 영역의 메이저(MASER) 최초 구현</li>
+          <li>1958년 — 숄로·타운스, 광학 영역 레이저(optical maser)의 원리 논문 발표</li>
+          <li>1960년 — 메이먼, 루비 레이저로 세계 최초의 가시광 레이저 발진 성공</li>
+          <li>이후 — 가스·반도체·광섬유 레이저로 확장, 통신·의료·제조·측정의 핵심 기술로 자리매김</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 레이저는 양자역학(유도 방출)이라는 추상적 이론이 일상 기술로 실현된
+        대표 사례다. "해결책을 찾는 문제(a solution looking for a problem)"라 불릴 만큼 처음엔 용도가 불분명했지만,
+        오늘날 광통신(인터넷 광섬유), 바코드, CD/DVD, 라식 수술, 정밀 절단, 거리 측정(LIDAR), 중력파 검출(LIGO)에
+        이르기까지 현대 문명을 떠받친다. 결맞는 빛이라는 새로운 빛의 형태를 인류가 다룰 수 있게 한 전환점이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        pump: 30,          // 펌프율 0~100 (%)
+        mirror: 95,        // 출력 거울 반사율 80~99 (%)
+        photons: [],       // 공진기 내부 광자 {x, y, dir, vy, type:'spont'|'stim'}
+        beam: 0,           // 출력 빔 세기(0~1, 부드러운 표시용)
+        lastTs: null,
+        running: true
+      };
+
+      // 물리/시각 상수
+      const ATOMS = [];           // 이득 매질 원자 배열
+      const N_ATOMS = 40;
+      const CAVITY_L = 60, CAVITY_R = 500; // 두 거울 안쪽 x(px)
+      const CAVITY_TOP = 70, CAVITY_BOT = 250;
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const pumpSlider = document.getElementById('pump');
+      const mirrorSlider = document.getElementById('mirror');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 원자 초기화 (격자 배치) -----
+      function initAtoms() {
+        ATOMS.length = 0;
+        const cols = 10, rows = 4;
+        const w = CAVITY_R - CAVITY_L - 20;
+        const h = CAVITY_BOT - CAVITY_TOP - 30;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            ATOMS.push({
+              x: CAVITY_L + 18 + (c + 0.5) * (w / cols),
+              y: CAVITY_TOP + 22 + (r + 0.5) * (h / rows),
+              excited: false
+            });
+          }
+        }
+      }
+
+      // ----- 물리 모델 (정상상태 근사) -----
+      // 펌프율 p(0~1)에 따른 들뜬 원자 비율(반전 분포 정도).
+      // 손실 = 거울 투과(=1-반사율)에 비례. 이득이 손실을 넘으면 발진.
+      function pumpFrac() { return state.pump / 100; }
+      function lossFactor() { return (100 - state.mirror) / 100; } // 0.01~0.20
+
+      // 반전 분포 정도 (N2-N1)/(N2+N1) 근사. -1~1.
+      function inversion() {
+        // 펌프율이 올라갈수록 들뜬 비율 증가, 포화(saturation) 고려.
+        const p = pumpFrac();
+        const exc = p / (p + 0.45); // 0~1 (포화)
+        return 2 * exc - 1;         // N1=1-exc, N2=exc → (N2-N1)
+      }
+
+      // 발진 문턱: 손실이 클수록 더 높은 펌프율 필요.
+      function threshold() {
+        // 기준 문턱(반사율 95% 부근) 약 0.38, 손실에 비례 가산.
+        return 0.30 + lossFactor() * 2.2; // 대략 0.32~0.74
+      }
+
+      function isLasing() { return pumpFrac() > threshold() && inversion() > 0; }
+
+      // 출력 세기(상대값 0~100). 문턱 초과분에 비례, 투과율이 클수록 추출 효율↑.
+      function outputPower() {
+        if (!isLasing()) return 0;
+        const over = pumpFrac() - threshold();
+        const extract = lossFactor() / 0.20; // 투과가 클수록 더 많이 빼냄
+        return Math.max(0, Math.min(100, over * 180 * (0.5 + 0.5 * extract)));
+      }
+
+      // 들뜬 원자 목표 개수
+      function targetExcited() {
+        return Math.round(N_ATOMS * (pumpFrac() / (pumpFrac() + 0.45)));
+      }
+
+      // ----- 광자 생성 -----
+      function spawnPhoton(type, x, y) {
+        const lasing = isLasing();
+        if (type === 'stim' && lasing) {
+          // 유도 방출: 수평(공진기 축)으로 정렬, 위상/방향 동일
+          state.photons.push({
+            x: x, y: (CAVITY_TOP + CAVITY_BOT) / 2 + (Math.random() - 0.5) * 30,
+            vx: (Math.random() < 0.5 ? -1 : 1) * (2.6 + Math.random() * 0.6),
+            vy: 0, type: 'stim', life: 0
+          });
+        } else {
+          // 자발 방출: 제멋대로 방향
+          const ang = Math.random() * Math.PI * 2;
+          state.photons.push({
+            x: x, y: y,
+            vx: Math.cos(ang) * 1.8, vy: Math.sin(ang) * 1.8,
+            type: 'spont', life: 0
+          });
+        }
+      }
+
+      // ----- 시뮬레이션 한 스텝 -----
+      function step(dt) {
+        // 1) 원자 펌핑: 목표 들뜬 개수에 맞춰 점진적으로 들뜸/완화
+        const target = targetExcited();
+        let excitedNow = ATOMS.filter((a) => a.excited).length;
+        if (excitedNow < target && Math.random() < 0.5) {
+          const ground = ATOMS.filter((a) => !a.excited);
+          if (ground.length) ground[(Math.random() * ground.length) | 0].excited = true;
+        } else if (excitedNow > target && Math.random() < 0.5) {
+          const exc = ATOMS.filter((a) => a.excited);
+          if (exc.length) exc[(Math.random() * exc.length) | 0].excited = false;
+        }
+
+        // 2) 자발 방출(낮은 확률, 항상 약간 발생) — 들뜬 원자가 제멋대로 방출
+        if (Math.random() < 0.12 * pumpFrac() + 0.02) {
+          const exc = ATOMS.filter((a) => a.excited);
+          if (exc.length) {
+            const a = exc[(Math.random() * exc.length) | 0];
+            spawnPhoton('spont', a.x, a.y);
+          }
+        }
+
+        // 3) 유도 방출 연쇄(발진 중일 때 강하게) — 광자가 들뜬 원자를 자극
+        if (isLasing()) {
+          const rate = Math.floor((pumpFrac() - threshold()) * 22) + 1;
+          for (let i = 0; i < rate; i++) {
+            if (Math.random() < 0.7) {
+              const exc = ATOMS.filter((a) => a.excited);
+              if (exc.length) {
+                const a = exc[(Math.random() * exc.length) | 0];
+                spawnPhoton('stim', a.x, a.y);
+              }
+            }
+          }
+        }
+
+        // 4) 광자 이동 + 거울 반사 + 출력 추출
+        let extracted = 0;
+        const next = [];
+        for (const ph of state.photons) {
+          ph.x += ph.vx * dt * 60;
+          ph.y += (ph.vy || 0) * dt * 60;
+          ph.life += dt;
+
+          // 거울 반사 (수평 성분)
+          if (ph.x <= CAVITY_L) {
+            ph.x = CAVITY_L; ph.vx = Math.abs(ph.vx); // 왼쪽 완전반사
+          } else if (ph.x >= CAVITY_R) {
+            // 오른쪽 부분투과: 투과 확률 = 손실율
+            if (ph.type === 'stim' && Math.random() < lossFactor() * 3.5) {
+              extracted++; // 빔으로 빠져나감 (제거)
+              continue;
+            }
+            ph.x = CAVITY_R; ph.vx = -Math.abs(ph.vx);
+          }
+          // 자발 방출 광자는 위/아래로 벽 밖으로 새 나가면 소멸
+          if (ph.type === 'spont' && (ph.y < CAVITY_TOP - 10 || ph.y > CAVITY_BOT + 10)) continue;
+          // 수명 제한
+          if (ph.life > (ph.type === 'stim' ? 4.0 : 0.9)) continue;
+          next.push(ph);
+        }
+        // 광자 수 상한(성능)
+        state.photons = next.slice(-260);
+
+        // 5) 출력 빔 세기 평활화
+        const targetBeam = isLasing() ? Math.min(1, outputPower() / 60) : 0;
+        state.beam += (targetBeam - state.beam) * Math.min(1, dt * 6);
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 공진기 박스
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(CAVITY_L, CAVITY_TOP, CAVITY_R - CAVITY_L, CAVITY_BOT - CAVITY_TOP);
+
+        // 거울
+        ctx.fillStyle = '#cfe8e9';
+        ctx.fillRect(CAVITY_L - 12, CAVITY_TOP - 10, 12, (CAVITY_BOT - CAVITY_TOP) + 20); // 왼: 완전반사
+        ctx.fillStyle = 'rgba(120,200,205,0.85)';
+        ctx.fillRect(CAVITY_R, CAVITY_TOP - 10, 8, (CAVITY_BOT - CAVITY_TOP) + 20);       // 오: 부분투과
+
+        ctx.fillStyle = 'rgba(255,255,255,0.65)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('완전반사 거울', CAVITY_L - 14, CAVITY_TOP - 16);
+        ctx.fillText('부분투과 거울 (' + state.mirror + '%)', CAVITY_R - 40, CAVITY_TOP - 16);
+
+        // 펌핑 화살표 (위에서 아래로) — 펌프율에 따라 개수/밝기
+        const nPump = Math.round(2 + pumpFrac() * 8);
+        for (let i = 0; i < nPump; i++) {
+          const px = CAVITY_L + 30 + i * ((CAVITY_R - CAVITY_L - 60) / Math.max(1, nPump - 1));
+          ctx.strokeStyle = 'rgba(245,158,11,' + (0.3 + pumpFrac() * 0.6) + ')';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(px, CAVITY_TOP - 8);
+          ctx.lineTo(px, CAVITY_TOP - 24);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(px - 3, CAVITY_TOP - 12);
+          ctx.lineTo(px, CAVITY_TOP - 8);
+          ctx.lineTo(px + 3, CAVITY_TOP - 12);
+          ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(245,158,11,0.95)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('펌핑 ' + state.pump + '%', CAVITY_L + 4, CAVITY_TOP - 28);
+
+        // 원자 (바닥=회색, 들뜸=색)
+        for (const a of ATOMS) {
+          ctx.beginPath();
+          ctx.arc(a.x, a.y, a.excited ? 6 : 4.5, 0, Math.PI * 2);
+          if (a.excited) {
+            ctx.fillStyle = '#34d399';
+            ctx.shadowColor = '#34d399';
+            ctx.shadowBlur = 8;
+          } else {
+            ctx.fillStyle = '#6b7280';
+            ctx.shadowBlur = 0;
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        // 광자
+        for (const ph of state.photons) {
+          ctx.beginPath();
+          ctx.arc(ph.x, ph.y, ph.type === 'stim' ? 3 : 2.2, 0, Math.PI * 2);
+          if (ph.type === 'stim') {
+            ctx.fillStyle = '#a7f3d0';
+            ctx.shadowColor = '#34d399';
+            ctx.shadowBlur = 6;
+          } else {
+            ctx.fillStyle = 'rgba(252,211,77,0.8)';
+            ctx.shadowBlur = 0;
+          }
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        // 출력 빔 (오른쪽 거울 밖)
+        if (state.beam > 0.02) {
+          const cy = (CAVITY_TOP + CAVITY_BOT) / 2;
+          const bw = 4 + state.beam * 10;
+          const grd = ctx.createLinearGradient(CAVITY_R + 8, 0, W, 0);
+          grd.addColorStop(0, 'rgba(52,211,153,' + (0.5 + state.beam * 0.5) + ')');
+          grd.addColorStop(1, 'rgba(52,211,153,0)');
+          ctx.fillStyle = grd;
+          ctx.fillRect(CAVITY_R + 8, cy - bw / 2, W - (CAVITY_R + 8), bw);
+          ctx.fillStyle = 'rgba(167,243,208,0.95)';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText('결맞는 빔 출력', CAVITY_R + 14, cy - bw / 2 - 6);
+        }
+
+        // 상태 자막
+        ctx.font = '12px sans-serif';
+        if (isLasing()) {
+          ctx.fillStyle = '#34d399';
+          ctx.fillText('● 발진 중 (유도 방출 연쇄)', CAVITY_L, CAVITY_BOT + 26);
+        } else if (inversion() > 0) {
+          ctx.fillStyle = '#fcd34d';
+          ctx.fillText('반전 분포 형성 중 — 아직 문턱 미만 (자발 방출)', CAVITY_L, CAVITY_BOT + 26);
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.6)';
+          ctx.fillText('펌핑 부족 — 반전 분포 없음', CAVITY_L, CAVITY_BOT + 26);
+        }
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const inv = inversion();
+        const invPct = Math.round(((inv + 1) / 2) * 100); // 들뜬 비율(%)
+        document.getElementById('r-inversion').textContent =
+          (inv > 0 ? '+' : '') + inv.toFixed(2) + ' (들뜸 ' + invPct + '%)';
+
+        const lasing = isLasing();
+        const badge = document.getElementById('r-lasing');
+        if (lasing) {
+          badge.textContent = '발진 ON';
+          badge.style.background = '#16a34a';
+        } else {
+          badge.textContent = '발진 OFF';
+          badge.style.background = '#9ca3af';
+        }
+
+        const ratio = pumpFrac() / threshold();
+        document.getElementById('r-threshold').textContent =
+          (ratio * 100).toFixed(0) + '% (' + (ratio >= 1 ? '문턱 초과' : '문턱 미만') + ')';
+
+        document.getElementById('r-output').textContent =
+          lasing ? outputPower().toFixed(0) + ' / 100' : '0 / 100';
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      pumpSlider.addEventListener('input', () => {
+        state.pump = Number(pumpSlider.value);
+        document.getElementById('pump-val').textContent = state.pump;
+        updateResult();
+        draw();
+      });
+      mirrorSlider.addEventListener('input', () => {
+        state.mirror = Number(mirrorSlider.value);
+        document.getElementById('mirror-val').textContent = state.mirror;
+        updateResult();
+        draw();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        state.pump = 30; state.mirror = 95;
+        pumpSlider.value = 30; mirrorSlider.value = 95;
+        document.getElementById('pump-val').textContent = 30;
+        document.getElementById('mirror-val').textContent = 95;
+        state.photons = []; state.beam = 0;
+        ATOMS.forEach((a) => { a.excited = false; });
+        updateResult();
+        draw();
+      });
+
+      // ----- 애니메이션 루프 (rAF) -----
+      function loop(ts) {
+        if (state.lastTs === null) state.lastTs = ts;
+        let dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+        if (dt > 0.05) dt = 0.05; // 탭 비활성 후 점프 방지
+
+        step(dt);
+        updateResult();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '들뜬 원자가 바닥 상태보다 많아지는 반전 분포가 있어야 유도 방출이 흡수를 이겨 빛이 증폭됩니다.',
+        '레이저 증폭의 전제는 들뜬 원자 수 N₂가 바닥 상태 N₁보다 많아지는 반전 분포입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '유도 방출로 복제된 광자들은 위상·방향·파장이 모두 같아 결맞는(coherent) 단색광이 됩니다.',
+        '핵심은 밝기가 아니라 결맞음(coherence)입니다. 유도 방출이 같은 광자를 복제합니다.');
+
+      // ----- 초기화 & 시작 -----
+      initAtoms();
+      updateResult();
+      draw();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중력파 검출 (LIGO) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #234E52;
+      --primary-light: #3a7a80;
+      --bg: #f1f5f4;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #0b1d20; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e8f1f0; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔬 현대 물리학 (Modern Physics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>중력파 검출 (LIGO)</h1>
+    <div class="en">Gravitational Waves (LIGO)</div>
+    <div class="meta">2015년 · LIGO 협력단 (LIGO Scientific Collaboration) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="460" role="img"
+        aria-label="위쪽: 두 블랙홀이 나선으로 가까워지며 병합하는 인스파이럴, 아래쪽: 그에 대응하는 처프 파형"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="mass1">블랙홀 1 질량: <span id="mass1-val">30</span> M☉</label>
+          <input type="range" id="mass1" min="5" max="60" step="1" value="30"
+            aria-describedby="mass1-val">
+        </div>
+
+        <div class="control-row">
+          <label for="mass2">블랙홀 2 질량: <span id="mass2-val">25</span> M☉</label>
+          <input type="range" id="mass2" min="5" max="60" step="1" value="25"
+            aria-describedby="mass2-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>총질량 M: <strong id="r-mtot">—</strong></div>
+          <div>처프 주파수(상대): <strong id="r-freq">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>변형률 진폭(상대): <strong id="r-amp">—</strong></div>
+          <div>병합 단계: <strong id="r-phase">대기</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 재생을 누르면 두 블랙홀이 나선 안쪽으로 점점 빨라지며 가까워집니다.
+        아래 파형은 그에 대응하는 변형률(strain)로, 가까워질수록 <em>진동수와 진폭이 함께 급격히 커지는</em>
+        "처프(chirp)"가 나타나고 병합 직후 진동이 잦아드는 ringdown으로 끝납니다.
+        질량을 크게 하면 전체 진동수가 <em>낮아지는</em> 것을 확인하세요(무거울수록 낮은 음).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>가속하는 질량이 시공간의 잔물결(중력파)을 방출함을 이해한다.</li>
+        <li>두 천체가 나선으로 병합할 때 진동수·진폭이 함께 커지는 "처프"를 안다.</li>
+        <li>총질량이 클수록 신호 진동수가 낮아짐을 정성적으로 파악한다.</li>
+        <li>LIGO가 ~10⁻²¹ 수준의 미세한 길이 변화를 어떻게 검출하는지 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>일반상대성이론에서 질량은 시공간을 휜다. 질량이 <em>가속</em>하면 그 휘어짐의 변화가 빛의 속도로
+        퍼져 나가는데, 이것이 <strong>중력파(gravitational wave)</strong>다. 두 블랙홀이 서로를 나선형으로
+        돌면(인스파이럴) 에너지를 중력파로 잃어 궤도가 점점 작아지고 공전이 빨라진다.</p>
+        <p>가까워질수록 궤도 진동수가 올라가고 진폭도 커져서, 신호의 주파수와 세기가 동시에 치솟는
+        <strong>처프(chirp)</strong> 파형이 나온다. 병합 순간 진폭이 최대에 이르고, 합쳐진 블랙홀이
+        떨림을 멈추는 <strong>ringdown</strong> 단계로 잦아든다. 검출되는 양은 거리의 미세한 비율 변화인
+        <strong>변형률(strain) h = ΔL/L</strong>이며, LIGO에서는 약 10⁻²¹로 양성자보다도 작은 변화다.</p>
+      </div>
+
+      <div class="formula-box">
+        h = ΔL / L  ≈ 10⁻²¹<br>
+        f_GW = 2 · f_orbit (궤도 진동수의 2배)<br>
+        f ↑ , 진폭 ↑  ⟶  병합(merge) ⟶ ringdown
+      </div>
+
+      <!-- SVG 다이어그램: 처프 파형 (진동수·진폭 증가 후 감쇠) -->
+      <svg width="420" height="160" viewBox="0 0 420 160" role="img"
+        aria-label="시간에 따라 진동수와 진폭이 함께 커지다가 병합 후 감쇠하는 처프 파형">
+        <line x1="20" y1="80" x2="400" y2="80" stroke="#9ca3af" stroke-width="1"/>
+        <text x="20" y="150" font-size="11" fill="#6b7280">시간 →</text>
+        <text x="300" y="150" font-size="11" fill="#234E52">병합</text>
+        <text x="350" y="150" font-size="11" fill="#6b7280">ringdown</text>
+        <!-- 처프: 인스파이럴 (점점 빨라지고 커짐) -->
+        <path d="M20,80 Q35,72 50,80 Q63,90 76,80 Q87,68 98,80 Q107,94 116,80
+                 Q124,64 132,80 Q139,98 146,80 Q152,60 158,80 Q164,102 170,80
+                 Q175,56 180,80 Q185,106 190,80 Q195,50 200,80 Q205,112 210,80
+                 Q215,42 220,80 Q225,120 230,80 Q235,34 240,80 Q245,128 250,80
+                 Q255,26 260,80 Q265,134 270,80 Q275,20 280,80 Q285,138 290,80
+                 Q295,18 300,80"
+              fill="none" stroke="#234E52" stroke-width="2"/>
+        <!-- ringdown: 감쇠 -->
+        <path d="M300,80 Q308,52 316,80 Q322,102 328,80 Q333,66 338,80
+                 Q342,90 346,80 Q349,74 352,80 Q355,84 358,80 Q360,78 362,80"
+              fill="none" stroke="#C53030" stroke-width="2"/>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        진동수와 진폭이 함께 커지는 처프(파랑) → 병합 → 빠르게 잦아드는 ringdown(빨강)
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "중력파는 일반적인 음파나 전자기파처럼 매질을 통해 전달된다"고
+        오해하기 쉽다. 중력파는 매질의 진동이 아니라 <em>시공간 자체</em>가 늘었다 줄었다 하는 변형이며,
+        진공에서도 빛의 속도로 전파된다. 또 중력파는 너무 약해서 우주 어디서나 늘 지나가지만,
+        2015년에야 비로소 <strong>직접 검출</strong>에 성공했다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>강한 중력파를 방출하는 대표적인 천문 사건은 무엇인가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 안정적으로 도는 행성의 원궤도 운동</label>
+        <label><input type="radio" name="q1" value="correct"> 두 블랙홀(또는 중성자별)의 나선 병합</label>
+        <label><input type="radio" name="q1" value="wrong"> 정지해 있는 별의 단순한 중력</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>두 블랙홀이 병합에 가까워질 때 검출되는 신호의 진동수와 진폭은 어떻게 변하는가?</p>
+        <label><input type="radio" name="q2" value="wrong"> 둘 다 점점 작아진다</label>
+        <label><input type="radio" name="q2" value="wrong"> 진동수는 일정하고 진폭만 커진다</label>
+        <label><input type="radio" name="q2" value="correct"> 진동수와 진폭이 함께 급격히 커진다(처프)</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: LIGO 협력단 (LIGO Scientific Collaboration)</h3>
+        <p>LIGO(Laser Interferometer Gravitational-Wave Observatory)는 미국 워싱턴주 핸퍼드와
+        루이지애나주 리빙스턴에 각각 4km 길이의 ㄴ자형 레이저 간섭계를 갖춘 천문대다. 킵 손(Kip Thorne),
+        라이너 바이스(Rainer Weiss), 배리 배리시(Barry Barish)가 설계·실현을 주도했으며, 세 사람은
+        2017년 노벨 물리학상을 받았다.</p>
+        <p>두 팔로 갈라진 레이저가 거울에 반사되어 되돌아올 때, 중력파가 한 팔은 늘이고 다른 팔은 줄이면
+        두 빛이 다시 만나는 간섭무늬가 미세하게 바뀐다. 이 변화로 양성자 크기보다 작은
+        ~10⁻¹⁹ m의 길이 차이를 읽어낸다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1916년 — 아인슈타인이 일반상대성이론에서 중력파의 존재를 예측</li>
+          <li>1974년 — 헐스·테일러, 쌍성 펄서 관측으로 중력파 방출을 간접 확인 (1993년 노벨상)</li>
+          <li>2002년 — 초기 LIGO 가동 시작</li>
+          <li>2015년 9월 14일 — Advanced LIGO가 GW150914(두 블랙홀 병합)를 인류 최초로 직접 검출</li>
+          <li>2017년 — GW170817(중성자별 병합)을 전자기파와 함께 관측, 다중신호 천문학 개막 / 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 아인슈타인이 예측한 지 약 100년 만에 중력파를 직접 검출함으로써,
+        인류는 빛이 아닌 <em>시공간의 떨림</em>으로 우주를 "듣는" 완전히 새로운 관측 창을 열었다.
+        전자기파로는 보이지 않는 블랙홀 병합을 처음으로 포착했고, 일반상대성이론을 강한 중력 영역에서
+        정밀하게 검증했다. 중력파 천문학은 오늘날 우주의 가장 격렬한 사건들을 탐구하는 핵심 도구가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        mass1: 30,       // 태양질량 M☉
+        mass2: 25,
+        running: false,
+        elapsed: 0,      // 시뮬레이션 진행 시간(상대 단위)
+        lastTs: null,
+        phase: '대기'
+      };
+
+      // 시뮬레이션 상수
+      const T_MERGE = 6.0;   // 병합까지 걸리는 상대 시간
+      const T_RING = 1.6;    // ringdown 지속 시간
+      const T_END = T_MERGE + T_RING;
+      const SPEED = 1.0;     // 진행 배속
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const mass1Slider = document.getElementById('mass1');
+      const mass2Slider = document.getElementById('mass2');
+      const playBtn = document.getElementById('playBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리(정성) 모델 -----
+      // 총질량이 클수록 전체 진동수가 낮다(무거울수록 낮은 음).
+      function totalMass() { return state.mass1 + state.mass2; }
+
+      // 질량 -> 기본 주파수 배율(무거울수록 작음). 기준 50 M☉.
+      function freqScale() {
+        return 50 / totalMass();
+      }
+
+      // 진행도 0~1 (인스파이럴 구간), 1 이후는 병합/ringdown
+      function inspiralProgress(t) {
+        return Math.min(1, t / T_MERGE);
+      }
+
+      // 현재 순간 처프 주파수(상대값): 인스파이럴에서 1 -> 약 8배로 가속, 무거울수록 전체 낮음
+      function chirpFrequency(t) {
+        const p = inspiralProgress(t);
+        // 병합에 가까울수록 가파르게 상승
+        const rise = 1 + 7 * Math.pow(p, 2.5);
+        return rise * freqScale();
+      }
+
+      // 현재 순간 변형률 진폭(상대값)
+      function strainAmplitude(t) {
+        if (t <= T_MERGE) {
+          const p = inspiralProgress(t);
+          // 진폭도 병합에 가까울수록 급증
+          return 0.15 + 0.85 * Math.pow(p, 2);
+        }
+        // ringdown: 빠르게 감쇠
+        const td = (t - T_MERGE) / T_RING;
+        return Math.exp(-4.5 * td);
+      }
+
+      // 궤도 반지름(인스파이럴: 점점 줄어듦)
+      function orbitRadius(t) {
+        const p = inspiralProgress(t);
+        return 1 - Math.pow(p, 1.4);  // 1 -> 0
+      }
+
+      function currentPhase(t) {
+        if (t <= 0) return '대기';
+        if (t < T_MERGE * 0.97) return '인스파이럴';
+        if (t < T_MERGE + 0.05) return '병합!';
+        return 'ringdown';
+      }
+
+      // ----- 누적 위상(파형이 끊기지 않도록 적분) -----
+      // 단순 수치적분으로 위상 phase(t) = ∫ chirpFrequency dt
+      function phaseAt(t) {
+        const N = 240;
+        const dt = t / N;
+        let ph = 0;
+        for (let i = 0; i < N; i++) {
+          ph += chirpFrequency(i * dt) * dt;
+        }
+        return ph;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const t = state.elapsed;
+
+        // ===== 위쪽: 인스파이럴 =====
+        const topH = 250;
+        const cx = W / 2, cy = topH / 2 + 10;
+
+        // 배경 별
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        for (let i = 0; i < 40; i++) {
+          const sx = (i * 97 + 13) % W;
+          const sy = (i * 53 + 7) % topH;
+          ctx.fillRect(sx, sy, 1.2, 1.2);
+        }
+
+        const Mt = totalMass();
+        const m1 = state.mass1, m2 = state.mass2;
+        // 시각화용 반지름(질량 비례), 두 블랙홀 크기
+        const r1 = 6 + Math.sqrt(m1) * 2.2;
+        const r2 = 6 + Math.sqrt(m2) * 2.2;
+
+        const orbR = orbitRadius(t);
+        const maxOrbPx = 78;
+        const sep = maxOrbPx * orbR + (r1 + r2) * 0.6; // 중심간 거리(px)
+
+        // 질량비에 따라 각 블랙홀의 중심으로부터 거리(질량 큰 쪽이 안쪽)
+        const d1 = sep * (m2 / Mt);
+        const d2 = sep * (m1 / Mt);
+
+        // 공전 각도: 위상 사용(가까울수록 빠름)
+        const ang = phaseAt(t) * 0.9;
+
+        const merged = t >= T_MERGE;
+
+        if (!merged) {
+          // 나선 궤적(흐리게)
+          ctx.strokeStyle = 'rgba(58,122,128,0.35)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let k = 0; k <= 60; k++) {
+            const tk = (k / 60) * Math.min(t + 0.4, T_MERGE);
+            const rr = maxOrbPx * orbitRadius(tk);
+            const aa = phaseAt(tk) * 0.9;
+            const px = cx + Math.cos(aa) * rr * (m2 / Mt) * 1.0 * (rr ? 1 : 1);
+            const py = cy + Math.sin(aa) * rr * (m2 / Mt);
+            if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+
+          // 블랙홀 1 (질량 큰 쪽일 수 있음)
+          const x1 = cx + Math.cos(ang) * d1;
+          const y1 = cy + Math.sin(ang) * d1;
+          const x2 = cx - Math.cos(ang) * d2;
+          const y2 = cy - Math.sin(ang) * d2;
+
+          drawBlackHole(x1, y1, r1, '#3a7a80');
+          drawBlackHole(x2, y2, r2, '#7aa6ab');
+
+          // 라벨
+          ctx.fillStyle = '#cfe6e4';
+          ctx.font = '12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('BH1 ' + m1 + ' M☉', cx, 18);
+          ctx.fillText('BH2 ' + m2 + ' M☉', cx, topH - 6);
+          ctx.textAlign = 'left';
+        } else {
+          // 병합 후: 단일 블랙홀 + ringdown 떨림
+          const td = (t - T_MERGE) / T_RING;
+          const wobble = Math.exp(-4.5 * td) * 6 * Math.sin(t * 30);
+          const rMerged = 6 + Math.sqrt(Mt) * 2.4 + wobble;
+          // 병합 섬광
+          if (td < 0.4) {
+            const glow = (0.4 - td) / 0.4;
+            ctx.beginPath();
+            ctx.arc(cx, cy, rMerged + 30 * glow, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,235,150,' + (0.35 * glow) + ')';
+            ctx.fill();
+          }
+          drawBlackHole(cx, cy, rMerged, '#2dd4bf');
+          ctx.fillStyle = '#cfe6e4';
+          ctx.font = '12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('병합된 블랙홀 ' + Mt + ' M☉', cx, 18);
+          ctx.textAlign = 'left';
+        }
+
+        // 구분선
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, topH); ctx.lineTo(W, topH); ctx.stroke();
+
+        // ===== 아래쪽: 처프 파형 (strain vs time) =====
+        const waveTop = topH + 10;
+        const waveH = H - waveTop - 24;
+        const midY = waveTop + waveH / 2;
+        const left = 30, right = W - 16;
+        const plotW = right - left;
+
+        // 축
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.beginPath();
+        ctx.moveTo(left, midY); ctx.lineTo(right, midY); ctx.stroke();
+        ctx.fillStyle = '#9fb8b6';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('strain', 2, waveTop + 12);
+        ctx.fillText('시간 →', right - 50, H - 6);
+
+        // 현재까지 진행한 t를 가로축 끝(또는 비율)으로
+        const tShown = Math.min(t, T_END);
+        const ampMax = waveH * 0.42;
+
+        // 파형 샘플링: 0 ~ tShown
+        ctx.strokeStyle = '#2dd4bf';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const samples = 600;
+        for (let i = 0; i <= samples; i++) {
+          const tt = (i / samples) * Math.max(tShown, 0.001);
+          const ph = phaseAt(tt) * 6.0; // 파형 빈도 강조
+          const amp = strainAmplitude(tt) * ampMax;
+          const x = left + (tt / T_END) * plotW;
+          const y = midY - Math.sin(ph) * amp;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // 병합 시점 표시선
+        const xMerge = left + (T_MERGE / T_END) * plotW;
+        ctx.strokeStyle = 'rgba(255,235,150,0.5)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(xMerge, waveTop); ctx.lineTo(xMerge, H - 18); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#f0e6a0';
+        ctx.fillText('병합', xMerge - 14, waveTop + 12);
+      }
+
+      function drawBlackHole(x, y, r, ringColor) {
+        // 강착원반/광자고리 느낌
+        ctx.beginPath();
+        ctx.arc(x, y, r + 3, 0, Math.PI * 2);
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        // 본체
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = '#05080a';
+        ctx.fill();
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        document.getElementById('r-mtot').textContent = totalMass() + ' M☉';
+        const f = chirpFrequency(state.elapsed);
+        const a = strainAmplitude(state.elapsed);
+        document.getElementById('r-freq').textContent = f.toFixed(2) + ' ×';
+        document.getElementById('r-amp').textContent = a.toFixed(2) + ' ×';
+        document.getElementById('r-phase').textContent = state.phase;
+      }
+
+      // ----- (2) 슬라이더 이벤트 (input 시 즉시 갱신) -----
+      mass1Slider.addEventListener('input', () => {
+        state.mass1 = Number(mass1Slider.value);
+        document.getElementById('mass1-val').textContent = state.mass1;
+        updateResult();
+        draw();
+      });
+      mass2Slider.addEventListener('input', () => {
+        state.mass2 = Number(mass2Slider.value);
+        document.getElementById('mass2-val').textContent = state.mass2;
+        updateResult();
+        draw();
+      });
+
+      // ----- 애니메이션 루프 (rAF) -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        state.elapsed += dt * SPEED;
+        if (state.elapsed >= T_END) {
+          state.elapsed = T_END;
+          state.running = false;
+          playBtn.textContent = '▶ 재생';
+        }
+
+        state.phase = currentPhase(state.elapsed);
+        updateResult();
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.running) return;
+        if (state.elapsed >= T_END) state.elapsed = 0; // 끝났으면 처음부터
+        state.running = true;
+        state.lastTs = null;
+        playBtn.textContent = '⏸ 일시정지';
+        requestAnimationFrame(loop);
+      }
+
+      function pause() {
+        state.running = false;
+        playBtn.textContent = '▶ 재생';
+      }
+
+      function resetSim() {
+        state.running = false;
+        state.elapsed = 0;
+        state.lastTs = null;
+        state.phase = '대기';
+        playBtn.textContent = '▶ 재생';
+        updateResult();
+        draw();
+      }
+
+      playBtn.addEventListener('click', () => {
+        if (state.running) pause(); else play();
+      });
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        '두 블랙홀(또는 중성자별)의 나선 병합처럼 거대한 질량이 빠르게 가속할 때 강한 중력파가 나옵니다.',
+        '강한 중력파는 거대한 질량이 빠르게 가속하는 병합 사건에서 방출됩니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '가까워질수록 궤도가 빨라져 진동수와 진폭이 함께 치솟는 처프가 나타납니다.',
+        '인스파이럴이 진행되면 진동수와 진폭이 함께 커집니다(처프).');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

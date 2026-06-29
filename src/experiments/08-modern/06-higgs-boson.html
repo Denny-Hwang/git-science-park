@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>힉스 보손 발견 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #234E52;
+      --primary-light: #3a7a80;
+      --bg: #f4f7f7;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0d1117; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e7f0f0; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 4px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+      .result-box .rows { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔬 현대 물리학 (Modern Physics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>힉스 보손 발견</h1>
+    <div class="en">Discovery of the Higgs Boson</div>
+    <div class="meta">2012년 · CERN (힉스 메커니즘) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="400" aria-label="불변질량 분포 히스토그램. 매끄럽게 감소하는 배경 위로 125 GeV 부근에 힉스 신호 봉우리가 솟는 모습"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="lumi">누적 충돌 통계량(적분 광도): <span id="lumi-val">5.0</span> fb⁻¹</label>
+          <input type="range" id="lumi" min="0.2" max="40" step="0.1" value="5.0"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="energy">충돌 에너지 √s: <span id="energy-val">8</span> TeV</label>
+          <input type="range" id="energy" min="7" max="14" step="0.5" value="8"
+                 aria-describedby="result">
+        </div>
+
+        <div class="ctrl">
+          <label for="coupling">힉스 결합 세기(신호 생성률): <span id="coupling-val">1.0</span> ×표준값</label>
+          <input type="range" id="coupling" min="0" max="2" step="0.05" value="1.0"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="rows">
+          <span>신호 피크 질량: <strong id="r-mass">—</strong></span>
+          <span>통계적 유의성: <strong id="r-sig">—</strong></span>
+          <span>신호 / 배경 (S/B): <strong id="r-sb">—</strong></span>
+          <span>신호 사건 수: <strong id="r-events">—</strong></span>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 가로축은 붕괴 산물의 <strong>불변질량(GeV)</strong>,
+        세로축은 사건 수다. 배경은 매끄럽게 감소하는 곡선인데, <strong>125 GeV 부근에 작은 봉우리</strong>가 솟아 있다.
+        <strong>통계량(적분 광도)을 늘리면</strong> 드물게 생성되는 신호가 쌓여 봉우리가 배경의 통계적 요동 위로 뚜렷해진다
+        (유의성 ∝ √통계량). <strong>결합 세기를 0으로</strong> 내리면 봉우리가 사라져 배경만 남는다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>힉스 장이 공간을 채우고 있으며, 입자가 이 장과 상호작용하는 정도에 따라 질량을 얻음을 이해한다.</li>
+        <li>힉스 보손이 힉스 장의 들뜸(입자)이며 질량이 약 125 GeV/c²임을 안다.</li>
+        <li>드문 신호를 배경 위에서 드러내려면 충돌을 많이 모아야 함(통계의 역할)을 설명한다.</li>
+        <li>불변질량 분포의 봉우리와 통계적 유의성(σ)이 "발견"의 근거가 됨을 이해한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>표준모형에서 <strong>힉스 장</strong>은 우주 전체에 0이 아닌 값으로 깔려 있다. 기본 입자는 이 장과
+        상호작용하면서 움직임에 "저항"을 받게 되는데, 그 결과로 나타나는 것이 바로 <strong>질량</strong>이다.
+        상호작용(결합)이 클수록 무거운 입자가 된다(예: 광자는 결합이 0이라 질량이 없다).</p>
+        <p><strong>힉스 보손</strong>은 이 힉스 장의 들뜸, 즉 장 자체에 대응하는 입자다. 질량은 약
+        <strong>125 GeV/c²</strong>. LHC에서 양성자를 충돌시키면 아주 드물게 힉스 보손이 생성되고,
+        곧바로 다른 입자로 붕괴한다(예: 두 광자 γγ, 네 렙톤 ZZ→4ℓ).</p>
+        <p>붕괴 산물의 에너지·운동량으로부터 <strong>불변질량</strong>을 계산해 히스토그램을 그리면,
+        대부분은 다른 과정에서 온 <strong>배경(매끄럽게 감소)</strong>이지만, 힉스에서 온 사건들은
+        125 GeV 부근에 모여 <strong>작은 봉우리(신호)</strong>를 만든다. 충돌을 많이 모을수록(높은 광도)
+        이 봉우리가 배경의 요동을 뚫고 통계적으로 뚜렷해진다.</p>
+      </div>
+
+      <div class="formula-box">
+        m² c⁴ = E² − (p c)²   (불변질량)
+        <br>
+        m_H ≈ 125 GeV/c²
+        <br>
+        유의성 ≈ S / √B  ∝ √(통계량)
+      </div>
+
+      <!-- SVG 다이어그램: 배경 위에 솟은 신호 봉우리 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+           aria-label="불변질량 분포 개념도. 매끄럽게 감소하는 배경 곡선 위 125 GeV 위치에 신호 봉우리가 솟아 있다.">
+        <!-- 축 -->
+        <line x1="50" y1="180" x2="400" y2="180" stroke="#4A5568" stroke-width="1.5"/>
+        <line x1="50" y1="20" x2="50" y2="180" stroke="#4A5568" stroke-width="1.5"/>
+        <text x="200" y="208" font-size="11" fill="#6b7280">불변질량 (GeV)</text>
+        <text x="14" y="100" font-size="11" fill="#6b7280" transform="rotate(-90 14 100)">사건 수</text>
+        <!-- 배경(매끄럽게 감소) -->
+        <path d="M50,60 Q150,120 250,150 T400,172" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="300" y="140" font-size="11" fill="#64748b">배경</text>
+        <!-- 신호+배경 (125 GeV에 봉우리) -->
+        <path d="M50,60 Q150,120 215,138 Q240,90 255,90 Q270,138 320,160 T400,172"
+              fill="none" stroke="#234E52" stroke-width="2.5"/>
+        <!-- 봉우리 강조 -->
+        <line x1="235" y1="180" x2="235" y2="40" stroke="#d97706" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="206" y="36" font-size="11" fill="#d97706">125 GeV 신호</text>
+        <text x="218" y="195" font-size="10" fill="#6b7280">125</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "힉스 보손이 모든 질량의 원인"이라고 오해하기 쉽다. 사실 우리 몸이나
+        양성자 질량의 대부분은 쿼크를 묶는 <em>강한 상호작용 에너지(E=mc²)</em>에서 온다. 힉스 메커니즘이
+        직접 설명하는 것은 <em>기본 입자(쿼크·렙톤·W/Z) 자체의 질량</em>이다. 또 "힉스 입자가 곧 힉스 장"인 것도
+        아니다. 힉스 <em>장</em>이 질량을 주고, 힉스 <em>보손</em>은 그 장의 들뜸으로 나타나는 입자다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 힉스 장(보손)이 설명하는 것은 무엇인가?</p>
+          <label><input type="radio" name="q1" value="correct"> 기본 입자가 질량을 얻는 메커니즘</label>
+          <label><input type="radio" name="q1" value="wrong"> 두 물체 사이에 작용하는 중력</label>
+          <label><input type="radio" name="q1" value="wrong"> 원자핵을 묶는 강한 핵력의 매개</label>
+        </div>
+        <div class="q">
+          <p>2. 125 GeV 부근의 작은 신호 봉우리를 배경 위로 뚜렷하게 드러내려면?</p>
+          <label><input type="radio" name="q2" value="wrong"> 충돌 한 번만 정밀하게 측정한다</label>
+          <label><input type="radio" name="q2" value="correct"> 충돌을 매우 많이 모아 통계량을 늘린다</label>
+          <label><input type="radio" name="q2" value="wrong"> 배경을 인위적으로 제거한 뒤 신호만 본다</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 피터 힉스 외 · CERN 협력단 (ATLAS / CMS)</h3>
+        <p>1964년 피터 힉스(Peter Higgs)와 프랑수아 앙글레르(François Englert), 로베르 브라우(Robert Brout) 등이
+        독립적으로 질량의 기원을 설명하는 메커니즘을 제안했다. 약 반세기 뒤인 2012년, CERN의 대형 강입자
+        충돌기(LHC)에서 <strong>ATLAS와 CMS</strong> 두 실험 협력단이 수천 명의 연구자와 함께 약 125 GeV의
+        새 입자를 발견했다. 힉스와 앙글레르는 2013년 노벨 물리학상을 수상했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1964년 — 앙글레르·브라우, 힉스, 구럴닉·하겐·키블이 질량 부여 메커니즘을 각각 제안</li>
+          <li>1970년대 — 전약 통일 이론에 힉스 메커니즘이 통합되며 표준모형이 완성</li>
+          <li>2008년 — LHC 가동 시작, 양성자–양성자 충돌 본격화</li>
+          <li>2012년 7월 4일 — ATLAS·CMS가 약 125 GeV에서 새 입자 발견을 공동 발표(5σ 수준)</li>
+          <li>2013년 — 피터 힉스와 프랑수아 앙글레르 노벨 물리학상 수상</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 힉스 보손의 발견은 50년 가까이 이론으로만 존재하던 표준모형의
+        마지막 조각을 채운 사건이다. 기본 입자가 어떻게 질량을 얻는지를 실험으로 확인했으며, 수십 개 나라
+        수천 명의 과학자가 거대 가속기를 함께 운용해 5σ(우연일 확률 약 350만분의 1)의 통계적 확신으로
+        새 입자를 "발견"한, 현대 대형 과학(Big Science) 협력의 상징적 성취이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 상태 -----
+      // lumi: 적분 광도(fb⁻¹, 통계량), energy: √s(TeV), coupling: 힉스 결합 세기(×표준값)
+      const DEFAULTS = { lumi: 5.0, energy: 8, coupling: 1.0 };
+      const state = { lumi: DEFAULTS.lumi, energy: DEFAULTS.energy, coupling: DEFAULTS.coupling };
+
+      const PEAK_GEV = 125;     // 힉스 질량
+      const X_MIN = 100, X_MAX = 160; // 표시 불변질량 범위(GeV)
+      const PEAK_WIDTH = 3.0;   // 봉우리 폭(GeV, 검출기 해상도 포함 가우시안 σ)
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // ----- 물리량 계산 -----
+      // 단위 폭당 배경 사건 수: 매끄럽게 감소(지수). 통계량과 에너지에 비례.
+      function bgYieldAt(massGeV) {
+        const norm = state.lumi * (state.energy / 8) * 220; // 100 GeV 기준 단위폭당
+        return norm * Math.exp(-(massGeV - X_MIN) / 22);
+      }
+      // 신호 봉우리(가우시안). 결합 세기, 통계량, 에너지(생성 단면적)에 비례.
+      function sigYieldAt(massGeV) {
+        const peakNorm = state.lumi * state.coupling * Math.pow(state.energy / 8, 1.6) * 26;
+        const z = (massGeV - PEAK_GEV) / PEAK_WIDTH;
+        return peakNorm * Math.exp(-0.5 * z * z);
+      }
+
+      // 봉우리 영역(±2σ)에 모인 총 신호 S, 배경 B로 유의성 추정
+      function stats() {
+        const lo = PEAK_GEV - 2 * PEAK_WIDTH, hi = PEAK_GEV + 2 * PEAK_WIDTH;
+        let S = 0, B = 0;
+        for (let m = lo; m <= hi; m += 0.5) {
+          S += sigYieldAt(m) * 0.5;
+          B += bgYieldAt(m) * 0.5;
+        }
+        const significance = B > 0 ? S / Math.sqrt(B) : 0;
+        const sb = B > 0 ? S / B : 0;
+        return { S: S, B: B, significance: significance, sb: sb };
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, W, H);
+
+        const padL = 56, padR = 24, padT = 24, padB = 44;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+        const x0 = padL, y0 = H - padB;
+
+        // y 스케일: 현재 곡선의 최댓값(중앙 부근 신호+배경)을 기준으로
+        const yTop = (bgYieldAt(X_MIN) + sigYieldAt(X_MIN)) * 1.0;
+        const yPeak = bgYieldAt(PEAK_GEV) + sigYieldAt(PEAK_GEV);
+        const yMax = Math.max(yTop, yPeak) * 1.12 + 1;
+
+        const xToPx = (m) => x0 + ((m - X_MIN) / (X_MAX - X_MIN)) * plotW;
+        const yToPx = (v) => y0 - (v / yMax) * plotH;
+
+        // --- 격자 + 축 ---
+        ctx.strokeStyle = '#2a3340';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#7d8a99';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        for (let m = 100; m <= 160; m += 10) {
+          const px = xToPx(m);
+          ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, y0); ctx.stroke();
+          ctx.fillText(String(m), px, y0 + 16);
+        }
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 4; i++) {
+          const v = (yMax / 4) * i;
+          const py = yToPx(v);
+          ctx.strokeStyle = '#1c242e';
+          ctx.beginPath(); ctx.moveTo(x0, py); ctx.lineTo(W - padR, py); ctx.stroke();
+          ctx.fillStyle = '#7d8a99';
+          ctx.fillText(String(Math.round(v)), x0 - 6, py + 4);
+        }
+        // 축선
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(x0, padT); ctx.lineTo(x0, y0); ctx.lineTo(W - padR, y0); ctx.stroke();
+        // 축 라벨
+        ctx.fillStyle = '#9aa7b4'; ctx.textAlign = 'center';
+        ctx.fillText('불변질량 (GeV)', x0 + plotW / 2, H - 6);
+        ctx.save();
+        ctx.translate(16, padT + plotH / 2); ctx.rotate(-Math.PI / 2);
+        ctx.fillText('사건 수', 0, 0);
+        ctx.restore();
+
+        // --- 히스토그램 막대(신호+배경) + 통계적 요동 ---
+        const nBins = 60;
+        const binW = (X_MAX - X_MIN) / nBins;
+        const seed = (n) => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
+        for (let i = 0; i < nBins; i++) {
+          const mc = X_MIN + (i + 0.5) * binW;
+          const expected = (bgYieldAt(mc) + sigYieldAt(mc)) * binW;
+          // 통계적 요동: 표준편차 √N (포아송 근사), 결정론적 의사난수로 재현 가능하게
+          const fluct = (seed(i + state.energy) - 0.5) * 2 * Math.sqrt(Math.max(expected, 1));
+          const obs = Math.max(0, expected + fluct);
+          const bx = xToPx(X_MIN + i * binW);
+          const bw = (plotW / nBins);
+          const by = yToPx(obs / binW); // 단위폭당으로 환산해 표시
+          ctx.fillStyle = 'rgba(120,170,175,0.30)';
+          ctx.fillRect(bx + 0.5, by, bw - 1, y0 - by);
+        }
+
+        // --- 배경 곡선(점선) ---
+        ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        for (let m = X_MIN; m <= X_MAX; m += 0.5) {
+          const px = xToPx(m), py = yToPx(bgYieldAt(m));
+          if (m === X_MIN) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // --- 신호+배경 곡선(실선, 테마색) ---
+        ctx.strokeStyle = '#3a7a80'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let m = X_MIN; m <= X_MAX; m += 0.5) {
+          const px = xToPx(m), py = yToPx(bgYieldAt(m) + sigYieldAt(m));
+          if (m === X_MIN) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // --- 125 GeV 표시선 + 라벨 ---
+        const peakPx = xToPx(PEAK_GEV);
+        ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(peakPx, padT); ctx.lineTo(peakPx, y0); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#f59e0b'; ctx.textAlign = 'center'; ctx.font = '12px sans-serif';
+        ctx.fillText('≈125 GeV 힉스 신호', peakPx, padT + 12);
+
+        // --- 범례 ---
+        ctx.textAlign = 'left'; ctx.font = '11px sans-serif';
+        ctx.strokeStyle = '#64748b'; ctx.setLineDash([6, 4]);
+        ctx.beginPath(); ctx.moveTo(W - padR - 150, padT + 4); ctx.lineTo(W - padR - 126, padT + 4); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#9aa7b4'; ctx.fillText('배경', W - padR - 120, padT + 8);
+        ctx.strokeStyle = '#3a7a80'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(W - padR - 150, padT + 20); ctx.lineTo(W - padR - 126, padT + 20); ctx.stroke();
+        ctx.fillStyle = '#9aa7b4'; ctx.fillText('신호+배경', W - padR - 120, padT + 24);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const st = stats();
+        document.getElementById('r-mass').textContent =
+          state.coupling > 0 ? PEAK_GEV + ' GeV' : '— (신호 없음)';
+        document.getElementById('r-sig').textContent = st.significance.toFixed(1) + ' σ';
+        document.getElementById('r-sb').textContent =
+          st.sb > 0 ? st.sb.toFixed(2) : '0';
+        document.getElementById('r-events').textContent = Math.round(st.S).toLocaleString();
+      }
+
+      // ----- 슬라이더 -----
+      const lumiSlider = document.getElementById('lumi');
+      const energySlider = document.getElementById('energy');
+      const couplingSlider = document.getElementById('coupling');
+      const lumiVal = document.getElementById('lumi-val');
+      const energyVal = document.getElementById('energy-val');
+      const couplingVal = document.getElementById('coupling-val');
+
+      function syncLabels() {
+        lumiVal.textContent = state.lumi.toFixed(1);
+        energyVal.textContent = state.energy % 1 === 0 ? state.energy.toFixed(0) : state.energy.toFixed(1);
+        couplingVal.textContent = state.coupling.toFixed(2);
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      lumiSlider.addEventListener('input', () => {
+        state.lumi = Number(lumiSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      energySlider.addEventListener('input', () => {
+        state.energy = Number(energySlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+      couplingSlider.addEventListener('input', () => {
+        state.coupling = Number(couplingSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.lumi = DEFAULTS.lumi;
+        state.energy = DEFAULTS.energy;
+        state.coupling = DEFAULTS.coupling;
+        lumiSlider.value = String(DEFAULTS.lumi);
+        energySlider.value = String(DEFAULTS.energy);
+        couplingSlider.value = String(DEFAULTS.coupling);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 힉스 장은 기본 입자에 질량을 주고, 드문 신호는 충돌을 많이 모아 통계로 드러냅니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 힉스 = 질량의 기원, 발견 = 충분한 통계로 봉우리를 드러내기, 두 점을 다시 보세요.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

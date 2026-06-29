@@ -1,6 +1,6 @@
 {
-  "version": "0.0.1",
-  "generated": "initial scaffold",
+  "version": "1.0.0",
+  "generated": "v1.0 — all 53 experiments implemented",
   "categories": [
     {
       "id": "01-ancient",
@@ -959,7 +959,7 @@
         "결맞음",
         "반전 분포"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 48,
@@ -978,7 +978,7 @@
         "저항 제로",
         "자기부상"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 49,
@@ -997,7 +997,7 @@
         "중성자",
         "핵에너지"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 50,
@@ -1016,7 +1016,7 @@
         "블랙홀 병합",
         "시공간"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 51,
@@ -1035,7 +1035,7 @@
         "전파간섭계",
         "M87"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 52,
@@ -1054,7 +1054,7 @@
         "LHC",
         "표준모형"
       ],
-      "status": "planned"
+      "status": "ready"
     },
     {
       "id": 53,
@@ -1073,7 +1073,7 @@
         "블로흐 구",
         "양자컴퓨팅"
       ],
-      "status": "planned"
+      "status": "ready"
     }
   ]
 }

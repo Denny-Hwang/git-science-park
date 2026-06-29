@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>초전도 현상 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #234E52;
+      --primary-light: #3a7a80;
+      --bg: #f3f6f6;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0d1b1e; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e7f0f0; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .badge-state {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.9rem; font-weight: 700; color: #fff;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔬 현대 물리학 (Modern Physics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>초전도 현상</h1>
+    <div class="en">Superconductivity</div>
+    <div class="meta">1911년 · 하이케 카메를링 오너스 (Heike Kamerlingh Onnes) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="460" role="img"
+        aria-label="위쪽은 저항-온도 그래프, 아래쪽은 초전도체 블록 위 자석의 자기부상 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>물질 프리셋 (임계온도 Tc):</label>
+          <div class="btn-row" role="group" aria-label="초전도 물질 프리셋">
+            <button type="button" class="btn preset active" data-tc="4.2" data-name="수은 (Hg)">수은 4.2 K</button>
+            <button type="button" class="btn preset" data-tc="39" data-name="이붕화마그네슘 (MgB₂)">MgB₂ 39 K</button>
+            <button type="button" class="btn preset" data-tc="92" data-name="YBCO 세라믹">YBCO 92 K</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="temp">온도 T: <span id="temp-val">75</span> K
+            (임계온도 Tc = <span id="tc-val">4.2</span> K)</label>
+          <input type="range" id="temp" min="0" max="150" step="1" value="75"
+            aria-describedby="temp-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>현재 온도 T: <strong id="r-temp">75 K</strong></div>
+          <div>전기 저항 R: <strong id="r-res">유한</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>상태: <strong><span class="badge-state" id="r-state">상전도</span></strong></div>
+          <div>자기부상: <strong id="r-levit">아니오</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 온도 T를 임계온도 Tc 아래로 내려 보세요. Tc를 지나는 순간
+        위쪽 그래프의 저항이 <em>절벽처럼 0으로 급강하</em>하고, 아래쪽 자석이 초전도체 위로 <em>떠오릅니다</em>
+        (마이스너 효과). 저항이 0이면 한 번 흐른 전류는 영원히 흐릅니다. 물질 프리셋을 바꾸면 Tc가 달라져
+        분기점도 이동합니다. <strong>Tc가 모든 것을 가르는 핵심 분기점</strong>입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>임계온도 Tc 이하에서 전기 저항이 정확히 0이 됨을 이해한다.</li>
+        <li>저항이 0이면 전류가 감쇠 없이 영원히 흐른다는 의미를 안다.</li>
+        <li>마이스너 효과로 초전도체가 자기장을 밀어내 자석이 떠오름을 설명한다.</li>
+        <li>T &gt; Tc일 때는 평범한 도체(유한한 저항)임을 구분한다.</li>
+        <li>물질마다 Tc가 다르고, 고온 초전도체가 왜 중요한지 비교한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>대부분의 금속은 온도가 낮아질수록 저항이 서서히 줄지만 0이 되지는 않는다. 그러나 어떤 물질은
+        고유한 <em>임계온도 Tc</em> 이하로 식히면 저항이 <strong>갑자기 정확히 0</strong>이 된다.
+        이 상태를 <strong>초전도(superconducting) 상태</strong>라고 한다. 저항이 0이므로 열로 에너지가
+        전혀 소모되지 않아, 한 번 흐르기 시작한 전류(영구전류)는 외부 전원 없이도 사실상 영원히 흐른다.</p>
+        <p>또한 초전도체는 내부의 자기장을 완전히 밀어내는 <strong>마이스너 효과(Meissner effect)</strong>를
+        보인다. 그 결과 작은 자석을 초전도체 위에 올리면 반발력으로 <strong>공중에 떠오른다(자기부상)</strong>.
+        T가 Tc보다 높으면 이 모든 성질이 사라지고 평범한 상전도(normal) 도체로 돌아간다.</p>
+      </div>
+
+      <div class="formula-box">
+        T &lt; Tc  →  R = 0  (초전도, 마이스너 효과 → 부상)<br>
+        T &gt; Tc  →  R &gt; 0  (상전도, 평범한 도체)<br>
+        영구전류:  I(t) = I₀  (R = 0 이므로 감쇠 없음)
+      </div>
+
+      <!-- SVG 다이어그램: 저항-온도 곡선과 Tc 분기 -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="온도가 임계온도 Tc 아래로 내려가면 저항이 절벽처럼 0으로 급강하하는 저항-온도 그래프">
+        <!-- 축 -->
+        <line x1="50" y1="20" x2="50" y2="180" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="50" y1="180" x2="330" y2="180" stroke="#6b7280" stroke-width="1.5"/>
+        <text x="8" y="30" font-size="11" fill="#374151">저항 R</text>
+        <text x="290" y="198" font-size="11" fill="#374151">온도 T</text>
+        <!-- Tc 위치(점선) -->
+        <line x1="140" y1="20" x2="140" y2="180" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="5 4"/>
+        <text x="120" y="16" font-size="11" fill="#dc2626">Tc</text>
+        <!-- R(T) 곡선: T>Tc 유한, Tc에서 0으로 급강하 -->
+        <path d="M140 180 L140 110 C180 95 230 78 330 60" fill="none" stroke="#234E52" stroke-width="2.5"/>
+        <line x1="50" y1="180" x2="140" y2="180" stroke="#3a7a80" stroke-width="3"/>
+        <text x="58" y="172" font-size="10" fill="#3a7a80">R = 0</text>
+        <text x="225" y="74" font-size="10" fill="#234E52">유한한 저항</text>
+        <!-- 급강하 강조 화살표 -->
+        <text x="143" y="135" font-size="10" fill="#dc2626">급강하</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        Tc 위에서는 저항이 유한하지만, Tc를 지나는 순간 저항이 절벽처럼 0으로 떨어진다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "초전도는 그냥 저항이 아주 작은 것"이라고 생각하기 쉽다. 그러나
+        초전도체의 저항은 <em>매우 작은</em> 것이 아니라 <strong>정확히 0</strong>이다(측정 가능한 한계
+        이하로 완전히 사라짐). 또 "차갑기만 하면 어떤 물질이든 초전도가 된다"는 것도 오해다. 물질마다
+        고유한 Tc가 있고, 그 이하로 내려가야만 초전도 상태가 된다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>임계 온도(Tc) 이하로 냉각된 초전도체의 전기 저항은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 평소보다 약간 작아진다</label>
+        <label><input type="radio" name="q1" value="correct"> 정확히 0이 된다 (저항이 없다)</label>
+        <label><input type="radio" name="q1" value="wrong"> 오히려 더 커진다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>초전도체 위에 올린 자석이 공중에 떠오르는 현상의 직접적인 원인은?</p>
+        <label><input type="radio" name="q2" value="wrong"> 저항이 0이라 전류가 영원히 흐르기 때문</label>
+        <label><input type="radio" name="q2" value="correct"> 마이스너 효과로 자기장을 밀어내기 때문</label>
+        <label><input type="radio" name="q2" value="wrong"> 초전도체가 가벼워지기 때문</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 하이케 카메를링 오너스 (Heike Kamerlingh Onnes, 1853~1926)</h3>
+        <p>네덜란드 라이덴 대학의 물리학자로 저온 물리학(극저온)의 개척자다. 1908년 헬륨을 세계 최초로
+        액화(약 4.2 K)하는 데 성공하여 이전까지 도달할 수 없던 극저온 영역의 문을 열었다.</p>
+        <p>1911년, 액체 헬륨으로 수은(Hg)을 냉각하던 중 약 4.2 K에서 전기 저항이 <em>갑자기 측정 불가능한
+        수준으로 사라지는</em> 현상을 발견하고 이를 "초전도(supraconductivity)"라 불렀다. 이 공로로 1913년
+        노벨 물리학상을 수상했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1908년 — 카메를링 오너스, 헬륨 액화 성공(약 4.2 K)으로 극저온 연구의 길을 엶</li>
+          <li>1911년 — 수은에서 임계온도 4.2 K 이하 전기 저항이 0이 되는 초전도 현상 발견</li>
+          <li>1933년 — 마이스너와 옥센펠트, 초전도체가 자기장을 밀어내는 마이스너 효과 발견</li>
+          <li>1957년 — 바딘·쿠퍼·슈리퍼, 초전도를 설명하는 BCS 이론 발표(전자쌍, 쿠퍼쌍)</li>
+          <li>1986년 — 베드노르츠·뮐러, 고온 초전도체(구리 산화물) 발견 → 액체질소(77 K) 영역 진입</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 초전도 발견은 거시 세계에서 양자 현상이 직접 드러나는 대표적 사례로,
+        20세기 응집물질물리학의 핵심 주제가 되었다. 저항 없는 전류와 강력한 자기장은 MRI, 입자가속기,
+        자기부상열차(MAGLEV) 등 현대 기술의 토대가 되었으며, 상온 초전도체의 실현은 지금도 물리학의
+        가장 뜨거운 도전 과제로 남아 있다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        temp: 75,        // 현재 온도 T (K)
+        tc: 4.2,         // 임계온도 Tc (K)
+        material: '수은 (Hg)',
+        // 부상 애니메이션용: 자석의 표시 높이(0=바닥, 1=완전 부상)
+        levit: 0,        // 현재 보간 위치
+        levitTarget: 0,  // 목표 위치
+        raf: null
+      };
+
+      const T_MAX = 150;
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const tempSlider = document.getElementById('temp');
+      const presetBtns = document.querySelectorAll('.btn.preset');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 모델 -----
+      function isSuper() { return state.temp < state.tc; }
+
+      // 상전도 영역(T>=Tc)의 저항 모델: 온도에 대략 비례(금속의 잔류저항+선형항).
+      // 표시는 정성적 단위(arb.)로 한다.
+      function resistance() {
+        if (isSuper()) return 0;
+        // Tc 바로 위에서 0이 아닌 유한값에서 시작해 온도에 따라 증가
+        const above = state.temp - state.tc;
+        return 0.15 + above * 0.012; // arbitrary units
+      }
+
+      // R(T) 그래프에서의 y픽셀 매핑용 최대 저항(축 스케일)
+      function maxResistance() {
+        return 0.15 + (T_MAX - state.tc) * 0.012;
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#0d1b1e';
+        ctx.fillRect(0, 0, W, H);
+
+        drawGraph(W);
+        drawLevitation(W, H);
+
+        // 구분선
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(20, 215); ctx.lineTo(W - 20, 215); ctx.stroke();
+      }
+
+      // 위쪽: 저항-온도 R(T) 그래프
+      function drawGraph(W) {
+        const ox = 55, oy = 195;        // 원점(px)
+        const axW = W - ox - 35;        // 가로 길이
+        const axH = 165;                // 세로 길이
+        const top = oy - axH;
+
+        const tToX = (t) => ox + (t / T_MAX) * axW;
+        const rToY = (r) => oy - (r / maxResistance()) * axH;
+
+        // 제목
+        ctx.fillStyle = '#9fd4d8';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('저항 R  vs  온도 T', ox, top - 6);
+
+        // 축
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(ox, top); ctx.lineTo(ox, oy); ctx.lineTo(ox + axW, oy); ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('R', ox - 18, top + 8);
+        ctx.fillText('T (K)', ox + axW - 20, oy + 16);
+
+        // Tc 점선
+        const tcX = tToX(state.tc);
+        ctx.strokeStyle = '#ff6b6b';
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(tcX, top); ctx.lineTo(tcX, oy); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ff8a8a';
+        ctx.fillText('Tc=' + state.tc + 'K', tcX + 4, top + 12);
+
+        // R(T) 곡선: T<Tc 구간 R=0, T>=Tc 구간 유한
+        // 초전도 구간(바닥, R=0)
+        ctx.strokeStyle = '#4fd1c5';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy); ctx.lineTo(tcX, oy); ctx.stroke();
+
+        // 상전도 구간(유한 저항, 우상향)
+        ctx.strokeStyle = '#7fb3ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let t = state.tc; t <= T_MAX; t += 1) {
+          const above = t - state.tc;
+          const r = 0.15 + above * 0.012;
+          const x = tToX(t), y = rToY(r);
+          if (t === state.tc) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Tc에서의 수직 급강하(절벽) 표시
+        ctx.strokeStyle = 'rgba(255,138,138,0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(tcX, oy); ctx.lineTo(tcX, rToY(0.15)); ctx.stroke();
+
+        // 현재 온도 마커
+        const curX = tToX(state.temp);
+        const curR = resistance();
+        const curY = rToY(curR);
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(curX, top); ctx.lineTo(curX, oy); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(curX, curY, 6, 0, Math.PI * 2);
+        ctx.fillStyle = isSuper() ? '#4fd1c5' : '#7fb3ff';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText('T=' + state.temp + 'K', curX + 8, Math.max(top + 10, curY - 8));
+      }
+
+      // 아래쪽: 초전도체 블록 위 자석의 자기부상
+      function drawLevitation(W, H) {
+        const cx = W / 2;
+        const blockY = H - 60;          // 초전도체 블록 윗면 y
+        const blockW = 200, blockH = 40;
+        const sup = isSuper();
+
+        // 라벨
+        ctx.fillStyle = '#9fd4d8';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('초전도체 위 자기부상', 30, 240);
+
+        // 냉각 안개(초전도 상태에서 표현)
+        if (sup) {
+          ctx.fillStyle = 'rgba(120,220,220,0.10)';
+          for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.ellipse(cx - 70 + i * 35, blockY + 6, 26, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // 초전도체 블록
+        const grad = ctx.createLinearGradient(0, blockY, 0, blockY + blockH);
+        if (sup) {
+          grad.addColorStop(0, '#2dd4bf');
+          grad.addColorStop(1, '#0f766e');
+        } else {
+          grad.addColorStop(0, '#6b7280');
+          grad.addColorStop(1, '#374151');
+        }
+        ctx.fillStyle = grad;
+        roundRect(cx - blockW / 2, blockY, blockW, blockH, 6);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('초전도체', cx, blockY + blockH / 2 + 4);
+
+        // 자석 위치: levit(0~1)에 따라 블록 위 0~maxLift px 부상
+        const maxLift = 60;
+        const magW = 70, magH = 26;
+        const restGap = 4; // 바닥 안착 시 약간의 간격
+        const magBottom = blockY - restGap - state.levit * maxLift;
+        const magTop = magBottom - magH;
+        const magCx = cx;
+
+        // 마이스너 반발 필드(부상 시 곡선)
+        if (state.levit > 0.05) {
+          ctx.strokeStyle = 'rgba(127,211,197,' + (0.15 + 0.35 * state.levit) + ')';
+          ctx.lineWidth = 1.5;
+          for (let s = -1; s <= 1; s += 2) {
+            ctx.beginPath();
+            ctx.moveTo(magCx + s * 30, magBottom);
+            ctx.quadraticCurveTo(magCx + s * 75, (magBottom + blockY) / 2, magCx + s * 55, blockY);
+            ctx.stroke();
+          }
+        }
+
+        // 부상 그림자(블록 윗면)
+        ctx.beginPath();
+        ctx.ellipse(magCx, blockY - 1, 38 - state.levit * 8, 4, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,' + (0.25 - state.levit * 0.12) + ')';
+        ctx.fill();
+
+        // 자석(N극 빨강 / S극 파랑)
+        ctx.fillStyle = '#dc2626';
+        roundRect(magCx - magW / 2, magTop, magW / 2, magH, 4);
+        ctx.fill();
+        ctx.fillStyle = '#2563eb';
+        roundRect(magCx, magTop, magW / 2, magH, 4);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(magCx - magW / 2, magTop, magW, magH);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('N', magCx - magW / 4, magTop + magH / 2 + 4);
+        ctx.fillText('S', magCx + magW / 4, magTop + magH / 2 + 4);
+
+        // 상태 텍스트
+        ctx.font = 'bold 13px sans-serif';
+        if (sup) {
+          ctx.fillStyle = '#4fd1c5';
+          ctx.fillText('마이스너 효과 → 부상!', magCx, magTop - 10);
+        } else {
+          ctx.fillStyle = '#fca5a5';
+          ctx.fillText('상전도 → 바닥에 안착', magCx, blockY - magH - restGap - 8);
+        }
+        ctx.textAlign = 'left';
+      }
+
+      function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      // ----- 부상 애니메이션(rAF로 목표 위치까지 부드럽게 보간) -----
+      function animateLevit() {
+        if (state.raf) cancelAnimationFrame(state.raf);
+        const step = () => {
+          const diff = state.levitTarget - state.levit;
+          if (Math.abs(diff) < 0.005) {
+            state.levit = state.levitTarget;
+            draw();
+            state.raf = null;
+            return;
+          }
+          state.levit += diff * 0.18; // easing
+          draw();
+          state.raf = requestAnimationFrame(step);
+        };
+        state.raf = requestAnimationFrame(step);
+      }
+
+      // ----- 결과 계산/갱신 -----
+      function updateResult() {
+        const sup = isSuper();
+        document.getElementById('r-temp').textContent = state.temp + ' K';
+        document.getElementById('r-res').textContent =
+          sup ? '0 (저항 없음)' : resistance().toFixed(2) + ' (유한, arb.)';
+
+        const stateBadge = document.getElementById('r-state');
+        if (sup) {
+          stateBadge.textContent = '초전도';
+          stateBadge.style.background = '#0f766e';
+        } else {
+          stateBadge.textContent = '상전도';
+          stateBadge.style.background = '#9a3412';
+        }
+
+        document.getElementById('r-levit').textContent = sup ? '예 (자석이 떠 있음)' : '아니오';
+
+        // 부상 목표 설정 후 애니메이션
+        state.levitTarget = sup ? 1 : 0;
+        animateLevit();
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      tempSlider.addEventListener('input', () => {
+        state.temp = Number(tempSlider.value);
+        document.getElementById('temp-val').textContent = state.temp;
+        updateResult();
+        draw();
+      });
+
+      // 물질 프리셋(Tc 변경)
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          presetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.tc = Number(btn.dataset.tc);
+          state.material = btn.dataset.name;
+          document.getElementById('tc-val').textContent = state.tc;
+          updateResult();
+          draw();
+        });
+      });
+
+      // ----- 리셋 -----
+      function resetSim() {
+        state.temp = 75;
+        state.tc = 4.2;
+        state.material = '수은 (Hg)';
+        tempSlider.value = 75;
+        document.getElementById('temp-val').textContent = 75;
+        document.getElementById('tc-val').textContent = 4.2;
+        presetBtns.forEach((b) => b.classList.remove('active'));
+        if (presetBtns[0]) presetBtns[0].classList.add('active');
+        state.levit = 0;
+        updateResult();
+        draw();
+      }
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'Tc 이하에서 저항은 정확히 0이 되어 전류가 감쇠 없이 영원히 흐릅니다.',
+        '초전도체의 저항은 "작은" 것이 아니라 정확히 0입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '마이스너 효과로 초전도체가 자기장을 밀어내며 반발력이 자석을 띄웁니다.',
+        '부상의 직접 원인은 자기장을 밀어내는 마이스너 효과입니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

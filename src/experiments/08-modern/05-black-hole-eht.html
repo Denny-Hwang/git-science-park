@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>블랙홀 영상화 (EHT) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #234E52;
+      --primary-light: #3a7a80;
+      --bg: #f3f6f6;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, .controls input:focus-visible,
+    .controls .btn:focus-visible, .quiz-box button:focus-visible, .quiz-box label:focus-within {
+      outline: 3px solid var(--primary-light); outline-offset: 2px; border-radius: 4px;
+    }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 4px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #05070d; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls .ctrl { margin-bottom: 14px; }
+    .controls .ctrl:last-of-type { margin-bottom: 0; }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls .btn {
+      margin-top: 4px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .controls .btn:hover { background: var(--primary-light); }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e7f0f0; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-box .row { margin: 2px 0; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 1.9;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box .q { margin-top: 10px; }
+    .quiz-box .q:first-of-type { margin-top: 0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; padding: 2px 4px; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin: 6px 0; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔬 현대 물리학 (Modern Physics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>블랙홀 영상화 (EHT)</h1>
+    <div class="en">Black Hole Imaging (EHT)</div>
+    <div class="meta">2019년 · 사건의 지평선 망원경 협력단 (Event Horizon Telescope) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" aria-label="블랙홀의 그림자와 밝은 광자 고리, 회전하는 강착원반을 보여주는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="ctrl">
+          <label for="mass">블랙홀 질량 M: <span id="mass-val">6.5×10⁹</span> M<sub>☉</sub> (태양질량)</label>
+          <input type="range" id="mass" min="0" max="10" step="0.01" value="9.81"
+                 aria-describedby="result">
+        </div>
+
+        <button type="button" class="btn" id="reset-btn">↺ 초기값으로 리셋 (M87*)</button>
+      </div>
+
+      <div class="result-box" id="result" aria-live="polite">
+        <div class="row">슈바르츠실트 반지름 r<sub>s</sub>: <strong id="rs-out">—</strong></div>
+        <div class="row">그림자 지름(≈ 2.6 r<sub>s</sub>): <strong id="shadow-out">—</strong></div>
+        <div class="row">개념적 그림자 각지름: <strong id="ang-out">—</strong></div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 가운데 새까만 원이 빛조차 빠져나오지 못하는
+        <strong>사건의 지평선(그림자)</strong>이다. 그 둘레를 휘감는 가느다란 밝은 띠가
+        <strong>광자 고리</strong>, 바깥쪽으로 회전하는 원반이 <strong>강착원반</strong>이다.
+        강착원반은 우리 쪽으로 다가오는 한쪽이 더 밝게 보인다(상대론적 도플러 비대칭).
+        질량 M을 키우면 그림자와 광자 고리가 함께 <strong>커진다</strong>(r<sub>s</sub> ∝ M).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>슈바르츠실트 반지름 r<sub>s</sub> = 2GM/c² 가 질량에 정비례함을 이해한다.</li>
+        <li>사건의 지평선·광자 고리·강착원반이 무엇인지 구분한다.</li>
+        <li>블랙홀의 '그림자'가 어떻게 보이며 왜 한쪽이 더 밝은지(도플러 비대칭) 설명한다.</li>
+        <li>EHT가 전 지구 전파망원경을 묶어(VLBI) 지구 크기의 가상 망원경을 만든 원리를 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>질량 M인 블랙홀에서 빛조차 탈출할 수 없는 경계의 반지름을 <strong>슈바르츠실트 반지름</strong>이라 하며
+        <strong>r<sub>s</sub> = 2GM/c²</strong> 로 주어진다. 질량이 두 배가 되면 이 경계도 정확히 두 배로 커진다.</p>
+        <p>블랙홀 주위에서는 강한 중력이 빛의 경로를 휘게 한다. 그 결과 사건의 지평선보다 더 큰
+        어두운 <strong>그림자(shadow)</strong>가 생기고, 그 둘레를 빛이 여러 바퀴 휘감으며 만드는 밝은
+        <strong>광자 고리(photon ring)</strong>가 나타난다. 떨어지는 가스가 만드는 뜨거운
+        <strong>강착원반(accretion disk)</strong>은 우리를 향해 다가오는 쪽이 상대론적 도플러 효과로
+        더 밝게 보인다. 그림자 지름은 대략 슈바르츠실트 반지름의 약 2.6배다.</p>
+        <p>이 그림자는 너무 작아(M87*는 달 위의 도넛 하나 정도의 각크기) 한 대의 망원경으로는 볼 수 없다.
+        EHT는 전 세계의 전파망원경을 동시에 관측해 신호를 합치는 <strong>초장기선 전파간섭계(VLBI)</strong>로,
+        사실상 지구만 한 구경의 가상 망원경을 구현해 2019년 M87* 그림자를 처음 촬영했다.</p>
+      </div>
+
+      <div class="formula-box">
+        r<sub>s</sub> = 2 · G · M / c²
+        <br>
+        그림자 지름 ≈ 2.6 · r<sub>s</sub>
+        <br>
+        θ ≈ 2 · r<sub>s</sub> / D &nbsp;(각지름, 거리 D)
+      </div>
+
+      <!-- SVG 다이어그램: 사건의 지평선 / 그림자 / 광자 고리 / 강착원반 -->
+      <svg width="420" height="240" viewBox="0 0 420 240" role="img"
+           aria-label="블랙홀의 사건의 지평선, 그림자, 광자 고리, 강착원반의 구조 다이어그램">
+        <rect x="0" y="0" width="420" height="240" fill="#05070d"/>
+        <!-- 강착원반(타원) -->
+        <ellipse cx="210" cy="120" rx="150" ry="42" fill="none" stroke="#f59e0b" stroke-width="10" opacity="0.5"/>
+        <ellipse cx="210" cy="120" rx="150" ry="42" fill="none" stroke="#fde68a" stroke-width="3"/>
+        <!-- 광자 고리 -->
+        <circle cx="210" cy="120" r="64" fill="none" stroke="#fff7d6" stroke-width="5" opacity="0.9"/>
+        <circle cx="210" cy="120" r="64" fill="none" stroke="#f59e0b" stroke-width="9" opacity="0.35"/>
+        <!-- 그림자(사건의 지평선) -->
+        <circle cx="210" cy="120" r="50" fill="#000"/>
+        <!-- 라벨 -->
+        <text x="186" y="124" font-size="11" fill="#cbd5e0">그림자</text>
+        <line x1="262" y1="86" x2="300" y2="56" stroke="#fff7d6" stroke-width="1"/>
+        <text x="300" y="52" font-size="11" fill="#fff7d6">광자 고리</text>
+        <line x1="350" y1="120" x2="384" y2="120" stroke="#fde68a" stroke-width="1"/>
+        <text x="318" y="150" font-size="11" fill="#fde68a">강착원반</text>
+        <line x1="210" y1="120" x2="210" y2="170" stroke="#64748b" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="214" y="188" font-size="11" fill="#94a3b8">r_s ∝ M</text>
+      </svg>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "블랙홀 사진은 블랙홀 표면을 찍은 것"이라거나 "블랙홀이 주변의 모든 것을
+        빨아들이는 우주 진공청소기"라고 오해하기 쉽다. 실제로 우리가 본 것은 블랙홀 <em>자체</em>가 아니라
+        주변에서 빛나는 가스를 배경으로 드리워진 <em>그림자</em>이며, 멀리 떨어진 물체는 같은 질량의 별과
+        똑같은 중력만 받을 뿐 무한정 빨려 들어가지 않는다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈</h3>
+        <div class="q">
+          <p>1. 블랙홀의 질량 M이 클수록 사건의 지평선(그림자)은 어떻게 되는가?</p>
+          <label><input type="radio" name="q1" value="correct"> 커진다 (r<sub>s</sub> ∝ M)</label>
+          <label><input type="radio" name="q1" value="wrong"> 작아진다</label>
+          <label><input type="radio" name="q1" value="wrong"> 질량과 무관하다</label>
+        </div>
+        <div class="q">
+          <p>2. EHT가 지구 크기에 가까운 분해능을 얻은 비결은?</p>
+          <label><input type="radio" name="q2" value="wrong"> 망원경을 우주로 발사해서</label>
+          <label><input type="radio" name="q2" value="correct"> 전 지구의 전파망원경을 묶어 가상의 거대 망원경(VLBI)을 만들어서</label>
+          <label><input type="radio" name="q2" value="wrong"> 가시광선 대신 X선을 써서</label>
+        </div>
+        <button type="button" id="quiz-btn">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>연구진: 사건의 지평선 망원경 협력단 (Event Horizon Telescope Collaboration)</h3>
+        <p>EHT는 전 세계 13개 기관, 200명이 넘는 연구자들이 참여한 국제 협력 프로젝트다.
+        칠레의 ALMA, 하와이의 JCMT·SMA, 스페인, 멕시코, 남극(SPT) 등 지구 곳곳의 전파망원경을
+        원자시계로 정밀하게 동기화해 동시에 관측했다. 영상 복원 알고리즘 개발을 이끈
+        케이티 보먼(Katie Bouman)을 비롯한 여러 팀이 독립적으로 영상을 재구성해 결과를 교차 검증했다.
+        블랙홀 그림자의 존재는 1916년 슈바르츠실트가 아인슈타인 방정식을 풀어 예측한 지평선,
+        그리고 일반상대성이론의 직접적인 시각적 증거가 되었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1915년 — 아인슈타인이 일반상대성이론 발표</li>
+          <li>1916년 — 슈바르츠실트가 사건의 지평선(슈바르츠실트 반지름)을 수학적으로 도출</li>
+          <li>1973년 — 바딘 등이 강한 중력렌즈로 생기는 블랙홀 '그림자'의 모습을 이론적으로 예측</li>
+          <li>2009년 — EHT 프로젝트 본격 출범, 전 지구 VLBI 관측망 구성</li>
+          <li>2017년 4월 — M87*와 우리 은하 중심 Sgr A*를 동시 관측(약 5페타바이트 데이터)</li>
+          <li>2019년 4월 10일 — M87* 블랙홀의 그림자 첫 영상 공개</li>
+          <li>2022년 — 우리 은하 중심 블랙홀 Sgr A*의 영상 공개</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 인류가 블랙홀의 그림자를 직접 '본' 최초의 사건으로,
+        한 세기 전 이론으로만 존재하던 사건의 지평선이 실재함을 시각적으로 확인했다.
+        지구만 한 가상 망원경(VLBI)으로 5천 500만 광년 떨어진 M87 은하 중심,
+        태양 65억 배 질량의 괴물 블랙홀을 분해해낸 것은 관측천문학의 한계를 다시 쓴 성취였다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ----- 물리 상수 -----
+      const G = 6.674e-11;       // 중력상수 (m^3 kg^-1 s^-2)
+      const C = 2.998e8;         // 광속 (m/s)
+      const M_SUN = 1.989e30;    // 태양질량 (kg)
+      const KM = 1e3;            // 1 km in m
+      const AU = 1.496e11;       // 1 천문단위 in m
+      const M87_DIST_M = 5.5e7 * 9.461e15; // M87까지 거리(약 5500만 광년) in m
+
+      // ----- 상태 (slider: 질량의 로그값 log10(M / M_sun)) -----
+      // M87* 질량 ≈ 6.5e9 M_sun → log10 ≈ 9.8129
+      const DEFAULTS = { logM: 9.81 };
+      const state = { logM: DEFAULTS.logM };
+
+      // ----- (1) 탭 전환 -----
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach((b) => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+          tabContents.forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 파생값 -----
+      function massKg() { return Math.pow(10, state.logM) * M_SUN; }
+      // 슈바르츠실트 반지름 (m): r_s = 2GM/c^2
+      function rsMeters() { return (2 * G * massKg()) / (C * C); }
+
+      // 지수표기 도우미: 1.23×10⁴ 형태
+      const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+      function sup(n) { return String(n).split('').map((ch) => SUP[ch] || ch).join(''); }
+      function sci(value, digits) {
+        if (value === 0) return '0';
+        const exp = Math.floor(Math.log10(Math.abs(value)));
+        const mant = value / Math.pow(10, exp);
+        return mant.toFixed(digits === undefined ? 2 : digits) + '×10' + sup(exp);
+      }
+
+      // 질량 표시용: 태양질량 배수 (지수표기 또는 일반)
+      function massLabel() {
+        const m = Math.pow(10, state.logM); // M / M_sun
+        return sci(m, 2);
+      }
+
+      // ----- Canvas -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      let phase = 0; // 강착원반 회전 위상
+      let rafId = null;
+
+      // ----- (3) draw(): state(+phase)만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 우주 배경
+        ctx.fillStyle = '#05070d';
+        ctx.fillRect(0, 0, W, H);
+
+        // 배경 별 (logM 시드로 고정 패턴)
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        let seed = 1234.567;
+        for (let i = 0; i < 90; i++) {
+          seed = (seed * 9301 + 49297) % 233280;
+          const sx = (seed / 233280) * W;
+          seed = (seed * 9301 + 49297) % 233280;
+          const sy = (seed / 233280) * H;
+          seed = (seed * 9301 + 49297) % 233280;
+          const sr = (seed / 233280) * 1.1 + 0.2;
+          ctx.globalAlpha = 0.3 + (seed / 233280) * 0.5;
+          ctx.beginPath();
+          ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        const cx = W / 2, cy = H / 2;
+
+        // 질량 → 화면 그림자 반지름 매핑(로그 스케일을 시각 반지름으로)
+        // logM: 0~10 → 그림자 반지름 18~120 px
+        const t = state.logM / 10;            // 0~1
+        const shadowR = 18 + t * 102;         // px
+        const photonR = shadowR * 1.12;       // 광자 고리 반지름
+        const diskInner = shadowR * 1.30;     // 강착원반 안쪽
+        const diskOuter = shadowR * 2.55;     // 강착원반 바깥
+        const diskRy = 0.34;                  // 원반 기울기(타원 종횡비)
+
+        // --- 강착원반 (뒤쪽 절반: 그림자 위로 살짝 보임) ---
+        // 도플러 비대칭: 왼쪽(다가오는 쪽)을 더 밝게
+        for (let r = diskOuter; r >= diskInner; r -= 1.5) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r, r * diskRy, 0, 0, Math.PI * 2);
+          const edge = 1 - (r - diskInner) / (diskOuter - diskInner); // 안쪽=1
+          ctx.strokeStyle = 'rgba(245, 158, 11, ' + (0.10 + 0.18 * edge) + ')';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // --- 그림자(사건의 지평선) ---
+        ctx.beginPath();
+        ctx.arc(cx, cy, shadowR, 0, Math.PI * 2);
+        ctx.fillStyle = '#000';
+        ctx.fill();
+
+        // --- 광자 고리(밝은 링) ---
+        const ringGrad = ctx.createRadialGradient(cx, cy, shadowR * 0.96, cx, cy, photonR * 1.06);
+        ringGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        ringGrad.addColorStop(0.55, 'rgba(255, 247, 214, 0.95)');
+        ringGrad.addColorStop(0.8, 'rgba(245, 158, 11, 0.85)');
+        ringGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, photonR * 1.06, 0, Math.PI * 2);
+        ctx.fillStyle = ringGrad;
+        ctx.fill();
+        // 그림자 다시 덮어 링이 가운데를 침범하지 않게
+        ctx.beginPath();
+        ctx.arc(cx, cy, shadowR, 0, Math.PI * 2);
+        ctx.fillStyle = '#000';
+        ctx.fill();
+
+        // --- 강착원반 (앞쪽 절반: 그림자를 가리며 회전, 도플러 비대칭) ---
+        const samples = 220;
+        ctx.lineWidth = Math.max(2, (diskOuter - diskInner) / 5);
+        for (let i = 0; i < samples; i++) {
+          const ang = (i / samples) * Math.PI * 2 + phase;
+          const rMid = (diskInner + diskOuter) / 2;
+          const x1 = cx + Math.cos(ang) * rMid;
+          const y1 = cy + Math.sin(ang) * rMid * diskRy;
+          // 도플러: cos(ang)<0(왼쪽)이 다가오는 쪽 → 밝게. 위상으로 살짝 일렁임
+          const doppler = 0.5 - 0.5 * Math.cos(ang); // 1(왼쪽)~0(오른쪽)
+          const bright = 0.15 + 0.85 * doppler;
+          ctx.beginPath();
+          ctx.arc(x1, y1, ctx.lineWidth * 0.6, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, ' + Math.round(210 + 45 * doppler) + ', ' + Math.round(120 * doppler) + ', ' + bright.toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        // --- 라벨 ---
+        ctx.fillStyle = '#cbd5e0';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('사건의 지평선(그림자)', 12, H - 34);
+        ctx.fillText('밝은 쪽 = 다가오는 강착원반 (도플러)', 12, H - 16);
+        ctx.fillStyle = '#fff7d6';
+        ctx.fillText('M = ' + massLabel() + ' M☉', 12, 22);
+      }
+
+      // ----- 결과 갱신 -----
+      function updateResult() {
+        const rs = rsMeters();           // m
+        const shadowDia = 2.6 * rs;      // m (지름)
+        // 단위 선택: 작으면 km, 크면 AU
+        function fmtLen(meters) {
+          if (meters >= AU) return sci(meters / AU, 2) + ' AU';
+          return sci(meters / KM, 2) + ' km';
+        }
+        document.getElementById('rs-out').textContent = fmtLen(rs);
+        document.getElementById('shadow-out').textContent = fmtLen(shadowDia);
+        // 개념적 각지름: M87 거리에 두었다고 가정 θ = 2 r_s / D (rad) → μas
+        const thetaRad = (2 * rs) / M87_DIST_M;
+        const thetaUas = thetaRad * (180 / Math.PI) * 3600 * 1e6; // microarcsec
+        document.getElementById('ang-out').textContent =
+          sci(thetaUas, 2) + ' μas (M87 거리 가정)';
+      }
+
+      // ----- 슬라이더 값 표시 -----
+      const massSlider = document.getElementById('mass');
+      const massValEl = document.getElementById('mass-val');
+
+      function syncLabels() {
+        massValEl.textContent = massLabel();
+      }
+
+      // ----- (2) 슬라이더 이벤트 -----
+      massSlider.addEventListener('input', () => {
+        state.logM = Number(massSlider.value);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 리셋 -----
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        state.logM = DEFAULTS.logM;
+        massSlider.value = String(DEFAULTS.logM);
+        syncLabels(); updateResult(); draw();
+      });
+
+      // ----- 애니메이션 루프 (강착원반 회전) -----
+      function tick() {
+        phase += 0.012;
+        if (phase > Math.PI * 2) phase -= Math.PI * 2;
+        draw();
+        rafId = requestAnimationFrame(tick);
+      }
+
+      // ----- (4) 퀴즈 채점 -----
+      document.getElementById('quiz-btn').addEventListener('click', () => {
+        const out = document.getElementById('quiz-feedback');
+        const a1 = document.querySelector('input[name="q1"]:checked');
+        const a2 = document.querySelector('input[name="q2"]:checked');
+        if (!a1 || !a2) {
+          out.textContent = '두 문제 모두 답을 선택하세요.';
+          out.style.color = '#6b7280';
+          return;
+        }
+        let score = 0;
+        if (a1.value === 'correct') score++;
+        if (a2.value === 'correct') score++;
+        if (score === 2) {
+          out.textContent = '정답입니다! 🎉 r_s = 2GM/c² 이므로 질량이 클수록 그림자가 커지고, EHT는 전 지구 망원경을 묶어 지구만 한 가상 망원경을 만들었습니다.';
+          out.style.color = '#16a34a';
+        } else {
+          out.textContent = score + '/2 정답. 그림자 크기는 r_s = 2GM/c²(질량에 비례), 분해능은 망원경 사이 거리(VLBI)에 달렸습니다.';
+          out.style.color = '#dc2626';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      syncLabels();
+      updateResult();
+      draw();
+      rafId = requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

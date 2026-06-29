@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>핵분열 연쇄반응 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #234E52;
+      --primary-light: #3a7a80;
+      --bg: #f3f6f6;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #0e1b1c; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .state-pill {
+      display: inline-block; padding: 2px 12px; border-radius: 999px;
+      font-weight: 700; font-size: 0.95rem; color: #fff;
+    }
+    .state-sub { background: #2563eb; }
+    .state-crit { background: #16a34a; }
+    .state-super { background: #dc2626; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e9f1f1; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 140px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🔬 현대 물리학 (Modern Physics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>핵분열 연쇄반응</h1>
+    <div class="en">Nuclear Fission Chain Reaction</div>
+    <div class="meta">1938년 · 한, 슈트라스만, 마이트너 (Hahn, Strassmann, Meitner) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="420" role="img"
+        aria-label="우라늄-235 핵 격자에 중성자가 충돌해 핵분열과 연쇄반응이 퍼지는 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="kfactor">증배계수 k (한 분열이 유발하는 평균 추가 분열): <span id="k-val">1.00</span></label>
+          <input type="range" id="kfactor" min="0.4" max="2.5" step="0.01" value="1.00"
+            aria-describedby="k-val">
+        </div>
+
+        <div class="control-row">
+          <label for="absorber">중성자 흡수재(제어봉) 삽입량: <span id="absorber-val">0</span> %</label>
+          <input type="range" id="absorber" min="0" max="80" step="1" value="0"
+            aria-describedby="absorber-val">
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="aboveCritical" checked>
+            <label for="aboveCritical">임계질량 이상 (충분한 U-235 격자)</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="fireBtn">🚀 중성자 발사</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>유효 증배계수 k<sub>eff</sub>: <strong id="r-keff">1.00</strong></div>
+          <div>상태: <span class="state-pill state-crit" id="r-state">임계</span></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>현재 세대: <strong id="r-gen">0</strong></div>
+          <div>이번 세대 분열 수: <strong id="r-fissions">0</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>누적 분열 수: <strong id="r-total">0</strong></div>
+          <div>방출 에너지(상대): <strong id="r-energy">0</strong> MeV</div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> <strong>중성자 발사</strong>를 눌러 연쇄반응을 시작하세요.
+        k를 1보다 작게(미임계) 하면 분열이 곧 사그라들고, k≈1(임계)이면 세대마다 분열 수가 일정하게 유지되며,
+        k를 1보다 크게(초임계) 하면 세대마다 분열이 기하급수적으로 폭증합니다. 제어봉(흡수재)을 넣으면
+        중성자가 흡수되어 유효 k가 낮아지고, 임계질량 미만이면 중성자가 핵을 맞히기 전에 새어 나가 반응이 멈춥니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>중성자가 U-235 핵에 흡수되면 핵이 둘로 쪼개지며 에너지와 새 중성자를 방출함을 이해한다.</li>
+        <li>방출된 중성자가 또 다른 핵을 쪼개는 연쇄반응의 원리를 파악한다.</li>
+        <li>증배계수 k로 미임계(k&lt;1)·임계(k=1)·초임계(k&gt;1)를 구분한다.</li>
+        <li>임계질량과 제어봉(흡수재)이 연쇄반응 지속 여부를 결정함을 안다.</li>
+        <li>원자로(k=1 제어)와 핵폭탄(k&gt;1)의 차이를 설명한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>느린 중성자 하나가 <em>우라늄-235</em> 핵에 흡수되면 불안정해진 핵이 두 개의 더 가벼운 핵(파편)으로
+        쪼개진다. 이것이 <strong>핵분열(fission)</strong>이다. 이때 큰 에너지(약 200 MeV)와 함께
+        평균 <strong>2~3개</strong>의 새 중성자가 튀어나온다.</p>
+        <p>새로 나온 중성자들이 다시 이웃한 핵을 쪼개면 분열이 꼬리를 물고 이어지는 <strong>연쇄반응</strong>이
+        일어난다. 한 번의 분열이 평균 몇 번의 다음 분열을 유발하는지를 <strong>증배계수 k</strong>로 나타낸다.</p>
+        <ul class="goals">
+          <li><strong>k &lt; 1 (미임계):</strong> 세대마다 분열이 줄어 곧 사그라든다.</li>
+          <li><strong>k = 1 (임계):</strong> 분열 수가 일정하게 유지된다 → 원자로의 정상 운전.</li>
+          <li><strong>k &gt; 1 (초임계):</strong> 세대마다 분열이 배가되어 기하급수적으로 폭증한다 → 폭탄.</li>
+        </ul>
+        <p>중성자가 핵을 맞히기 전에 밖으로 새어 나가면 k가 떨어진다. 그래서 핵분열 물질이 일정량
+        (<strong>임계질량</strong>) 이상 모여야 연쇄반응이 지속될 수 있다. 반대로 중성자를 잘 흡수하는
+        <strong>제어봉</strong>을 넣으면 k가 내려가 반응을 멈추거나 늦출 수 있다.</p>
+      </div>
+
+      <div class="formula-box">
+        N(세대 n) = N₀ · kⁿ<br>
+        k &lt; 1 → 감쇠 &nbsp;|&nbsp; k = 1 → 유지 &nbsp;|&nbsp; k &gt; 1 → 폭증<br>
+        ²³⁵U + n → 파편₁ + 파편₂ + (2~3)n + 에너지(≈200 MeV)
+      </div>
+
+      <!-- SVG 다이어그램: 한 분열이 두 분열을 유발하는 연쇄(k≈2) -->
+      <svg width="360" height="220" viewBox="0 0 360 220" role="img"
+        aria-label="중성자 하나가 핵을 쪼개고 거기서 나온 두 중성자가 다음 두 핵을 쪼개는 연쇄반응 트리 다이어그램">
+        <!-- 1세대 핵 -->
+        <circle cx="60" cy="110" r="16" fill="#234E52"/>
+        <text x="60" y="114" font-size="10" fill="#fff" text-anchor="middle">U</text>
+        <!-- 입사 중성자 -->
+        <circle cx="20" cy="110" r="5" fill="#d97706"/>
+        <line x1="25" y1="110" x2="42" y2="110" stroke="#d97706" stroke-width="2"/>
+        <!-- 1세대 → 2세대 방출 중성자 -->
+        <line x1="76" y1="110" x2="150" y2="70" stroke="#d97706" stroke-width="1.5"/>
+        <line x1="76" y1="110" x2="150" y2="150" stroke="#d97706" stroke-width="1.5"/>
+        <!-- 2세대 핵 -->
+        <circle cx="170" cy="70" r="13" fill="#3a7a80"/>
+        <text x="170" y="74" font-size="9" fill="#fff" text-anchor="middle">U</text>
+        <circle cx="170" cy="150" r="13" fill="#3a7a80"/>
+        <text x="170" y="154" font-size="9" fill="#fff" text-anchor="middle">U</text>
+        <!-- 2세대 → 3세대 -->
+        <line x1="183" y1="70" x2="250" y2="40" stroke="#d97706" stroke-width="1.2"/>
+        <line x1="183" y1="70" x2="250" y2="92" stroke="#d97706" stroke-width="1.2"/>
+        <line x1="183" y1="150" x2="250" y2="128" stroke="#d97706" stroke-width="1.2"/>
+        <line x1="183" y1="150" x2="250" y2="180" stroke="#d97706" stroke-width="1.2"/>
+        <!-- 3세대 핵 -->
+        <circle cx="266" cy="40"  r="10" fill="#6aa6aa"/>
+        <circle cx="266" cy="92"  r="10" fill="#6aa6aa"/>
+        <circle cx="266" cy="128" r="10" fill="#6aa6aa"/>
+        <circle cx="266" cy="180" r="10" fill="#6aa6aa"/>
+        <text x="40"  y="200" font-size="10" fill="#6b7280">1세대 (1)</text>
+        <text x="150" y="200" font-size="10" fill="#6b7280">2세대 (2)</text>
+        <text x="245" y="200" font-size="10" fill="#6b7280">3세대 (4)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        k≈2인 초임계 연쇄: 세대마다 분열 수가 1 → 2 → 4 → 8 … 로 두 배씩 늘어난다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "핵분열 물질을 모으기만 하면 무조건 폭발한다"고 생각하기 쉽다.
+        실제로는 양이 <em>임계질량 미만</em>이면 중성자 대부분이 밖으로 새어 나가 k&lt;1이 되어 연쇄반응이
+        지속되지 못한다. 또 원자로는 폭탄과 달리 제어봉으로 k를 정확히 1로 유지해 일정한 출력만 내며,
+        구조와 농축도가 달라 핵폭발을 일으키지 않는다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>증배계수 k &gt; 1 이면 연쇄반응은 어떻게 되는가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 곧 사그라든다 (미임계)</label>
+        <label><input type="radio" name="q1" value="wrong"> 일정하게 유지된다 (임계)</label>
+        <label><input type="radio" name="q1" value="correct"> 기하급수적으로 증가한다 (초임계)</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>원자로가 일정한 출력으로 안정적으로 운전되도록 유지하는 증배계수 값은?</p>
+        <label><input type="radio" name="q2" value="wrong"> k = 0 으로 맞춘다</label>
+        <label><input type="radio" name="q2" value="correct"> k = 1 로 정밀하게 제어한다</label>
+        <label><input type="radio" name="q2" value="wrong"> k = 3 이상으로 키운다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 오토 한 · 프리츠 슈트라스만 · 리제 마이트너</h3>
+        <p><strong>오토 한(Otto Hahn, 1879~1968)</strong>과 <strong>프리츠 슈트라스만(Fritz Strassmann,
+        1902~1980)</strong>은 1938년 우라늄에 중성자를 쪼였을 때 더 가벼운 원소인 바륨이 생긴다는
+        화학적 증거를 발견했다. 무거운 핵이 둘로 쪼개진 것이다.</p>
+        <p><strong>리제 마이트너(Lise Meitner, 1878~1968)</strong>는 나치를 피해 스웨덴으로 망명한 뒤,
+        조카 오토 프리쉬(Otto Frisch)와 함께 이 현상을 물리학적으로 해석해 "핵분열(nuclear fission)"이라
+        이름 붙이고, 아인슈타인의 E=mc²로 방출 에너지를 설명했다. 한이 단독으로 노벨 화학상(1944)을 받은 것은
+        마이트너의 기여를 가린 과학사의 대표적 형평성 논란으로 남아 있다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1932년 — 채드윅, 중성자 발견 (핵을 쪼갤 새로운 도구 등장)</li>
+          <li>1934년 — 페르미, 중성자로 우라늄을 때려 미지의 생성물 관찰</li>
+          <li>1938년 12월 — 한·슈트라스만, 우라늄에서 바륨 검출 (핵분열의 화학적 증거)</li>
+          <li>1939년 — 마이트너·프리쉬, 현상을 "핵분열"로 해석·명명, 새 중성자 방출 예측</li>
+          <li>1942년 — 페르미, 시카고에서 최초의 제어된 연쇄반응 원자로(Chicago Pile-1) 가동</li>
+          <li>1945년 — 핵무기 사용, 이후 1950년대 핵발전소로 평화적 이용 시작</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 핵분열의 발견은 원자핵 속에 잠든 막대한 에너지를 인류가 처음으로
+        끌어낼 수 있음을 보여준 사건이다. 연쇄반응의 제어(k=1) 여부에 따라 원자력 발전이라는 거대한 에너지원과
+        핵무기라는 파괴력이 갈렸고, 과학의 발견이 사회·정치·윤리와 떼려야 뗄 수 없음을 가장 극적으로 드러낸
+        20세기 과학혁명의 분수령이 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        k: 1.00,            // 사용자가 설정한 증배계수
+        absorber: 0,        // 제어봉(흡수재) 삽입량 %
+        aboveCritical: true,// 임계질량 이상 여부
+        running: false,
+        lastTs: null,
+        spawnTimer: 0,      // 다음 세대 진행까지 누적 시간(s)
+        generation: 0,      // 현재 세대 번호
+        lastGenFissions: 0, // 이번 세대 분열(=핵 충돌) 수
+        totalFissions: 0,   // 누적 분열 수
+        nuclei: [],         // {x, y, r, fissioned}
+        neutrons: [],       // {x, y, vx, vy, alive}
+        fragments: []       // {x, y, vx, vy, life} 분열 파편(시각효과)
+      };
+
+      const ENERGY_PER_FISSION = 200; // MeV (상대 표시용)
+      const GEN_INTERVAL = 0.9;       // 한 세대 진행 시간(s)
+      const MAX_NEUTRONS = 600;       // 성능 보호용 상한
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const kSlider = document.getElementById('kfactor');
+      const absorberSlider = document.getElementById('absorber');
+      const aboveToggle = document.getElementById('aboveCritical');
+      const fireBtn = document.getElementById('fireBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 격자(U-235 핵) 구성 -----
+      const GRID_COLS = 8;
+      const GRID_ROWS = 6;
+      function buildLattice() {
+        state.nuclei = [];
+        const W = canvas.width, H = canvas.height;
+        const marginX = 60, marginY = 60;
+        const stepX = (W - marginX * 2) / (GRID_COLS - 1);
+        const stepY = (H - marginY * 2) / (GRID_ROWS - 1);
+        for (let r = 0; r < GRID_ROWS; r++) {
+          for (let c = 0; c < GRID_COLS; c++) {
+            // 미임계(임계질량 미만)일 때는 핵을 듬성듬성 배치(중성자가 잘 새어 나감)
+            if (!state.aboveCritical && (r + c) % 2 === 1) continue;
+            state.nuclei.push({
+              x: marginX + c * stepX,
+              y: marginY + r * stepY,
+              r: 11,
+              fissioned: false
+            });
+          }
+        }
+      }
+
+      // ----- 유효 증배계수 계산 -----
+      // 제어봉 흡수와 임계질량 미만에 의한 중성자 누설을 반영
+      function effectiveK() {
+        let keff = state.k * (1 - state.absorber / 100);
+        if (!state.aboveCritical) keff *= 0.45; // 누설로 인한 큰 손실
+        return keff;
+      }
+
+      function classifyState(keff) {
+        if (keff < 0.97) return { label: '미임계', cls: 'state-sub' };
+        if (keff <= 1.03) return { label: '임계', cls: 'state-crit' };
+        return { label: '초임계', cls: 'state-super' };
+      }
+
+      // ----- 결과 박스 갱신 -----
+      function updateResult() {
+        const keff = effectiveK();
+        document.getElementById('r-keff').textContent = keff.toFixed(2);
+        const st = classifyState(keff);
+        const pill = document.getElementById('r-state');
+        pill.textContent = st.label;
+        pill.className = 'state-pill ' + st.cls;
+
+        document.getElementById('r-gen').textContent = state.generation;
+        document.getElementById('r-fissions').textContent = state.lastGenFissions;
+        document.getElementById('r-total').textContent = state.totalFissions;
+        document.getElementById('r-energy').textContent =
+          (state.totalFissions * ENERGY_PER_FISSION).toLocaleString();
+      }
+
+      // ----- 발사: 첫 중성자 투입 -----
+      function fire() {
+        // 진행 중이 아니면 첫 세대 시작
+        resetSim(false);
+        // 격자 중앙 근처를 향해 중성자 한 개 발사
+        const start = { x: 12, y: canvas.height / 2 };
+        const target = nearestNucleus(start.x, start.y) || { x: canvas.width / 2, y: canvas.height / 2 };
+        const ang = Math.atan2(target.y - start.y, target.x - start.x);
+        const sp = 170;
+        state.neutrons.push({ x: start.x, y: start.y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, alive: true });
+        state.generation = 1;
+        state.spawnTimer = 0;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function nearestNucleus(x, y) {
+        let best = null, bestD = Infinity;
+        for (const n of state.nuclei) {
+          if (n.fissioned) continue;
+          const d = (n.x - x) * (n.x - x) + (n.y - y) * (n.y - y);
+          if (d < bestD) { bestD = d; best = n; }
+        }
+        return best;
+      }
+
+      // ----- 한 세대 진행: 살아있는 중성자가 핵에 흡수→분열→새 중성자 방출 -----
+      function advanceGeneration() {
+        const keff = effectiveK();
+        let fissionsThisGen = 0;
+        const incoming = state.neutrons.filter((nn) => nn.alive);
+        if (incoming.length === 0) { state.running = false; return; }
+
+        const newNeutrons = [];
+        for (const nn of incoming) {
+          nn.alive = false; // 이 중성자는 흡수됨
+          const nuc = nearestNucleus(nn.x, nn.y);
+          // 핵이 없거나(다 소진) 누설되면 분열 실패
+          if (!nuc) continue;
+
+          nuc.fissioned = true;
+          fissionsThisGen++;
+          state.totalFissions++;
+
+          // 분열 파편 2개(시각효과)
+          for (let f = 0; f < 2; f++) {
+            const a = Math.random() * Math.PI * 2;
+            state.fragments.push({ x: nuc.x, y: nuc.y, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, life: 0.6 });
+          }
+
+          // 방출 중성자 수: 평균 keff개(2~3개 중 일부는 누설/흡수되어 keff로 환산)
+          const base = Math.floor(keff);
+          const extra = Math.random() < (keff - base) ? 1 : 0;
+          const emit = base + extra;
+          for (let e = 0; e < emit; e++) {
+            if (newNeutrons.length + state.neutrons.length > MAX_NEUTRONS) break;
+            const a = Math.random() * Math.PI * 2;
+            const sp = 150;
+            newNeutrons.push({ x: nuc.x, y: nuc.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, alive: true });
+          }
+        }
+
+        state.lastGenFissions = fissionsThisGen;
+        // 흡수된 중성자 제거 후 새 중성자 추가
+        state.neutrons = state.neutrons.filter((nn) => nn.alive).concat(newNeutrons);
+        if (fissionsThisGen > 0) state.generation++;
+
+        // 종료 조건: 더 이상 새 중성자가 없거나(미임계 소멸) 핵이 모두 소진
+        if (newNeutrons.length === 0 || nearestNucleus(0, 0) === null) {
+          // 마지막 비행을 잠깐 보여준 뒤 멈춤
+          if (newNeutrons.length === 0) {
+            // 곧 멈출 예정 (남은 중성자 없음)
+          }
+        }
+        updateResult();
+      }
+
+      // ----- 물리 업데이트(중성자/파편 비행) -----
+      function physics(dt) {
+        const W = canvas.width, H = canvas.height;
+        for (const nn of state.neutrons) {
+          if (!nn.alive) continue;
+          nn.x += nn.vx * dt;
+          nn.y += nn.vy * dt;
+          if (nn.x < -20 || nn.x > W + 20 || nn.y < -20 || nn.y > H + 20) nn.alive = false; // 누설
+        }
+        state.neutrons = state.neutrons.filter((nn) => nn.alive);
+        for (const fr of state.fragments) {
+          fr.x += fr.vx * dt; fr.y += fr.vy * dt; fr.life -= dt;
+        }
+        state.fragments = state.fragments.filter((fr) => fr.life > 0);
+      }
+
+      // ----- (3) draw(): state만 읽어 다시 그린다 -----
+      function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 격자(미반응 핵)
+        for (const n of state.nuclei) {
+          if (n.fissioned) {
+            // 쪼개진 흔적(흐릿한 링)
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r + 2, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(120,160,160,0.25)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#234E52';
+            ctx.fill();
+            ctx.strokeStyle = '#6aa6aa';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+        }
+        ctx.lineWidth = 1;
+
+        // 분열 파편(시각효과)
+        for (const fr of state.fragments) {
+          ctx.beginPath();
+          ctx.arc(fr.x, fr.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,120,60,' + Math.max(0, fr.life / 0.6) + ')';
+          ctx.fill();
+        }
+
+        // 중성자(주황 점 + 꼬리)
+        for (const nn of state.neutrons) {
+          if (!nn.alive) continue;
+          const len = 6;
+          const sp = Math.hypot(nn.vx, nn.vy) || 1;
+          ctx.beginPath();
+          ctx.moveTo(nn.x, nn.y);
+          ctx.lineTo(nn.x - nn.vx / sp * len, nn.y - nn.vy / sp * len);
+          ctx.strokeStyle = 'rgba(251,191,36,0.7)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(nn.x, nn.y, 3.2, 0, Math.PI * 2);
+          ctx.fillStyle = '#fbbf24';
+          ctx.fill();
+        }
+        ctx.lineWidth = 1;
+
+        // HUD 텍스트
+        const keff = effectiveK();
+        const st = classifyState(keff);
+        ctx.fillStyle = '#e2efef';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('세대 ' + state.generation + '  ·  k_eff = ' + keff.toFixed(2) + '  ·  ' + st.label, 12, 20);
+        ctx.fillText('누적 분열: ' + state.totalFissions, 12, H - 12);
+        if (!state.running && state.generation > 0) {
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = 'bold 13px sans-serif';
+          ctx.fillText('반응 종료', W - 92, 20);
+        }
+      }
+
+      // ----- 애니메이션 루프 -----
+      function loop(ts) {
+        if (!state.running) { draw(); return; }
+        if (state.lastTs === null) state.lastTs = ts;
+        let dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+        if (dt > 0.05) dt = 0.05; // 탭 전환 등으로 큰 점프 방지
+
+        physics(dt);
+
+        state.spawnTimer += dt;
+        if (state.spawnTimer >= GEN_INTERVAL) {
+          state.spawnTimer = 0;
+          advanceGeneration();
+        }
+
+        // 종료: 살아있는 중성자가 없으면 멈춤
+        if (state.neutrons.length === 0 && state.fragments.length === 0) {
+          state.running = false;
+        }
+
+        draw();
+        if (state.running) requestAnimationFrame(loop);
+        else updateResult();
+      }
+
+      // ----- 리셋 -----
+      function resetSim(redraw) {
+        state.running = false;
+        state.lastTs = null;
+        state.spawnTimer = 0;
+        state.generation = 0;
+        state.lastGenFissions = 0;
+        state.totalFissions = 0;
+        state.neutrons = [];
+        state.fragments = [];
+        buildLattice();
+        if (redraw !== false) {
+          updateResult();
+          draw();
+        }
+      }
+
+      // ----- (2) 슬라이더/입력 이벤트 -----
+      kSlider.addEventListener('input', () => {
+        state.k = Number(kSlider.value);
+        document.getElementById('k-val').textContent = state.k.toFixed(2);
+        updateResult();
+        draw();
+      });
+      absorberSlider.addEventListener('input', () => {
+        state.absorber = Number(absorberSlider.value);
+        document.getElementById('absorber-val').textContent = state.absorber;
+        updateResult();
+        draw();
+      });
+      aboveToggle.addEventListener('change', () => {
+        state.aboveCritical = aboveToggle.checked;
+        resetSim(false);
+        updateResult();
+        draw();
+      });
+
+      fireBtn.addEventListener('click', fire);
+      resetBtn.addEventListener('click', () => { resetSim(true); });
+
+      // ----- (4) 퀴즈 채점 -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#16a34a';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#dc2626';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'k>1이면 세대마다 분열이 배가되어 기하급수적으로 폭증하는 초임계 상태입니다.',
+        'k>1은 한 분열이 한 개를 초과하는 분열을 유발하므로 점점 늘어납니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        '원자로는 제어봉으로 k=1을 유지해 분열 수를 일정하게 가져갑니다.',
+        'k=1이어야 분열 수가 늘지도 줄지도 않고 일정하게 유지됩니다.');
+
+      // ----- 초기 렌더 -----
+      buildLattice();
+      updateResult();
+      draw();
+    })();
+  </script>
+</body>
+</html>

@@ -33,7 +33,13 @@
 
 ## [Unreleased]
 
-아직 릴리스되지 않은 작업 항목입니다.
+(다음 작업 대기 중.)
+
+---
+
+## [1.0.0] - 2026-06-29
+
+**v1.0 — 53개 실험 전부 구현 완료.** 8개 카테고리(고대 ~ 현대 물리학)의 핵심 과학사 실험 53종이 모두 인터랙티브 페이지(🎮 인터랙티브 / 📚 원리 학습 / 📜 역사적 맥락 3탭, Canvas 시뮬레이션, 공식·SVG·퀴즈)로 완성되어 허브에서 활성화되었습니다. 전 페이지를 헤드리스 Chromium으로 자동 검증했습니다.
 
 ### Added
 
@@ -77,17 +83,20 @@
 - **Phase 5 실험 14종 추가** (`06-quantum`·`07-relativity` 카테고리 완성) — 동일한 3탭·Canvas 규격:
   - 양자역학: `01-de-broglie`(물질파 λ=h/p), `02-davisson-germer`(전자 회절), `03-schrodinger`(우물 ψ·Eₙ), `04-uncertainty`(Δx·Δp≥ħ/2), `05-stern-gerlach`(스핀 양자화), `06-quantum-tunneling`(T≈e^(−2κL)), `07-bell-inequality`(CHSH S>2).
   - 상대성·우주론: `01-time-dilation`(γ), `02-length-contraction`(L₀/γ), `03-spacetime-curvature`(측지선), `04-eddington`(빛의 휘어짐), `05-gravitational-lensing`(아인슈타인 고리), `06-hubble`(v=H₀d), `07-cmb`(2.725K 흑체).
-- 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 전 페이지의 탭 전환·슬라이더/버튼 반응·콘솔 에러를 자동 점검.
+- **Phase 6 실험 7종 추가** (`08-modern` 카테고리 완성 → 전체 53/53 달성) — 동일한 3탭·Canvas 규격:
+  - `08-modern/01-laser` — 레이저 (유도 방출·반전 분포·발진 문턱).
+  - `08-modern/02-superconductivity` — 초전도 (Tc 이하 R=0, 마이스너 자기부상).
+  - `08-modern/03-nuclear-fission` — 핵분열 연쇄반응 (증배계수 k, 미임계/임계/초임계).
+  - `08-modern/04-gravitational-waves` — 중력파 LIGO (블랙홀 병합 처프 파형).
+  - `08-modern/05-black-hole-eht` — 블랙홀 영상화 (r_s=2GM/c², 그림자·광자 고리).
+  - `08-modern/06-higgs-boson` — 힉스 보손 (불변질량 125 GeV 봉우리, 통계적 유의성).
+  - `08-modern/07-qubit` — 양자컴퓨팅 큐비트 (블로흐 구·중첩·측정 붕괴).
+- 실험 페이지 품질 검증: 헤드리스 Chromium(Playwright)으로 53개 전 페이지의 탭 전환·슬라이더/버튼 반응·콘솔 에러를 자동 점검(전부 통과).
 
 ### Changed
 
-- `src/data/experiments.json`: 구현 완료한 46개 실험(id 1–46)의 `status`를 `ready`로 전환 — `01-ancient`~`07-relativity` 7개 카테고리 100% 완료.
-- 허브(`src/index.html`)에서 `status=ready` 실험 카드가 활성화되어 해당 실험 페이지로 링크됨(나머지 7개는 "준비중" 비활성 유지).
-
-### 예정 (Planned)
-
-- 마지막 카테고리 `08-modern`(7) 구현 → v1.0(53/53) 달성.
-- Canvas 공통 유틸리티·레이아웃 셸(shell) 추출로 중복 축소.
+- `src/data/experiments.json`: 53개 실험(id 1–53) 전부 `status=ready`로 전환 — 8개 카테고리 100% 완료. `version`을 `1.0.0`으로 상향.
+- 허브(`src/index.html`)에서 53개 실험 카드가 모두 활성화되어 각 실험 페이지로 링크됨("준비중" 비활성 카드 없음).
 
 ---
 
@@ -129,5 +138,6 @@
   - `CHANGELOG.md` — 본 변경 이력 문서.
   - `LICENSE` — MIT License.
 
-[Unreleased]: https://github.com/Denny-Hwang/git-science-park/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/Denny-Hwang/git-science-park/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Denny-Hwang/git-science-park/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/Denny-Hwang/git-science-park/releases/tag/v0.0.1
