@@ -1,63 +1,63 @@
-# Git Science Park v2.0.0 — 다국어 · 교실 모드 · 접근성
+# Git Science Park v2.0.0 — Internationalization · Classroom Mode · Accessibility
 
-> 과학사 인터랙티브 실험실 — 53개 핵심 실험을 **조작 · 관찰 · 해석**으로 직접 배우는 Zero-Dependency 정적 웹.
-> 이번 릴리스로 **전 세계 교실에서** 쓸 수 있는 다국어 · 교사 도구 · 접근성을 갖췄습니다.
+> Interactive Science History Lab — learn 53 landmark experiments by **manipulating, observing, and interpreting**, in a Zero-Dependency static web app.
+> This release makes it ready for **classrooms worldwide** with multi-language UI, teacher tools, and accessibility.
 
-**릴리스 일자:** 2026-06-30 · **이전 버전:** v1.1.0 · **변경:** 72 files, +4,605 / −910
-
----
-
-## ✨ 새로운 기능
-
-### 🌐 다국어 (10개 언어)
-UI·인터페이스 전체를 10개 언어로 번역했습니다. (실험의 과학적 본문은 원문을 유지)
-
-- **지원 언어:** English(기본) · 한국어 · 中文 · 日本語 · Español · हिन्दी · Русский · עברית · Português · العربية
-- 화면 **오른쪽 위 드롭다운**으로 즉시 전환, 선택은 브라우저에 저장(`localStorage`)
-- **RTL(오른쪽→왼쪽) 자동 적용** — 아랍어 · 히브리어에서 `dir="rtl"`
-- 허브와 53개 실험 페이지의 탭 · 내비게이션 · 관련 실험 · 교실 모드까지 일관 번역
-- 순수 무의존 엔진(`i18n.js`) + 로케일 JSON 사전(언어당 79개 키)
-
-### 🎓 교실 모드 (교사용 4종 도구)
-모든 페이지 오른쪽 위 **🎓 Classroom** 버튼에서 사용합니다.
-
-- **발표 / 집중 모드** — 주변 UI를 숨기고 시뮬레이션에 집중(+전체화면)
-- **인쇄용 워크시트** — 예측 · 관찰 · 해석 · 메모 + 이름/날짜, 한 번에 인쇄
-- **수업 코스 / 플레이리스트** — 실험을 담아 순서를 짜고, "수업 시작"으로 이전/다음 진행
-- **교사 가이드 패널** — 실험별 시대 · 과학자 · 난이도 · 핵심 질문 빠른 참고(허브에선 전체 53개 표)
+**Release date:** 2026-06-30 · **Previous:** v1.1.0 · **Changes:** 72 files, +4,605 / −910
 
 ---
 
-## ♿ 접근성 · 성능 · 품질
+## ✨ New Features
 
-### 접근성 감사 (WCAG 2 A/AA)
-- 허브 + 53개 실험 페이지를 **axe-core로 전수 점검** → serious/critical 대비 위반 **0**
-- 흐린 본문 텍스트, 활성 필터 칩의 흰 글자, 성공/오류 시맨틱 색, 페이지별 배지·범례 색을 AA 기준으로 보정
-- **색약(color-blind) 팔레트 옵션** — 오른쪽 위 ◐ 토글, 색약 친화 Okabe-Ito 팔레트(색 외에 아이콘·텍스트·별점 등 단서 유지)
+### 🌐 Internationalization (10 languages)
+The entire UI/interface is translated into 10 languages. (Each experiment's scientific content stays in its original language.)
 
-### 모션 · 성능
-- **`prefers-reduced-motion` 전수 적용** — 실험 페이지까지 모션 축소 보장(이전 0개 → 전체)
-- **저사양 기기 배려** — 탭이 보이지 않을 때 Canvas `requestAnimationFrame` 루프를 일시정지하고, 복귀 시 재개
+- **Languages:** English (default) · Korean · Chinese · Japanese · Spanish · Hindi · Russian · Hebrew · Portuguese · Arabic
+- **Top-right dropdown** for instant switching; the choice is saved in the browser (`localStorage`)
+- **Automatic RTL (right-to-left)** — `dir="rtl"` for Arabic and Hebrew
+- Consistent translation across the hub and all 53 experiment pages — tabs, navigation, related experiments, and classroom mode
+- Pure dependency-free engine (`i18n.js`) + per-locale JSON dictionaries (79 keys each)
 
-### 교차 브라우저 실측
-- 자동 QA를 **Chromium · Firefox · WebKit** 3종 순회로 확장
-- CI에 **접근성 게이트** 추가 — 모든 푸시에서 탭 동작 · 콘솔 에러 0 · WCAG AA를 자동 검증
+### 🎓 Classroom Mode (4 teacher tools)
+Available from the **🎓 Classroom** button in the top-right of every page.
+
+- **Focus / Present mode** — hides surrounding UI to focus on the simulation (+ fullscreen)
+- **Printable worksheet** — Predict · Observe · Interpret · Notes, plus name/date, ready to print
+- **Lesson course / playlist** — collect experiments, order them, and run them in sequence with prev/next via "Start lesson"
+- **Teacher guide panel** — per-experiment era · scientist · difficulty · key questions for quick reference (a full 53-row table on the hub)
 
 ---
 
-## 🧱 기술 노트
-- **런타임 의존성 0** — 사이트는 여전히 순수 HTML5 + CSS3 + Vanilla JS. 추가된 `i18n.js` · `a11y.js` · `classroom.js` · `classroom.css`도 외부 라이브러리 없음
-- Playwright · axe-core는 **개발/CI 전용**이며 배포물(`src/`)에 포함되지 않음
-- GitHub Pages 자동 배포 유지(`main` 푸시 시 `./src` 업로드)
+## ♿ Accessibility · Performance · Quality
 
-## ⚠️ 알려진 제한
-- 다국어는 **UI 크롬**에 적용됩니다. 각 실험의 본문(설명·시뮬레이션 라벨)은 원문(주로 한국어)을 유지합니다.
-- RTL 언어에서도 실험 본문 자체는 원문 방향으로 표시됩니다.
+### Accessibility audit (WCAG 2 A/AA)
+- Hub + all 53 experiment pages **audited with axe-core** → **0** serious/critical contrast violations
+- Corrected muted body text, white text on active filter chips, success/error semantic colors, and per-page badges/legends to meet AA
+- **Color-blind palette option** — ◐ toggle in the top-right, color-blind-safe Okabe-Ito palette (keeps non-color cues such as icons, text, and star ratings alongside color)
 
-## 🔭 다음 후보
-- 실험 본문 콘텐츠 다국어화 · 퀴즈/평가 모드 · 워크시트 PDF 내보내기 · 사용자 정의 팔레트
+### Motion · performance
+- **`prefers-reduced-motion` applied everywhere** — now covers the experiment pages too (previously none)
+- **Low-end device friendly** — pauses Canvas `requestAnimationFrame` loops when the tab isn't visible, and resumes on return
+
+### Cross-browser verification
+- Automated QA expanded to cycle through **Chromium · Firefox · WebKit**
+- Added an **accessibility gate** to CI — every push automatically verifies tab behavior, zero console errors, and WCAG AA
+
+---
+
+## 🧱 Technical notes
+- **Zero runtime dependencies** — the site is still pure HTML5 + CSS3 + vanilla JS. The added `i18n.js` · `a11y.js` · `classroom.js` · `classroom.css` use no external libraries
+- Playwright and axe-core are **dev/CI only** and are not included in the deployed bundle (`src/`)
+- GitHub Pages auto-deploy unchanged (uploads `./src` on push to `main`)
+
+## ⚠️ Known limitations
+- Internationalization applies to the **UI chrome**. Each experiment's body content (descriptions and simulation labels) stays in its original language (mostly Korean).
+- In RTL languages, the experiment body itself is still shown in its original direction.
+
+## 🔭 Next candidates
+- Translating experiment body content · quiz/assessment mode · worksheet PDF export · custom palettes
 
 ---
 
 **Full changelog:** `v1.1.0...v2.0.0` ·
-커밋: `5a5ce80`(v2.0-A 다국어+교실), `351a856`(v2.0-B 접근성+성능+교차브라우저)
+Commits: `5a5ce80` (v2.0-A i18n + classroom), `351a856` (v2.0-B accessibility + performance + cross-browser)
