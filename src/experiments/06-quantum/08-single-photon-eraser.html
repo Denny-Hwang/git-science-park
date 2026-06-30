@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>단일 광자 이중 슬릿 · 양자 지우개 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f5f3fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .toggle-row input:disabled + label { color: var(--text-muted); opacity: 0.6; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .mode-interf { color: #1d4ed8; font-weight: 700; }
+    .mode-blob { color: #b91c1c; font-weight: 700; }
+    .mode-restore { color: #166534; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .quiz-feedback .ok { color: #166534; }
+    .quiz-feedback .no { color: #b91c1c; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>단일 광자 이중 슬릿 · 양자 지우개</h1>
+    <div class="en">Single-Photon Double Slit &amp; Quantum Eraser</div>
+    <div class="meta">1978 / 1999 · 존 휠러 · 스컬리–드륄 (Wheeler · Scully–Drühl) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="620" height="420" role="img"
+        aria-label="왼쪽 광자원에서 광자가 한 개씩 발사되어 가운데 두 슬릿을 지나 오른쪽 스크린에 점으로 하나씩 쌓이며, 경로 검출기와 양자 지우개 설정에 따라 간섭무늬가 나타나거나 사라지는 단일 광자 이중 슬릿 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="speed">발사 속도: <span id="speed-val">3</span> 광자 / 프레임</label>
+          <input type="range" id="speed" min="1" max="12" step="1" value="3"
+            aria-describedby="speed-val">
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="detector">
+            <label for="detector">경로 검출기 (which-path) 켜기</label>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="eraser" disabled>
+            <label for="eraser">양자 지우개 켜기 (검출기 ON일 때만 선택 가능)</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 시작</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋 (화면 비우기)</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>쌓인 광자 수: <strong id="r-count">0</strong> 개</div>
+          <div>현재 상태: <strong id="r-mode" class="mode-interf">간섭무늬 (간섭)</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>경로 검출기: <strong id="r-det">꺼짐</strong></div>
+          <div>양자 지우개: <strong id="r-era">꺼짐</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 광자는 항상 <em>한 개씩</em> 도착하지만, 수천 개가 쌓이면
+        스크린에 무늬가 드러납니다. 경로 검출기를 <strong>켜면</strong> "어느 슬릿을 지났는지"가
+        알려져 간섭무늬가 <strong>사라지고</strong> 넓은 한 덩어리만 남습니다. 여기서 양자 지우개를
+        <strong>켜면</strong> 경로 정보가 지워지면서 — 광자는 여전히 하나씩 오는데도 —
+        간섭무늬가 다시 <strong>복원</strong>됩니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>광자를 한 개씩 보내도 누적되면 간섭무늬가 생긴다는 것을 이해한다.</li>
+        <li>경로 정보(which-path)가 존재하면 간섭이 사라지는 이유를 파악한다.</li>
+        <li>양자 지우개가 경로 정보를 지워 간섭을 복원함을 관찰한다.</li>
+        <li>간섭무늬가 확률밀도 I(y) ∝ cos²(ky)·exp(−(y/w)²)로 기술됨을 익힌다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>광자를 <strong>한 번에 하나씩</strong> 이중 슬릿으로 보내면, 각 광자는 스크린의 한 점에
+        무작위로 박힌다. 그런데 충분히 많은 광자가 쌓이면 점들이 모여 밝고 어두운 줄무늬,
+        즉 <strong>간섭무늬</strong>를 만든다. 광자 하나하나가 두 슬릿을 <em>동시에</em> 지나는
+        확률파동처럼 행동해 자기 자신과 간섭하기 때문이다.</p>
+        <p>만약 "이 광자가 어느 슬릿을 지났는가"를 알 수 있는 <strong>경로 검출기</strong>를 두면,
+        경로 정보가 환경에 남아 두 경로가 더 이상 결맞음(coherence)을 유지하지 못한다. 그 결과
+        간섭무늬가 사라지고 <strong>넓은 한 덩어리</strong> 분포만 남는다.</p>
+        <p><strong>양자 지우개</strong>는 그 경로 정보를 다시 <em>지워</em> 어느 슬릿을 지났는지
+        원리적으로 알 수 없게 만든다. 그러면 광자가 여전히 하나씩 도착함에도 불구하고
+        <strong>간섭무늬가 복원</strong>된다. 무늬의 유무를 가르는 것은 광자의 세기가 아니라
+        "경로 정보가 존재하는가"이다.</p>
+      </div>
+
+      <div class="formula-box">
+        간섭:  I(y) ∝ cos²(k·y) · exp(−(y/w)²)<br>
+        경로 검출 ON:  I(y) ∝ exp(−(y/w)²)  (간섭 항 소멸)<br>
+        지우개 ON:  I(y) ∝ cos²(k·y) · exp(−(y/w)²)  (무늬 복원)
+      </div>
+
+      <!-- SVG 다이어그램: 간섭 vs 경로검출 vs 지우개 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+        aria-label="동일한 단일 광자 빔이 경로 검출기가 꺼지면 줄무늬(간섭), 켜지면 한 덩어리, 지우개를 켜면 다시 줄무늬가 되는 비교 다이어그램">
+        <!-- 광자원 -->
+        <circle cx="30" cy="110" r="10" fill="#6B46C1"/>
+        <text x="10" y="138" font-size="10" fill="#374151">광자원</text>
+        <!-- 빔 -->
+        <line x1="40" y1="110" x2="120" y2="110" stroke="#9ca3af" stroke-width="2" stroke-dasharray="3 3"/>
+        <!-- 슬릿 장벽 -->
+        <rect x="120" y="40" width="8" height="58" fill="#4b5563"/>
+        <rect x="120" y="108" width="8" height="14" fill="#4b5563"/>
+        <rect x="120" y="132" width="8" height="58" fill="#4b5563"/>
+        <text x="100" y="205" font-size="10" fill="#374151">두 슬릿</text>
+        <!-- 간섭 무늬 (검출기 OFF) -->
+        <g>
+          <rect x="200" y="50" width="14" height="120" fill="#14101f"/>
+          <rect x="200" y="56" width="14" height="6" fill="#fcd34d"/>
+          <rect x="200" y="74" width="14" height="6" fill="#fcd34d"/>
+          <rect x="200" y="92" width="14" height="8" fill="#fcd34d"/>
+          <rect x="200" y="110" width="14" height="8" fill="#fcd34d"/>
+          <rect x="200" y="128" width="14" height="6" fill="#fcd34d"/>
+          <rect x="200" y="146" width="14" height="6" fill="#fcd34d"/>
+          <text x="186" y="185" font-size="9" fill="#1d4ed8">간섭 (OFF)</text>
+        </g>
+        <!-- 한 덩어리 (검출기 ON) -->
+        <g>
+          <rect x="290" y="50" width="14" height="120" fill="#14101f"/>
+          <rect x="290" y="92" width="14" height="36" fill="#f59e0b" opacity="0.8"/>
+          <rect x="290" y="80" width="14" height="60" fill="#f59e0b" opacity="0.4"/>
+          <text x="276" y="185" font-size="9" fill="#b91c1c">덩어리 (ON)</text>
+        </g>
+        <!-- 복원 (지우개 ON) -->
+        <g>
+          <rect x="380" y="50" width="14" height="120" fill="#14101f"/>
+          <rect x="380" y="56" width="14" height="6" fill="#86efac"/>
+          <rect x="380" y="74" width="14" height="6" fill="#86efac"/>
+          <rect x="380" y="92" width="14" height="8" fill="#86efac"/>
+          <rect x="380" y="110" width="14" height="8" fill="#86efac"/>
+          <rect x="380" y="128" width="14" height="6" fill="#86efac"/>
+          <rect x="380" y="146" width="14" height="6" fill="#86efac"/>
+          <text x="362" y="185" font-size="9" fill="#166534">복원 (지우개)</text>
+        </g>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        검출기 OFF → 줄무늬(간섭) / ON → 한 덩어리 / 지우개 ON → 다시 줄무늬(복원).
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "광자를 한 개씩 보내면 간섭이 일어날 수 없다"고 오해하기 쉽다.
+        실제로는 광자 <em>하나하나</em>가 확률파동으로서 두 경로를 동시에 거쳐 자기 자신과 간섭하므로,
+        한 개씩 보내도 누적되면 무늬가 생긴다. 또 "검출기가 광자를 밀쳐서 무늬가 깨진다"는 생각도
+        흔하지만, 핵심은 충돌의 세기가 아니라 <em>경로 정보의 존재</em> 그 자체다. 그래서 그 정보를
+        지우기만 해도(에너지를 더 주지 않아도) 간섭이 되살아난다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>이중 슬릿에 광자를 한 개씩만 보낼 때, 충분히 많이 쌓이면 스크린에 나타나는 것은?</p>
+        <label><input type="radio" name="q1" value="wrong"> 점이 무작위로 흩어져 무늬가 전혀 없다</label>
+        <label><input type="radio" name="q1" value="correct"> 점들이 누적되어 간섭 줄무늬가 나타난다</label>
+        <label><input type="radio" name="q1" value="wrong"> 슬릿 두 개에 대응하는 딱 두 점만 생긴다</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>경로 검출기를 켜 간섭이 사라진 뒤, 양자 지우개를 켜서 경로 정보를 지우면 어떻게 되는가?</p>
+        <label><input type="radio" name="q2" value="correct"> 간섭무늬가 다시 복원된다</label>
+        <label><input type="radio" name="q2" value="wrong"> 광자가 더 이상 도착하지 않는다</label>
+        <label><input type="radio" name="q2" value="wrong"> 덩어리 분포가 그대로 유지된다</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 존 휠러 (John Wheeler, 1911~2008) · 마를란 스컬리 (Marlan Scully) · 카이 드륄 (Kai Drühl)</h3>
+        <p>존 휠러는 미국의 이론물리학자로 "블랙홀(black hole)"이라는 용어를 대중화했고, 양자역학의
+        측정 문제를 깊이 파고들었다. 1978년 그는 <strong>지연된 선택 실험(delayed-choice experiment)</strong>을
+        제안했다. 광자가 슬릿을 이미 지난 <em>뒤에</em> "경로를 측정할지"를 결정해도 결과가 그에 맞게
+        나타난다는, 측정의 시점에 관한 도발적인 사고 실험이었다.</p>
+        <p>1982년 마를란 스컬리와 카이 드륄은 경로 정보를 측정한 뒤 <strong>다시 지우면</strong> 간섭이
+        복원된다는 <strong>양자 지우개(quantum eraser)</strong> 아이디어를 제시했다. 1999년에는 이를 발전시킨
+        "지연된 선택 양자 지우개" 실험이 보고되어, 무늬의 유무가 빛의 세기가 아니라 경로 정보의 존재
+        여부에 달려 있음을 정밀하게 보였다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1801년 — 토머스 영, 빛의 이중 슬릿 간섭 실험으로 파동성을 입증</li>
+          <li>1909년 — 테일러, 극도로 약한 빛(사실상 단일 광자)으로도 간섭무늬가 생김을 관측</li>
+          <li>1927년 — 보어, 상보성 원리: 파동성과 입자성(경로 정보)은 동시에 드러날 수 없다</li>
+          <li>1978년 — 휠러, 지연된 선택 실험(delayed-choice)을 제안</li>
+          <li>1982년 — 스컬리·드륄, 양자 지우개(quantum eraser) 개념 제시</li>
+          <li>1999년 — 김윤호 등, 지연된 선택 양자 지우개 실험을 실험적으로 구현</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 단일 광자 이중 슬릿과 양자 지우개는 양자역학의 <strong>상보성</strong>과
+        <strong>측정 문제</strong>를 가장 선명하게 보여 주는 실험군이다. 간섭(파동성)과 경로 정보(입자성)는
+        서로 배타적이며, 그 경계는 "정보가 존재하는가"라는 추상적 조건에 의해 결정된다. 이 통찰은
+        결어긋남(decoherence) 이론, 양자 정보, 양자 암호와 양자 컴퓨팅의 개념적 토대가 되었다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 레이아웃 상수(px) -----
+      const W = 620, H = 420;
+      const SRC_X = 56;        // 광자원 위치
+      const BARRIER_X = 270;   // 슬릿 장벽 x
+      const SCREEN_X = 600;    // 스크린(검출면) x
+      const MID_Y = H / 2;     // 중심선 y
+      const SLIT_HALF = 8;     // 슬릿 반높이
+      const SLIT_SEP = 46;     // 슬릿 중심 간 거리(반)
+      const HALF_SPAN = 150;   // 스크린에서 무늬가 퍼지는 반높이(px)
+
+      // 간섭 무늬 파라미터: k는 프린지 수, w는 가우시안 폭
+      const K_FRINGE = (8 * Math.PI) / HALF_SPAN; // 약 8개 프린지(중심 기준 위/아래)
+      const W_ENV = HALF_SPAN * 0.62;             // 가우시안 포락선 폭
+
+      // 히스토그램 빈
+      const BIN_COUNT = 90;
+      const BIN_TOP = MID_Y - HALF_SPAN;
+      const BIN_H = (2 * HALF_SPAN) / BIN_COUNT;
+
+      // ----- 상태 -----
+      const state = {
+        running: false,
+        speed: 3,
+        detector: false,
+        eraser: false,
+        lastTs: null,
+        count: 0,
+        dots: [],          // {x, y} 스크린에 박힌 점 (애니메이션용 잔상)
+        bins: new Array(BIN_COUNT).fill(0),
+        binMax: 1,
+        flights: []        // 진행 중인 광자 {x, y, targetY, slit}
+      };
+
+      // ----- DOM (먼저 정의) -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas ? canvas.getContext('2d') : null;
+
+      const speedSlider = document.getElementById('speed');
+      const speedVal = document.getElementById('speed-val');
+      const detectorChk = document.getElementById('detector');
+      const eraserChk = document.getElementById('eraser');
+      const playBtn = document.getElementById('playBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rCount = document.getElementById('r-count');
+      const rMode = document.getElementById('r-mode');
+      const rDet = document.getElementById('r-det');
+      const rEra = document.getElementById('r-era');
+
+      // ----- (1) 탭 전환 (템플릿 동일) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 현재 모드 판정 -----
+      // 'interference' | 'blob' | 'restore'
+      function currentMode() {
+        if (!state.detector) return 'interference';
+        return state.eraser ? 'restore' : 'blob';
+      }
+      // 간섭 무늬가 보이는 모드인가
+      function fringesVisible() {
+        const m = currentMode();
+        return m === 'interference' || m === 'restore';
+      }
+
+      // ----- 확률밀도 (yOff: 중심선 기준 오프셋, -HALF_SPAN..HALF_SPAN) -----
+      function pdf(yOff) {
+        const env = Math.exp(-(yOff / W_ENV) * (yOff / W_ENV));
+        if (fringesVisible()) {
+          const c = Math.cos(K_FRINGE * yOff);
+          return c * c * env;
+        }
+        return env;
+      }
+
+      // ----- 거부 표본추출로 y 오프셋 샘플 -----
+      function sampleYOffset() {
+        // 포락선 최대값은 1 (cos²·gauss ≤ gauss ≤ 1)
+        for (let i = 0; i < 200; i++) {
+          const y = (Math.random() * 2 - 1) * HALF_SPAN;
+          const p = pdf(y);
+          if (Math.random() <= p) return y;
+        }
+        return (Math.random() * 2 - 1) * HALF_SPAN * 0.3; // 안전망
+      }
+
+      // ----- 한 광자 발사 시작 -----
+      function emitPhoton() {
+        const yOff = sampleYOffset();
+        const targetY = MID_Y + yOff;
+        // 어느 슬릿을 "지나는지" (시각 효과용): 표적 부호에 약간의 무작위
+        const slit = Math.random() < 0.5 ? -1 : 1;
+        state.flights.push({
+          x: SRC_X,
+          y: MID_Y + (Math.random() * 6 - 3),
+          targetY: targetY,
+          slit: slit
+        });
+      }
+
+      // 광자 1개가 스크린에 도달 → 점 + 히스토그램 기록
+      function landPhoton(targetY) {
+        state.count++;
+        const x = SCREEN_X - 2 - Math.random() * 6;
+        state.dots.push({ x: x, y: targetY, life: 26 });
+        if (state.dots.length > 1400) state.dots.splice(0, state.dots.length - 1400);
+        const bin = Math.floor((targetY - BIN_TOP) / BIN_H);
+        if (bin >= 0 && bin < BIN_COUNT) {
+          state.bins[bin]++;
+          if (state.bins[bin] > state.binMax) state.binMax = state.bins[bin];
+        }
+      }
+
+      // ----- 시뮬레이션 한 스텝 -----
+      function step() {
+        // 새 광자 발사 (속도만큼)
+        for (let i = 0; i < state.speed; i++) emitPhoton();
+
+        // 진행 중인 광자 이동
+        const travelSpeed = 26;
+        for (let i = state.flights.length - 1; i >= 0; i--) {
+          const f = state.flights[i];
+          f.x += travelSpeed;
+          // 슬릿 통과 지점 이후 표적 y로 보간
+          if (f.x >= BARRIER_X) {
+            const t = Math.min(1, (f.x - BARRIER_X) / (SCREEN_X - BARRIER_X));
+            f.y = MID_Y + (f.targetY - MID_Y) * t;
+          }
+          if (f.x >= SCREEN_X - 2) {
+            landPhoton(f.targetY);
+            state.flights.splice(i, 1);
+          }
+        }
+        // 잔상 수명 감소
+        for (let i = 0; i < state.dots.length; i++) {
+          if (state.dots[i].life > 0) state.dots[i].life--;
+        }
+      }
+
+      // ----- 그리기 -----
+      function draw() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#14101f';
+        ctx.fillRect(0, 0, W, H);
+
+        // 광자원
+        ctx.fillStyle = '#8b63e0';
+        ctx.beginPath();
+        ctx.arc(SRC_X, MID_Y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#cbb8f5';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('광자원', SRC_X, MID_Y + 26);
+
+        // 슬릿 장벽
+        ctx.fillStyle = '#4b5563';
+        const topGapC = MID_Y - SLIT_SEP;
+        const botGapC = MID_Y + SLIT_SEP;
+        // 상단 벽
+        ctx.fillRect(BARRIER_X - 5, 0, 10, topGapC - SLIT_HALF);
+        // 중앙 벽
+        ctx.fillRect(BARRIER_X - 5, topGapC + SLIT_HALF, 10, (botGapC - SLIT_HALF) - (topGapC + SLIT_HALF));
+        // 하단 벽
+        ctx.fillRect(BARRIER_X - 5, botGapC + SLIT_HALF, 10, H - (botGapC + SLIT_HALF));
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText('두 슬릿', BARRIER_X, 16);
+
+        // 경로 검출기 표시 (켜졌을 때 슬릿 옆에 표식)
+        if (state.detector) {
+          ctx.strokeStyle = state.eraser ? '#86efac' : '#f87171';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(BARRIER_X + 22, topGapC, 9, 0, Math.PI * 2);
+          ctx.arc(BARRIER_X + 22, botGapC, 9, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = state.eraser ? '#86efac' : '#f87171';
+          ctx.font = '10px system-ui, sans-serif';
+          ctx.fillText(state.eraser ? '지우개' : '검출기', BARRIER_X + 22, MID_Y);
+        }
+
+        // 스크린(검출면)
+        ctx.fillStyle = '#241c38';
+        ctx.fillRect(SCREEN_X - 4, 0, 4 + (W - SCREEN_X), H);
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText('스크린', SCREEN_X - 26, 16);
+
+        // 누적 점들
+        for (let i = 0; i < state.dots.length; i++) {
+          const d = state.dots[i];
+          if (d.life > 0) {
+            // 막 도착한 점은 밝게 강조
+            ctx.fillStyle = '#fff6c2';
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillStyle = 'rgba(252, 211, 77, 0.85)';
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // 진행 중인 광자 (한 개씩 날아가는 모습)
+        ctx.fillStyle = '#a78bfa';
+        for (let i = 0; i < state.flights.length; i++) {
+          const f = state.flights[i];
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, 2.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 히스토그램 외곽선 (스크린 왼쪽으로 뻗는 막대 윤곽)
+        const histBaseX = SCREEN_X - 8;
+        const histMaxLen = 130;
+        ctx.strokeStyle = fringesVisible() ? '#60a5fa' : '#fca5a5';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        let started = false;
+        for (let b = 0; b < BIN_COUNT; b++) {
+          const yc = BIN_TOP + (b + 0.5) * BIN_H;
+          const frac = state.bins[b] / state.binMax;
+          const x = histBaseX - frac * histMaxLen;
+          if (!started) { ctx.moveTo(x, yc); started = true; }
+          else ctx.lineTo(x, yc);
+        }
+        ctx.stroke();
+
+        // 라벨: 히스토그램 안내
+        ctx.fillStyle = fringesVisible() ? '#93c5fd' : '#fca5a5';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('세로 위치 히스토그램', histBaseX - 4, H - 10);
+        ctx.textAlign = 'center';
+      }
+
+      // ----- 상태 표시 갱신 -----
+      function updateReadout() {
+        if (rCount) rCount.textContent = state.count;
+        if (rDet) rDet.textContent = state.detector ? '켜짐' : '꺼짐';
+        if (rEra) rEra.textContent = state.eraser ? '켜짐' : '꺼짐';
+        if (rMode) {
+          const m = currentMode();
+          if (m === 'interference') {
+            rMode.textContent = '간섭무늬 (간섭)';
+            rMode.className = 'mode-interf';
+          } else if (m === 'blob') {
+            rMode.textContent = '무늬 사라짐 (경로 알려짐)';
+            rMode.className = 'mode-blob';
+          } else {
+            rMode.textContent = '무늬 복원 (경로 지워짐)';
+            rMode.className = 'mode-restore';
+          }
+        }
+      }
+
+      // ----- 메인 루프 (rAF) -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs == null) state.lastTs = ts;
+        const dt = ts - state.lastTs;
+        // 약 60fps 기준, 너무 빠른 프레임은 묶음
+        if (dt >= 16) {
+          state.lastTs = ts;
+          step();
+          draw();
+          updateReadout();
+        }
+        requestAnimationFrame(loop);
+      }
+
+      // ----- 리셋 -----
+      function reset() {
+        state.count = 0;
+        state.dots.length = 0;
+        state.flights.length = 0;
+        state.bins.fill(0);
+        state.binMax = 1;
+        state.lastTs = null;
+        draw();
+        updateReadout();
+      }
+
+      // ----- 컨트롤 이벤트 -----
+      if (speedSlider) {
+        speedSlider.addEventListener('input', () => {
+          state.speed = parseInt(speedSlider.value, 10);
+          if (speedVal) speedVal.textContent = state.speed;
+        });
+      }
+
+      if (detectorChk) {
+        detectorChk.addEventListener('change', () => {
+          state.detector = detectorChk.checked;
+          if (eraserChk) {
+            eraserChk.disabled = !state.detector;
+            if (!state.detector) {
+              eraserChk.checked = false;
+              state.eraser = false;
+            }
+          }
+          // 모드가 바뀌면 무늬 종류도 바뀌므로 화면 비우기
+          reset();
+        });
+      }
+
+      if (eraserChk) {
+        eraserChk.addEventListener('change', () => {
+          if (eraserChk.disabled) { eraserChk.checked = false; return; }
+          state.eraser = eraserChk.checked;
+          reset();
+        });
+      }
+
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          state.running = !state.running;
+          playBtn.textContent = state.running ? '⏸ 일시정지' : '▶ 시작';
+          if (state.running) {
+            state.lastTs = null;
+            requestAnimationFrame(loop);
+          }
+        });
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', reset);
+      }
+
+      // ----- 퀴즈 채점 -----
+      function gradeQuiz(name, btnId, fbId) {
+        const btn = document.getElementById(btnId);
+        const fb = document.getElementById(fbId);
+        if (!btn || !fb) return;
+        btn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="' + name + '"]:checked');
+          if (!sel) {
+            fb.innerHTML = '<span class="no">보기를 하나 선택해 주세요.</span>';
+            return;
+          }
+          if (sel.value === 'correct') {
+            fb.innerHTML = '<span class="ok">정답입니다! 잘 이해했어요. 🎉</span>';
+          } else {
+            fb.innerHTML = '<span class="no">아쉬워요. 다시 한 번 생각해 보세요.</span>';
+          }
+        });
+      }
+      gradeQuiz('q1', 'q1-btn', 'q1-feedback');
+      gradeQuiz('q2', 'q2-btn', 'q2-feedback');
+
+      // ----- 초기 렌더 -----
+      if (speedVal) speedVal.textContent = state.speed;
+      reset();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./07-bell-inequality.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 벨 부등식과 얽힘</a>
+      <a href="./09-hydrogen-orbitals.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 수소 원자 오비탈</a>
+      <a href="../01-ancient/01-eratosthenes.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 에라토스테네스의 지구 둘레 측정</a>
+      <a href="../03-precision-era/05-young-double-slit.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 영의 이중 슬릿 실험</a>
+      <a href="../06-quantum/05-stern-gerlach.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 슈테른-게를라흐 실험</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_eraser_experiment" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%A7%80%EC%9A%B0%EA%B0%9C&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+eraser+double+slit+single+photon" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 54, "slug": "08-single-photon-eraser", "category": "06-quantum", "icon": "✨", "title": "단일 광자 이중 슬릿 · 양자 지우개", "titleEn": "Single-Photon Double Slit & Quantum Eraser", "year": "1978 / 1999", "scientist": "존 휠러 · 스컬리–드륄 (Wheeler · Scully–Drühl)", "difficulty": 3, "description": "광자를 하나씩 보내 간섭무늬가 점으로 쌓이고, 경로 정보를 얻으면 무늬가 사라지며 지우개로 되살아난다.", "keywords": ["이중 슬릿", "단일 광자", "간섭", "경로 정보", "양자 지우개", "파동-입자", "측정"], "catName": "양자역학", "catIcon": "🌊"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

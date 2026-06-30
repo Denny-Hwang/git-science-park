@@ -11,7 +11,10 @@ const SAMPLE = [
   { url: 'index.html', label: 'hub' },
   { url: 'experiments/01-ancient/01-eratosthenes.html', label: 'eratosthenes' },
   { url: 'experiments/03-precision-era/02-cavendish.html', label: 'cavendish' },
-  { url: 'experiments/06-quantum/03-schrodinger.html', label: 'quantum(schrodinger)' }
+  { url: 'experiments/06-quantum/03-schrodinger.html', label: 'quantum(schrodinger)' },
+  { url: 'experiments/06-quantum/09-hydrogen-orbitals.html', label: 'quantum(hydrogen)' },
+  { url: 'experiments/09-quantum-computing/01-bloch-sphere.html', label: 'qc(bloch)' },
+  { url: 'experiments/09-quantum-computing/03-grover.html', label: 'qc(grover)' }
 ];
 
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];

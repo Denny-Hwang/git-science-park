@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>양자 회로 시뮬레이터 · Git Science Park</title>
@@ -146,10 +149,19 @@
     .entangle-no { color: #1d4ed8; }
     .measure-out { font-weight: 700; color: #92400e; }
   </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
 </head>
 <body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
   <nav>
-    <a href="../../index.html">&larr; 허브로</a>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
     <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
   </nav>
 
@@ -160,9 +172,9 @@
   </header>
 
   <div class="tabs" role="tablist" aria-label="실험 탭">
-    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
-    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
-    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
   </div>
 
   <main>
@@ -686,5 +698,53 @@
       render();
     })();
   </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./01-bloch-sphere.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 블로흐 구와 큐비트 게이트</a>
+      <a href="./03-grover.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 그로버 검색 알고리즘</a>
+      <a href="../09-quantum-computing/04-entanglement-bell.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 얽힘과 벨 상태 (CNOT)</a>
+      <a href="../08-modern/07-qubit.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자컴퓨팅 큐비트</a>
+      <a href="../01-ancient/01-eratosthenes.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 에라토스테네스의 지구 둘레 측정</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_circuit" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%ED%9A%8C%EB%A1%9C&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+circuit+simulator+gates+qubit" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 57, "slug": "02-quantum-circuit", "category": "09-quantum-computing", "icon": "🎛️", "title": "양자 회로 시뮬레이터", "titleEn": "Quantum Circuit Simulator", "year": "1980년대~", "scientist": "도이치 · 양자 회로 모형 (Deutsch et al.)", "difficulty": 4, "description": "게이트를 회로에 놓아 2~3큐비트 상태의 진폭·확률을 실시간으로 보고, 측정으로 붕괴시킨다.", "keywords": ["양자 회로", "큐비트", "게이트", "진폭", "측정", "중첩", "얽힘", "아다마르", "CNOT"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
 </body>
 </html>

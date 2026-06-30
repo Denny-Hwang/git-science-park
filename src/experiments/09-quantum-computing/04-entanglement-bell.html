@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>얽힘과 벨 상태 (CNOT) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #0a2a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    /* 확률 막대 */
+    .bars { margin: 14px 0; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+    .bar-label { font-family: "Courier New", monospace; font-weight: 700; min-width: 56px; }
+    .bar-track { flex: 1; height: 22px; background: #e5e7eb; border-radius: 5px; overflow: hidden; }
+    .bar-fill { height: 100%; width: 0%; background: var(--primary); transition: width 0.25s ease; }
+    .bar-pct { min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    /* 검출기 패널 */
+    .detector-row { display: flex; flex-wrap: wrap; gap: 16px; margin: 14px 0; }
+    .detector {
+      flex: 1; min-width: 180px; padding: 16px; border-radius: 10px;
+      border: 2px solid #cbd5e1; background: var(--card-bg); text-align: center;
+    }
+    .detector .det-name { font-weight: 700; color: var(--text-muted); }
+    .detector .det-out {
+      font-size: 2.6rem; font-weight: 800; margin: 6px 0; color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+    }
+    .detector.lit-0 { border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,0.18); }
+    .detector.lit-0 .det-out { color: #1d4ed8; }
+    .detector.lit-1 { border-color: #b91c1c; box-shadow: 0 0 0 3px rgba(185,28,28,0.18); }
+    .detector.lit-1 .det-out { color: #b91c1c; }
+    /* 상관 테이블 */
+    table.corr { border-collapse: collapse; margin: 12px 0; width: 100%; max-width: 420px; }
+    table.corr th, table.corr td {
+      border: 1px solid #cbd5e1; padding: 8px 12px; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    table.corr th { background: #e6f3f7; color: #0E7490; }
+    table.corr td.hot { background: #d1fae5; font-weight: 700; color: #166534; }
+    table.corr td.cold { background: #fef2f2; color: #b91c1c; }
+    .ok-text { color: #166534; font-weight: 700; }
+    .err-text { color: #b91c1c; font-weight: 700; }
+    .info-text { color: #1d4ed8; font-weight: 700; }
+    .warn-text { color: #92400e; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타 -->
+  <header>
+    <h1>얽힘과 벨 상태 (CNOT)</h1>
+    <div class="en">Entanglement &amp; Bell States</div>
+    <div class="meta">1935 / 1964 · EPR · 벨 상태 (Bell states) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="220" role="img"
+        aria-label="두 개의 큐비트 q0과 q1에 아다마르 게이트와 CNOT 게이트를 적용해 벨 상태를 만드는 양자 회로 다이어그램"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>게이트 적용 (현재 상태에 순서대로 작용)</label>
+          <div class="btn-row" role="group" aria-label="게이트 버튼">
+            <button type="button" class="btn" id="hBtn">H on q0</button>
+            <button type="button" class="btn" id="cnotBtn">CNOT(0→1)</button>
+            <button type="button" class="btn secondary" id="resetBtn">⟲ 초기화</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>상태 비교 (프리셋)</label>
+          <div class="btn-row" role="group" aria-label="상태 프리셋 선택">
+            <button type="button" class="btn preset" id="prodBtn" data-preset="product">곱 상태 (H만)</button>
+            <button type="button" class="btn preset active" id="bellBtn" data-preset="bell">벨 상태 만들기 (H→CNOT)</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>측정 (상태는 그대로, 매번 다시 준비해 표본 추출)</label>
+          <div class="btn-row" role="group" aria-label="측정 버튼">
+            <button type="button" class="btn" id="measure1Btn">🔬 한 번 측정</button>
+            <button type="button" class="btn" id="measure100Btn">📊 100번 측정</button>
+            <button type="button" class="btn secondary" id="clearStatsBtn">통계 지우기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 상태 벡터 확률 막대 -->
+      <div class="result-box">
+        <h3>상태 벡터 측정 확률 |진폭|²</h3>
+        <div class="bars" aria-label="기저 상태별 측정 확률 막대">
+          <div class="bar-row">
+            <span class="bar-label">|00⟩</span>
+            <div class="bar-track"><div class="bar-fill" id="bar-00"></div></div>
+            <span class="bar-pct" id="pct-00">0%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">|01⟩</span>
+            <div class="bar-track"><div class="bar-fill" id="bar-01"></div></div>
+            <span class="bar-pct" id="pct-01">0%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">|10⟩</span>
+            <div class="bar-track"><div class="bar-fill" id="bar-10"></div></div>
+            <span class="bar-pct" id="pct-10">0%</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">|11⟩</span>
+            <div class="bar-track"><div class="bar-fill" id="bar-11"></div></div>
+            <span class="bar-pct" id="pct-11">0%</span>
+          </div>
+        </div>
+        <div>현재 상태: <strong id="state-name">|00⟩ (초기 상태)</strong></div>
+      </div>
+
+      <!-- 검출기 패널 -->
+      <div class="detector-row">
+        <div class="detector" id="detA">
+          <div class="det-name">큐비트 A (q0)</div>
+          <div class="det-out" id="outA">–</div>
+          <div class="det-sub" id="subA" style="font-size:0.85rem;color:var(--text-muted);">측정 대기</div>
+        </div>
+        <div class="detector" id="detB">
+          <div class="det-name">큐비트 B (q1)</div>
+          <div class="det-out" id="outB">–</div>
+          <div class="det-sub" id="subB" style="font-size:0.85rem;color:var(--text-muted);">측정 대기</div>
+        </div>
+      </div>
+
+      <div class="hint-box" id="single-msg">
+        <strong>🔬 한 번 측정</strong>을 눌러 보세요. 벨 상태에서는 A의 결과가 정해지는 <em>순간</em> B의 결과도 즉시 확정됩니다.
+      </div>
+
+      <!-- 상관 테이블 -->
+      <div class="result-box">
+        <h3>측정 상관 통계 (총 <span id="stat-total">0</span>회)</h3>
+        <table class="corr" aria-label="A와 B의 측정 결과 상관 표">
+          <thead>
+            <tr><th></th><th>B = 0</th><th>B = 1</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>A = 0</th>
+              <td id="c00">0 (0%)</td>
+              <td id="c01">0 (0%)</td>
+            </tr>
+            <tr>
+              <th>A = 1</th>
+              <td id="c10">0 (0%)</td>
+              <td id="c11">0 (0%)</td>
+            </tr>
+          </tbody>
+        </table>
+        <div id="corr-interp">측정을 시작하면 A·B 상관 관계가 여기에 나타납니다.</div>
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>양자 얽힘과 벨 상태</h2>
+
+      <div class="concept-box">
+        <h3>얽힘이란?</h3>
+        <p>두 큐비트가 <strong>얽혀(entangled)</strong> 있다는 것은, 전체 상태를 두 큐비트 각각의 상태의
+        <em>곱(텐서곱)</em>으로 분리해 쓸 수 없다는 뜻입니다. 한쪽을 측정하면 그 결과에 따라 다른 쪽의
+        상태가 즉시 결정됩니다. 아무리 멀리 떨어져 있어도 측정 결과의 <strong>상관관계</strong>는 완벽합니다.</p>
+        <p>2큐비트 상태는 네 기저 |00⟩, |01⟩, |10⟩, |11⟩에 대한 복소 진폭 4개로 표현됩니다.
+        인덱스는 b = 2·q0 + q1 입니다.</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>게이트로 벨 상태 만들기</h3>
+        <p>① <strong>아다마르(H)</strong> 게이트를 q0에 적용하면 q0이 0과 1의 균등 중첩이 됩니다.<br>
+        ② 이어서 <strong>CNOT(0→1)</strong>(제어=q0, 표적=q1)을 적용하면 q0이 1일 때만 q1이 뒤집혀,
+        두 큐비트가 <strong>얽힙니다</strong>. 결과가 바로 벨 상태 Φ⁺ 입니다.</p>
+        <p>비교를 위해 H만 적용하면(곱 상태) 네 결과가 모두 25%로 나오고 A와 B 사이에 <strong>상관이 없습니다</strong>.
+        CNOT을 더한 벨 상태에서는 00과 11만 약 50%씩 나오고 01·10은 절대 나오지 않습니다.</p>
+      </div>
+
+      <div class="formula-box">
+        |00⟩ &nbsp;—H(q0)→&nbsp; (|00⟩ + |10⟩)/√2 &nbsp;—CNOT(0→1)→&nbsp; (|00⟩ + |11⟩)/√2 = |Φ⁺⟩
+        <br><br>
+        H: &nbsp; a' = (a + b)/√2, &nbsp; b' = (a − b)/√2
+        <br>
+        CNOT(c,t): &nbsp; 제어비트 c=1인 항끼리, 표적비트 t를 뒤집은 진폭을 교환
+      </div>
+
+      <div class="misconception">
+        <h3>⚠️ 흔한 오해</h3>
+        <p><strong>"얽힘으로 빛보다 빠르게 정보를 보낼 수 있다."</strong> — 아닙니다. A에서 보는 0/1은
+        무작위라서, A 혼자서는 B에게 아무 메시지도 전달할 수 없습니다. 상관관계는 두 결과를
+        <em>나중에 고전 통신으로 비교</em>해야만 드러납니다.</p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>🧩 퀴즈</h3>
+        <p id="quiz-q">벨 상태 (|00⟩ + |11⟩)/√2 에서 큐비트 A를 측정해 <strong>1</strong>이 나왔습니다.
+        같은 순간 큐비트 B의 결과는?</p>
+        <form id="quiz-form">
+          <label><input type="radio" name="q" value="a"> 무작위로 0 또는 1</label>
+          <label><input type="radio" name="q" value="b"> 반드시 1 (완벽한 상관)</label>
+          <label><input type="radio" name="q" value="c"> 반드시 0 (반대 상관)</label>
+          <label><input type="radio" name="q" value="d"> 측정할 수 없음</label>
+        </form>
+        <button type="button" id="quiz-check">채점</button>
+        <div class="quiz-feedback" id="quiz-feedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>EPR에서 벨 부등식까지</h2>
+
+      <div class="timeline">
+        <h3>🕰️ 타임라인</h3>
+        <ul>
+          <li><strong>1935년</strong> — 아인슈타인·포돌스키·로젠(EPR)이 양자역학이 "불완전"하다고 주장하며
+          멀리 떨어진 입자 사이의 "유령 같은 원격 작용(spooky action at a distance)"을 문제 삼음.</li>
+          <li><strong>1935년</strong> — 슈뢰딩거가 이 현상을 <em>Verschränkung(얽힘, entanglement)</em>이라 명명.</li>
+          <li><strong>1964년</strong> — 존 벨(John Stewart Bell)이 <strong>벨 부등식</strong>을 발표.
+          국소 숨은 변수 이론과 양자역학이 서로 다른 예측을 한다는 것을 정량적으로 보임.</li>
+          <li><strong>1972~1982년</strong> — 클라우저, 아스페 등이 실험으로 벨 부등식 위반을 확인,
+          얽힘이 실재함을 입증.</li>
+          <li><strong>2022년</strong> — 아스페·클라우저·차일링거가 얽힘 실험 공로로 노벨 물리학상 수상.</li>
+        </ul>
+      </div>
+
+      <div class="scientist">
+        <h3>👤 존 스튜어트 벨 (John Stewart Bell, 1928–1990)</h3>
+        <p>북아일랜드 출신 물리학자. 1964년 논문에서 양자 얽힘의 상관관계가 어떤 국소적 고전 이론으로도
+        설명될 수 없음을 수학적으로 증명했습니다. 그의 <strong>벨 부등식</strong>은 철학적 논쟁이던 EPR
+        문제를 <em>실험으로 검증 가능한 과학</em>으로 바꿔 놓았고, 오늘날 양자 정보·양자 컴퓨팅의
+        토대가 되었습니다. 네 개의 최대 얽힘 상태를 그의 이름을 따 <strong>벨 상태</strong>라 부릅니다.</p>
+      </div>
+
+      <div class="key-point">
+        <h3>💡 핵심</h3>
+        <p>EPR은 얽힘을 "역설"로 보았지만, 벨은 그것을 <strong>실험으로 가를 수 있는 질문</strong>으로
+        바꾸었습니다. 답은 양자역학의 손을 들어주었고, H + CNOT 두 게이트만으로 그 얽힘을 직접 만들 수 있습니다.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- (1) 탭 전환 (템플릿 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ===== 2큐비트 상태 벡터 (복소 진폭 4개) =====
+      // index b = 2*q0 + q1 :  0=|00>, 1=|01>, 2=|10>, 3=|11>
+      // {re, im} 구조 유지 (여기선 im은 항상 0이지만 정식 복소 연산)
+      const SQRT1_2 = Math.SQRT1_2; // 1/√2
+
+      function newState() {
+        // 시작 |00>
+        return [
+          { re: 1, im: 0 },
+          { re: 0, im: 0 },
+          { re: 0, im: 0 },
+          { re: 0, im: 0 }
+        ];
+      }
+
+      let amp = newState();
+
+      // 게이트 적용 기록 (회로/상태명 표시용)
+      const gates = []; // 'H' | 'CNOT'
+
+      // ----- 게이트: H on qubit q (q=0: 비트값 2, q=1: 비트값 1) -----
+      function applyH(q) {
+        const bit = (q === 0) ? 2 : 1; // q0은 2의 자리, q1은 1의 자리
+        const out = amp.map((c) => ({ re: c.re, im: c.im }));
+        for (let b = 0; b < 4; b++) {
+          if ((b & bit) === 0) {
+            const b1 = b | bit;
+            const a = amp[b];
+            const d = amp[b1];
+            // a' = (a + d)/√2,  d' = (a - d)/√2
+            out[b] = { re: (a.re + d.re) * SQRT1_2, im: (a.im + d.im) * SQRT1_2 };
+            out[b1] = { re: (a.re - d.re) * SQRT1_2, im: (a.im - d.im) * SQRT1_2 };
+          }
+        }
+        amp = out;
+      }
+
+      // ----- 게이트: CNOT(control c -> target t) -----
+      function applyCNOT(c, t) {
+        const cbit = (c === 0) ? 2 : 1;
+        const tbit = (t === 0) ? 2 : 1;
+        const out = amp.map((x) => ({ re: x.re, im: x.im }));
+        for (let b = 0; b < 4; b++) {
+          if ((b & cbit) !== 0 && (b & tbit) === 0) {
+            const b1 = b | tbit; // 표적 비트 뒤집은 짝
+            // 제어=1인 항끼리 표적 비트가 다른 진폭을 교환
+            out[b] = { re: amp[b1].re, im: amp[b1].im };
+            out[b1] = { re: amp[b].re, im: amp[b].im };
+          }
+        }
+        amp = out;
+      }
+
+      // ----- DOM 참조 (모두 사용 전에 정의) -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas ? canvas.getContext('2d') : null;
+
+      const hBtn = document.getElementById('hBtn');
+      const cnotBtn = document.getElementById('cnotBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const prodBtn = document.getElementById('prodBtn');
+      const bellBtn = document.getElementById('bellBtn');
+      const measure1Btn = document.getElementById('measure1Btn');
+      const measure100Btn = document.getElementById('measure100Btn');
+      const clearStatsBtn = document.getElementById('clearStatsBtn');
+
+      const stateName = document.getElementById('state-name');
+      const singleMsg = document.getElementById('single-msg');
+
+      const detA = document.getElementById('detA');
+      const detB = document.getElementById('detB');
+      const outA = document.getElementById('outA');
+      const outB = document.getElementById('outB');
+      const subA = document.getElementById('subA');
+      const subB = document.getElementById('subB');
+
+      const barIds = ['00', '01', '10', '11'];
+      const corrIds = ['c00', 'c01', 'c10', 'c11'];
+      const statTotalEl = document.getElementById('stat-total');
+      const corrInterp = document.getElementById('corr-interp');
+
+      // 측정 통계: [A0B0, A0B1, A1B0, A1B1]
+      let stats = [0, 0, 0, 0];
+
+      // ----- 확률 헬퍼 -----
+      function prob(b) {
+        const c = amp[b];
+        return c.re * c.re + c.im * c.im;
+      }
+
+      // ----- 상태 이름 판정 -----
+      function describeState() {
+        const p = [prob(0), prob(1), prob(2), prob(3)];
+        const near = (x, y) => Math.abs(x - y) < 1e-6;
+        if (near(p[0], 1)) return '|00⟩ (초기 상태)';
+        // 벨 Φ+ : 00,11 each 0.5
+        if (near(p[0], 0.5) && near(p[3], 0.5) && near(p[1], 0) && near(p[2], 0)) {
+          return '(|00⟩ + |11⟩)/√2  =  |Φ⁺⟩  ← 얽힘!';
+        }
+        // 곱 상태 (H q0): 00,10 each 0.5
+        if (near(p[0], 0.5) && near(p[2], 0.5) && near(p[1], 0) && near(p[3], 0)) {
+          return '(|00⟩ + |10⟩)/√2  (곱 상태, 얽힘 없음)';
+        }
+        return '사용자 정의 상태';
+      }
+
+      function isBell() {
+        return Math.abs(prob(0) - 0.5) < 1e-6 && Math.abs(prob(3) - 0.5) < 1e-6;
+      }
+      function isProduct() {
+        return Math.abs(prob(0) - 0.5) < 1e-6 && Math.abs(prob(2) - 0.5) < 1e-6;
+      }
+
+      // ----- UI 갱신 -----
+      function updateBars() {
+        for (let i = 0; i < 4; i++) {
+          const p = prob(i);
+          const pctTxt = (p * 100).toFixed(0) + '%';
+          const fill = document.getElementById('bar-' + barIds[i]);
+          const pctEl = document.getElementById('pct-' + barIds[i]);
+          if (fill) fill.style.width = (p * 100).toFixed(1) + '%';
+          if (pctEl) pctEl.textContent = pctTxt;
+        }
+        if (stateName) stateName.textContent = describeState();
+        // 프리셋 버튼 active 동기화
+        if (prodBtn && bellBtn) {
+          prodBtn.classList.toggle('active', isProduct() && !isBell());
+          bellBtn.classList.toggle('active', isBell());
+        }
+        drawCircuit();
+      }
+
+      function clearDetectors(msg) {
+        if (outA) outA.textContent = '–';
+        if (outB) outB.textContent = '–';
+        if (detA) detA.className = 'detector';
+        if (detB) detB.className = 'detector';
+        if (subA) subA.textContent = msg || '측정 대기';
+        if (subB) subB.textContent = msg || '측정 대기';
+      }
+
+      function lightDetector(det, out, sub, value, label) {
+        if (out) out.textContent = String(value);
+        if (det) det.className = 'detector lit-' + value;
+        if (sub) sub.textContent = label;
+      }
+
+      // ----- 측정: |amp|² 분포에서 기저 상태 1개 표본 추출 -----
+      function sampleBasis() {
+        const r = Math.random();
+        let acc = 0;
+        for (let b = 0; b < 4; b++) {
+          acc += prob(b);
+          if (r < acc) return b;
+        }
+        return 3;
+      }
+
+      // basis index -> q0,q1
+      function bitsOf(b) {
+        return { q0: (b >> 1) & 1, q1: b & 1 };
+      }
+
+      function recordStat(q0, q1) {
+        // stats index: A0B0=0, A0B1=1, A1B0=2, A1B1=3  (A=q0, B=q1)
+        stats[q0 * 2 + q1] += 1;
+      }
+
+      function singleMeasure() {
+        const b = sampleBasis();
+        const { q0, q1 } = bitsOf(b);
+        // A를 먼저 "확정"하는 느낌 강조
+        lightDetector(detA, outA, subA, q0, 'A 측정 → 확정');
+        lightDetector(detB, outB, subB, q1,
+          isBell() ? 'A가 정해지자 B도 즉시 확정' : '독립적으로 무작위');
+        recordStat(q0, q1);
+        if (singleMsg) {
+          if (isBell()) {
+            singleMsg.innerHTML = '결과 <strong>|' + q0 + q1 + '⟩</strong> — 벨 상태라서 A와 B가 <span class="ok-text">항상 같습니다</span>. A가 ' +
+              q0 + '인 순간 B도 ' + q1 + '로 확정되었습니다.';
+          } else if (isProduct()) {
+            singleMsg.innerHTML = '결과 <strong>|' + q0 + q1 + '⟩</strong> — 곱 상태에서는 B가 항상 0이고 A는 무작위입니다. ' +
+              '<span class="info-text">A와 B 사이에 상관이 없습니다.</span>';
+          } else {
+            singleMsg.innerHTML = '결과 <strong>|' + q0 + q1 + '⟩</strong> 가 측정되었습니다.';
+          }
+        }
+        updateStatsTable();
+      }
+
+      function multiMeasure(n) {
+        for (let i = 0; i < n; i++) {
+          const b = sampleBasis();
+          const { q0, q1 } = bitsOf(b);
+          recordStat(q0, q1);
+        }
+        clearDetectors(n + '회 일괄 측정 완료');
+        if (singleMsg) {
+          singleMsg.innerHTML = '<strong>' + n + '회</strong> 측정을 완료했습니다. 아래 상관 표를 확인하세요.';
+        }
+        updateStatsTable();
+      }
+
+      function updateStatsTable() {
+        const total = stats[0] + stats[1] + stats[2] + stats[3];
+        if (statTotalEl) statTotalEl.textContent = total;
+        for (let i = 0; i < 4; i++) {
+          const cell = document.getElementById(corrIds[i]);
+          if (!cell) continue;
+          const pct = total ? (stats[i] / total * 100).toFixed(0) : '0';
+          cell.textContent = stats[i] + ' (' + pct + '%)';
+          cell.className = '';
+        }
+        // 해석 + 셀 강조
+        if (!corrInterp) return;
+        if (total === 0) {
+          corrInterp.innerHTML = '측정을 시작하면 A·B 상관 관계가 여기에 나타납니다.';
+          return;
+        }
+        const c00 = document.getElementById('c00');
+        const c01 = document.getElementById('c01');
+        const c10 = document.getElementById('c10');
+        const c11 = document.getElementById('c11');
+        if (isBell()) {
+          // 00, 11만 채워짐
+          if (c00) c00.className = 'hot';
+          if (c11) c11.className = 'hot';
+          if (c01) c01.className = 'cold';
+          if (c10) c10.className = 'cold';
+          corrInterp.innerHTML = '<span class="ok-text">완벽한 상관 (얽힘)</span> — 00과 11만 각각 약 50%, ' +
+            '01·10은 0입니다. A를 알면 B를 100% 확신할 수 있습니다.';
+        } else if (isProduct()) {
+          // B는 항상 0 → A0B0, A1B0만 채워짐. (대각 강조는 하지 않음)
+          corrInterp.innerHTML = '<span class="info-text">상관 없음</span> — A는 무작위(약 50:50)지만 ' +
+            'B는 늘 0입니다. A를 알아도 B에 대한 새 정보가 없습니다 (얽힘 아님).';
+        } else {
+          corrInterp.innerHTML = '현재 상태의 분포에 따라 결과가 집계됩니다.';
+        }
+      }
+
+      function clearStats() {
+        stats = [0, 0, 0, 0];
+        for (let i = 0; i < 4; i++) {
+          const cell = document.getElementById(corrIds[i]);
+          if (cell) { cell.textContent = '0 (0%)'; cell.className = ''; }
+        }
+        if (statTotalEl) statTotalEl.textContent = '0';
+        if (corrInterp) corrInterp.innerHTML = '측정을 시작하면 A·B 상관 관계가 여기에 나타납니다.';
+      }
+
+      // ----- 회로 다이어그램 그리기 (Canvas) -----
+      function drawCircuit() {
+        if (!ctx) return;
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#0a2a33';
+        ctx.fillRect(0, 0, W, H);
+
+        const yq0 = 70, yq1 = 150;
+        const xStart = 110, xEnd = 600;
+
+        // 와이어
+        ctx.strokeStyle = '#5eead4';
+        ctx.lineWidth = 2;
+        [yq0, yq1].forEach((y) => {
+          ctx.beginPath();
+          ctx.moveTo(xStart, y);
+          ctx.lineTo(xEnd, y);
+          ctx.stroke();
+        });
+
+        // 큐비트 라벨
+        ctx.fillStyle = '#e6fffb';
+        ctx.font = '16px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('q0 = |0⟩', xStart - 8, yq0);
+        ctx.fillText('q1 = |0⟩', xStart - 8, yq1);
+
+        // 게이트 슬롯 위치
+        const slotX = [200, 340];
+        let slot = 0;
+
+        for (let g = 0; g < gates.length && slot < slotX.length; g++) {
+          const x = slotX[slot];
+          if (gates[g] === 'H') {
+            // H 박스 (q0)
+            ctx.fillStyle = '#f4f4f4';
+            ctx.fillRect(x - 20, yq0 - 20, 40, 40);
+            ctx.strokeStyle = '#0E7490';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - 20, yq0 - 20, 40, 40);
+            ctx.fillStyle = '#0E7490';
+            ctx.font = 'bold 20px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('H', x, yq0);
+          } else if (gates[g] === 'CNOT') {
+            // 제어점 (q0) + 연결선 + 표적 ⊕ (q1)
+            ctx.strokeStyle = '#fbbf24';
+            ctx.fillStyle = '#fbbf24';
+            ctx.lineWidth = 2;
+            // 연결선
+            ctx.beginPath();
+            ctx.moveTo(x, yq0);
+            ctx.lineTo(x, yq1);
+            ctx.stroke();
+            // 제어점
+            ctx.beginPath();
+            ctx.arc(x, yq0, 7, 0, Math.PI * 2);
+            ctx.fill();
+            // 표적 원
+            ctx.beginPath();
+            ctx.arc(x, yq1, 16, 0, Math.PI * 2);
+            ctx.stroke();
+            // 표적 +
+            ctx.beginPath();
+            ctx.moveTo(x - 16, yq1); ctx.lineTo(x + 16, yq1);
+            ctx.moveTo(x, yq1 - 16); ctx.lineTo(x, yq1 + 16);
+            ctx.stroke();
+          }
+          slot++;
+        }
+
+        // 출력 라벨
+        ctx.fillStyle = '#e6fffb';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        const label = isBell() ? '|Φ⁺⟩ 벨 상태' : (isProduct() ? '곱 상태' : '');
+        if (label) ctx.fillText(label, xEnd - 96, 30);
+      }
+
+      // ----- 액션 -----
+      function reset() {
+        amp = newState();
+        gates.length = 0;
+        clearDetectors('측정 대기');
+        if (singleMsg) {
+          singleMsg.innerHTML = '<strong>🔬 한 번 측정</strong>을 눌러 보세요. 벨 상태에서는 A의 결과가 정해지는 <em>순간</em> B의 결과도 즉시 확정됩니다.';
+        }
+        updateBars();
+      }
+
+      function setProduct() {
+        reset();
+        applyH(0);
+        gates.push('H');
+        updateBars();
+        clearDetectors('곱 상태 준비됨 (H on q0)');
+      }
+
+      function setBell() {
+        reset();
+        applyH(0);
+        applyCNOT(0, 1);
+        gates.push('H'); gates.push('CNOT');
+        updateBars();
+        clearDetectors('벨 상태 준비됨 (H → CNOT)');
+      }
+
+      // ----- 이벤트 -----
+      if (hBtn) hBtn.addEventListener('click', () => {
+        applyH(0);
+        if (gates.length < 2) gates.push('H');
+        updateBars();
+      });
+      if (cnotBtn) cnotBtn.addEventListener('click', () => {
+        applyCNOT(0, 1);
+        if (gates.length < 2) gates.push('CNOT');
+        updateBars();
+      });
+      if (resetBtn) resetBtn.addEventListener('click', () => { reset(); clearStats(); });
+      if (prodBtn) prodBtn.addEventListener('click', () => { setProduct(); clearStats(); });
+      if (bellBtn) bellBtn.addEventListener('click', () => { setBell(); clearStats(); });
+      if (measure1Btn) measure1Btn.addEventListener('click', singleMeasure);
+      if (measure100Btn) measure100Btn.addEventListener('click', () => multiMeasure(100));
+      if (clearStatsBtn) clearStatsBtn.addEventListener('click', clearStats);
+
+      // ----- 퀴즈 채점 -----
+      const quizCheck = document.getElementById('quiz-check');
+      const quizFeedback = document.getElementById('quiz-feedback');
+      if (quizCheck) {
+        quizCheck.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q"]:checked');
+          if (!quizFeedback) return;
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택하세요.';
+            quizFeedback.className = 'quiz-feedback warn-text';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '✅ 정답! |Φ⁺⟩에서는 두 큐비트가 항상 같으므로, A가 1이면 B도 반드시 1입니다 (완벽한 상관).';
+            quizFeedback.className = 'quiz-feedback ok-text';
+          } else {
+            quizFeedback.textContent = '❌ 다시 생각해 보세요. (|00⟩+|11⟩)/√2 에는 01·10 항이 없으므로 A와 B는 항상 같은 값이 나옵니다.';
+            quizFeedback.className = 'quiz-feedback err-text';
+          }
+        });
+      }
+
+      // ----- 초기화: 기본은 벨 상태로 준비 (프리셋 active 와 일치) -----
+      setBell();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./03-grover.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 그로버 검색 알고리즘</a>
+      <a href="../09-quantum-computing/02-quantum-circuit.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 회로 시뮬레이터</a>
+      <a href="../09-quantum-computing/01-bloch-sphere.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 블로흐 구와 큐비트 게이트</a>
+      <a href="../01-ancient/01-eratosthenes.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 에라토스테네스의 지구 둘레 측정</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Bell_state" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EB%B2%A8+%EC%83%81%ED%83%9C&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=bell+state+cnot+entanglement+qubit" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 59, "slug": "04-entanglement-bell", "category": "09-quantum-computing", "icon": "🪢", "title": "얽힘과 벨 상태 (CNOT)", "titleEn": "Entanglement & Bell States", "year": "1935 / 1964", "scientist": "EPR · 벨 상태 (Bell states)", "difficulty": 3, "description": "아다마르+CNOT로 두 큐비트를 얽어 벨 상태를 만들고, 한쪽 측정이 다른 쪽을 즉시 결정하는 상관을 본다.", "keywords": ["얽힘", "벨 상태", "CNOT", "아다마르", "상관", "EPR", "측정", "큐비트"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

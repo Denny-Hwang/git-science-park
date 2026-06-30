@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수소 원자 오비탈 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f5f3fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+      image-rendering: auto;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .btn.preset:disabled { opacity: 0.35; cursor: not-allowed; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; color: #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .quiz-feedback.correct { color: #166534; }
+    .quiz-feedback.wrong { color: #b91c1c; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; color: #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    .legend {
+      display: flex; align-items: center; gap: 10px; justify-content: center;
+      margin: 10px auto 0; max-width: 520px; font-size: 0.85rem; color: var(--text-muted);
+    }
+    .legend-bar {
+      flex: 1; height: 14px; border-radius: 4px;
+      background: linear-gradient(to right, #14101f, #6B46C1, #f0e9ff);
+      border: 1px solid #e5e7eb;
+    }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>수소 원자 오비탈</h1>
+    <div class="en">Hydrogen Atom Orbitals</div>
+    <div class="meta">1926 · 에르빈 슈뢰딩거 (Erwin Schrödinger) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="520" height="520" role="img"
+        aria-label="수소 원자 전자 오비탈의 확률 밀도를 x-z 평면 단면으로 나타낸 히트맵. 밝을수록 전자가 발견될 확률이 높습니다."></canvas>
+
+      <div class="legend" aria-hidden="true">
+        <span>낮음</span>
+        <span class="legend-bar"></span>
+        <span>높음 |ψ|²</span>
+      </div>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>주양자수 n (에너지 준위)</label>
+          <div class="btn-row" role="group" aria-label="주양자수 n 선택">
+            <button type="button" class="btn preset" data-n="1">n = 1</button>
+            <button type="button" class="btn preset active" data-n="2">n = 2</button>
+            <button type="button" class="btn preset" data-n="3">n = 3</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>방위 양자수 ℓ (오비탈 모양)</label>
+          <div class="btn-row" id="l-row" role="group" aria-label="방위 양자수 ℓ 선택"></div>
+        </div>
+
+        <div class="control-row">
+          <label>자기 양자수 m (방향)</label>
+          <div class="btn-row" id="m-row" role="group" aria-label="자기 양자수 m 선택"></div>
+        </div>
+
+        <div class="hint-box">
+          💡 n을 바꾸면 ℓ의 범위(0 … n−1)가, ℓ을 바꾸면 m의 범위(−ℓ … +ℓ)가 자동으로 갱신됩니다.
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>오비탈 이름: <strong id="r-name">—</strong></div>
+          <div>양자수 (n, ℓ, m): <strong id="r-qn">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>에너지 E<sub>n</sub>: <strong id="r-energy">—</strong></div>
+          <div>전자 발견 확률 봉우리 반경: <strong id="r-peak">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>지름 마디 (radial nodes): <strong id="r-rnodes">—</strong></div>
+          <div>각 마디 (angular nodes): <strong id="r-anodes">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>모양 설명: <strong id="r-shape">—</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>오비탈이란 무엇인가?</h2>
+
+      <div class="concept-box">
+        <h3>전자는 '궤도'가 아니라 '확률 구름'으로 존재한다</h3>
+        <p>보어 모형에서는 전자가 행성처럼 정해진 원 궤도를 돈다고 보았습니다. 그러나 1926년 슈뢰딩거의 파동방정식은
+        전자를 <strong>파동함수 ψ</strong>로 기술합니다. 우리가 실제로 알 수 있는 것은 특정 위치에서 전자를
+        발견할 <strong>확률 밀도 |ψ|²</strong>뿐입니다.</p>
+        <p>이 확률 밀도를 그림으로 그린 것이 바로 <strong>오비탈(orbital)</strong>입니다. 밝은(빽빽한) 곳일수록
+        전자를 발견할 가능성이 높습니다.</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>세 가지 양자수가 오비탈을 결정한다</h3>
+        <ul class="goals">
+          <li><strong>n (주양자수, 1·2·3…)</strong>: 에너지 준위와 크기. n이 클수록 전자가 핵에서 멀리 퍼집니다.</li>
+          <li><strong>ℓ (방위 양자수, 0…n−1)</strong>: 오비탈의 모양. ℓ=0→s(공), ℓ=1→p(아령), ℓ=2→d(네잎/고리).</li>
+          <li><strong>m (자기 양자수, −ℓ…+ℓ)</strong>: 공간에서의 방향(배향).</li>
+        </ul>
+        <p>마디(node)는 전자가 절대 발견되지 않는 면입니다. <strong>지름 마디 = n−ℓ−1</strong>,
+        <strong>각 마디 = ℓ</strong>, 전체 마디 = n−1 입니다.</p>
+      </div>
+
+      <div class="formula-box">
+        ψ<sub>nℓm</sub>(r,θ,φ) = R<sub>nℓ</sub>(r) · Y<sub>ℓ</sub><sup>m</sup>(θ,φ)<br>
+        확률 밀도 ∝ R<sub>nℓ</sub>(r)² · |Y<sub>ℓ</sub><sup>m</sup>(θ,φ)|²<br>
+        E<sub>n</sub> = −13.6 eV / n²
+      </div>
+
+      <div class="misconception">
+        ⚠️ <strong>흔한 오해</strong>: "p 오비탈의 두 잎 사이에서 전자가 한쪽에서 다른 쪽으로 '날아간다'."
+        실제로 두 잎은 같은 하나의 정상파 상태이며, 그 사이의 마디면에서는 확률이 정확히 0입니다.
+        전자는 이동하는 입자가 아니라 공간 전체에 퍼진 정상파입니다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>🧩 퀴즈: 3d 오비탈(n=3, ℓ=2)의 지름 마디 수는?</h3>
+        <form id="quiz-form">
+          <label><input type="radio" name="q1" value="a"> 0개</label>
+          <label><input type="radio" name="q1" value="b"> 1개</label>
+          <label><input type="radio" name="q1" value="c"> 2개</label>
+          <label><input type="radio" name="q1" value="d"> 3개</label>
+          <button type="button" id="quiz-check">채점</button>
+        </form>
+        <div class="quiz-feedback" id="quiz-feedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>오비탈 개념의 탄생</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1913</strong> — 닐스 보어, 전자가 정해진 원 궤도를 돈다는 보어 모형 제시 (양자화된 에너지 준위).</li>
+          <li><strong>1924</strong> — 루이 드브로이, 전자도 파동성을 갖는다는 물질파 가설 발표.</li>
+          <li><strong>1926</strong> — 에르빈 슈뢰딩거, 파동방정식을 세워 수소 원자의 파동함수를 정확히 풀어냄.</li>
+          <li><strong>1926</strong> — 막스 보른, |ψ|²을 '확률 밀도'로 해석 (보른 규칙).</li>
+          <li><strong>1927</strong> — 하이젠베르크의 불확정성 원리로 '궤도' 개념이 완전히 폐기됨.</li>
+        </ul>
+      </div>
+
+      <div class="scientist">
+        <h3>에르빈 슈뢰딩거 (Erwin Schrödinger, 1887–1961)</h3>
+        <p>오스트리아의 물리학자. 1926년 발표한 파동방정식으로 수소 원자의 에너지 준위와 오비탈 모양을
+        분석적으로 유도했습니다. 이 공로로 1933년 폴 디랙과 함께 노벨 물리학상을 받았습니다.</p>
+        <p>그는 양자역학의 확률적 해석에 끝까지 불편함을 느꼈고, 1935년 '슈뢰딩거의 고양이' 사고실험으로
+        그 역설을 드러내려 했습니다.</p>
+      </div>
+
+      <div class="key-point">
+        🔑 <strong>핵심</strong>: 슈뢰딩거 방정식은 화학 결합, 주기율표의 구조, 원소의 성질을 모두 설명하는
+        현대 화학의 토대가 되었습니다. 우리가 보는 s·p·d·f 오비탈은 모두 이 방정식의 해입니다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = { n: 2, l: 1, m: 0 };
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nBtns = document.querySelectorAll('.btn.preset[data-n]');
+      const lRow = document.getElementById('l-row');
+      const mRow = document.getElementById('m-row');
+
+      const rName = document.getElementById('r-name');
+      const rQn = document.getElementById('r-qn');
+      const rEnergy = document.getElementById('r-energy');
+      const rPeak = document.getElementById('r-peak');
+      const rRnodes = document.getElementById('r-rnodes');
+      const rAnodes = document.getElementById('r-anodes');
+      const rShape = document.getElementById('r-shape');
+
+      // ----- (1) 탭 전환 (템플릿 스크립트 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- (2) 물리: 지름함수 R_nl(r) (a0=1, 비례식) -----
+      function radial(n, l, r) {
+        if (n === 1 && l === 0) return Math.exp(-r);
+        if (n === 2 && l === 0) return (2 - r) * Math.exp(-r / 2);
+        if (n === 2 && l === 1) return r * Math.exp(-r / 2);
+        if (n === 3 && l === 0) return (27 - 18 * r + 2 * r * r) * Math.exp(-r / 3);
+        if (n === 3 && l === 1) return r * (6 - r) * Math.exp(-r / 3);
+        if (n === 3 && l === 2) return r * r * Math.exp(-r / 3);
+        return 0;
+      }
+
+      // ----- 각 부분 |Y_l^m(θ)|² (비례식, θ = +z축 기준 각) -----
+      function angular(l, m, cosT, sinT) {
+        const am = Math.abs(m);
+        if (l === 0) return 1;
+        if (l === 1) {
+          if (am === 0) return cosT * cosT;
+          return sinT * sinT;
+        }
+        if (l === 2) {
+          if (am === 0) { const t = 3 * cosT * cosT - 1; return t * t; }
+          if (am === 1) return sinT * sinT * cosT * cosT;
+          return sinT * sinT * sinT * sinT; // |m|=2
+        }
+        return 0;
+      }
+
+      // ----- 확률 밀도 ρ(r,θ) ∝ R² · |Y|² -----
+      function density(n, l, m, r, cosT, sinT) {
+        const R = radial(n, l, r);
+        return R * R * angular(l, m, cosT, sinT);
+      }
+
+      // ----- 색상 매핑: 어두운 배경 → primary → 흰색에 가까움 -----
+      // primary = (107,70,193)
+      function colorMap(t) {
+        // t ∈ [0,1]; 감마 보정으로 낮은 확률도 보이게
+        const g = Math.pow(t, 0.45);
+        let r, gr, b;
+        if (g < 0.55) {
+          const u = g / 0.55;
+          r = Math.round(20 + (107 - 20) * u);
+          gr = Math.round(16 + (70 - 16) * u);
+          b = Math.round(31 + (193 - 31) * u);
+        } else {
+          const u = (g - 0.55) / 0.45;
+          r = Math.round(107 + (245 - 107) * u);
+          gr = Math.round(70 + (240 - 70) * u);
+          b = Math.round(193 + (255 - 193) * u);
+        }
+        return [r, gr, b];
+      }
+
+      // ----- 오프스크린 버퍼에서 계산 후 캔버스로 확대 -----
+      const GRID = 180;
+      const buffer = document.createElement('canvas');
+      buffer.width = GRID;
+      buffer.height = GRID;
+      const bctx = buffer.getContext ? buffer.getContext('2d') : null;
+
+      function render() {
+        if (!ctx || !bctx) return;
+        const n = state.n, l = state.l, m = state.m;
+        const Rmax = 15 * n;            // 월드 반경 (보어 단위)
+        const half = GRID / 2;
+        const scale = Rmax / half;      // 픽셀당 월드 거리
+
+        // 1차 스캔: 최대 밀도
+        let maxRho = 0;
+        const rho = new Float32Array(GRID * GRID);
+        for (let py = 0; py < GRID; py++) {
+          const Z = (half - py) * scale; // 위쪽이 +z
+          for (let px = 0; px < GRID; px++) {
+            const X = (px - half) * scale;
+            const r = Math.sqrt(X * X + Z * Z);
+            const cosT = r > 1e-9 ? Z / r : 1;
+            const sinT = r > 1e-9 ? Math.abs(X) / r : 0;
+            const d = density(n, l, m, r, cosT, sinT);
+            rho[py * GRID + px] = d;
+            if (d > maxRho) maxRho = d;
+          }
+        }
+        if (maxRho <= 0) maxRho = 1;
+
+        // 2차: 색상화
+        const img = bctx.createImageData(GRID, GRID);
+        const data = img.data;
+        for (let i = 0; i < GRID * GRID; i++) {
+          const t = rho[i] / maxRho;
+          const c = colorMap(t);
+          const o = i * 4;
+          data[o] = c[0];
+          data[o + 1] = c[1];
+          data[o + 2] = c[2];
+          data[o + 3] = 255;
+        }
+        bctx.putImageData(img, 0, 0);
+
+        // 캔버스로 확대 그리기
+        ctx.imageSmoothingEnabled = true;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(buffer, 0, 0, GRID, GRID, 0, 0, canvas.width, canvas.height);
+
+        // 축 안내선 (+z 위쪽)
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.fillText('+z', canvas.width / 2 + 6, 16);
+        ctx.fillText('x', canvas.width - 16, canvas.height / 2 - 6);
+        ctx.restore();
+      }
+
+      // ----- 오비탈 이름/모양 정보 -----
+      const subshell = ['s', 'p', 'd', 'f'];
+      function orbitalName(n, l, m) {
+        let base = n + subshell[l];
+        if (l === 0) return base;
+        // m 표기
+        let note = '';
+        if (l === 1) {
+          if (m === 0) note = ' (p_z, m=0)';
+          else note = ' (p_x/p_y, |m|=1)';
+        } else if (l === 2) {
+          if (m === 0) note = ' (d_z², m=0)';
+          else if (Math.abs(m) === 1) note = ' (d_xz/d_yz, |m|=1)';
+          else note = ' (d_x²−y²/d_xy, |m|=2)';
+        }
+        return base + note;
+      }
+
+      function shapeDesc(n, l, m) {
+        const am = Math.abs(m);
+        if (l === 0) return '구형 확률 구름 (s, 둥근 덩어리)';
+        if (l === 1) {
+          if (am === 0) return 'z축을 따라 늘어선 아령(덤벨) 모양 (위·아래 두 잎)';
+          return 'z축에 수직인 도넛(고리) 단면 — 적도 방향에 분포';
+        }
+        if (l === 2) {
+          if (am === 0) return 'z축 큰 두 잎 + 적도 고리 (d_z²)';
+          if (am === 1) return '대각선 네 잎 단면 (사이 마디면 존재)';
+          return '적도면에 집중된 고리/네 잎 단면';
+        }
+        return '—';
+      }
+
+      // 봉우리(가장 바깥 최대) 반경을 라디얼 함수 스캔으로 추정
+      function peakRadius(n, l) {
+        const Rmax = 15 * n;
+        let best = 0, bestR = 0;
+        for (let i = 1; i <= 600; i++) {
+          const r = (i / 600) * Rmax;
+          const R = radial(n, l, r);
+          const p = R * R * r * r; // 지름 확률 밀도 4πr²|R|²에 비례
+          if (p >= best) { best = p; bestR = r; }
+        }
+        return bestR;
+      }
+
+      function updateReadout() {
+        const n = state.n, l = state.l, m = state.m;
+        if (rName) rName.textContent = orbitalName(n, l, m);
+        if (rQn) rQn.textContent = '(' + n + ', ' + l + ', ' + m + ')';
+        if (rEnergy) rEnergy.textContent = (-13.6 / (n * n)).toFixed(2) + ' eV';
+        if (rPeak) rPeak.textContent = '≈ ' + peakRadius(n, l).toFixed(1) + ' a₀';
+        if (rRnodes) rRnodes.textContent = (n - l - 1) + ' 개';
+        if (rAnodes) rAnodes.textContent = l + ' 개';
+        if (rShape) rShape.textContent = shapeDesc(n, l, m);
+      }
+
+      // ----- ℓ / m 버튼 동적 생성 -----
+      function buildLButtons() {
+        if (!lRow) return;
+        lRow.innerHTML = '';
+        for (let l = 0; l < state.n; l++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn preset' + (l === state.l ? ' active' : '');
+          b.textContent = 'ℓ = ' + l + ' (' + subshell[l] + ')';
+          b.setAttribute('data-l', String(l));
+          b.addEventListener('click', () => {
+            state.l = l;
+            // m을 새 범위로 클램프
+            if (Math.abs(state.m) > state.l) state.m = 0;
+            refreshAll();
+          });
+          lRow.appendChild(b);
+        }
+      }
+
+      function buildMButtons() {
+        if (!mRow) return;
+        mRow.innerHTML = '';
+        for (let m = -state.l; m <= state.l; m++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn preset' + (m === state.m ? ' active' : '');
+          b.textContent = 'm = ' + (m > 0 ? '+' + m : m);
+          b.setAttribute('data-m', String(m));
+          const mv = m;
+          b.addEventListener('click', () => {
+            state.m = mv;
+            refreshAll();
+          });
+          mRow.appendChild(b);
+        }
+      }
+
+      function syncNButtons() {
+        nBtns.forEach((b) => {
+          const isActive = Number(b.getAttribute('data-n')) === state.n;
+          b.classList.toggle('active', isActive);
+          b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+
+      function refreshAll() {
+        // n 변경 시 ℓ 클램프
+        if (state.l > state.n - 1) state.l = state.n - 1;
+        if (Math.abs(state.m) > state.l) state.m = 0;
+        syncNButtons();
+        buildLButtons();
+        buildMButtons();
+        updateReadout();
+        render();
+      }
+
+      // ----- n 버튼 이벤트 -----
+      nBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          state.n = Number(b.getAttribute('data-n'));
+          refreshAll();
+        });
+      });
+
+      // ----- 퀴즈 채점 -----
+      const quizCheck = document.getElementById('quiz-check');
+      const quizFeedback = document.getElementById('quiz-feedback');
+      if (quizCheck && quizFeedback) {
+        quizCheck.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.className = 'quiz-feedback wrong';
+            return;
+          }
+          // 정답: 지름 마디 = n−ℓ−1 = 3−2−1 = 0 → 'a'
+          if (sel.value === 'a') {
+            quizFeedback.textContent = '정답입니다! 지름 마디 = n−ℓ−1 = 3−2−1 = 0개입니다. (각 마디는 ℓ=2개)';
+            quizFeedback.className = 'quiz-feedback correct';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 지름 마디 = n−ℓ−1 = 3−2−1 = 0개입니다.';
+            quizFeedback.className = 'quiz-feedback wrong';
+          }
+        });
+      }
+
+      // ----- 초기화 -----
+      refreshAll();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./08-single-photon-eraser.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 단일 광자 이중 슬릿 · 양자 지우개</a>
+      <a href="../05-atomic/08-bohr.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 보어의 원자 모형</a>
+      <a href="../06-quantum/03-schrodinger.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 슈뢰딩거 방정식</a>
+      <a href="../06-quantum/06-quantum-tunneling.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 터널링</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Atomic_orbital" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%9B%90%EC%9E%90+%EC%98%A4%EB%B9%84%ED%83%88&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=hydrogen+atom+orbitals+s+p+d+visualization" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 55, "slug": "09-hydrogen-orbitals", "category": "06-quantum", "icon": "☁️", "title": "수소 원자 오비탈", "titleEn": "Hydrogen Atom Orbitals", "year": "1926", "scientist": "에르빈 슈뢰딩거 (Erwin Schrödinger)", "difficulty": 4, "description": "주양자수 n·궤도 ℓ·자기 m 양자수에 따라 전자 확률 구름(오비탈)의 모양이 어떻게 변하는지 본다.", "keywords": ["수소 원자", "오비탈", "확률 구름", "양자수", "s p d", "전자", "파동함수"], "catName": "양자역학", "catIcon": "🌊"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>
