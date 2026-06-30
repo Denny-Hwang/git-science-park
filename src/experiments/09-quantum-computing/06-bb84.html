@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BB84 양자 키 분배 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible, select:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 760px; height: auto; display: block; margin: 0 auto;
+      background: #0b2730; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls select {
+      padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1;
+      font-size: 0.95rem; background: #fff; color: var(--text);
+    }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e7f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .status-safe { color: #166534; font-weight: 700; }
+    .status-danger { color: #b91c1c; font-weight: 700; }
+    .keystr {
+      font-family: "Courier New", monospace; letter-spacing: 2px;
+      font-size: 1.1rem; word-break: break-all; color: var(--primary); font-weight: 700;
+    }
+    .qber-meter {
+      position: relative; height: 22px; border-radius: 6px; overflow: hidden;
+      background: #d1d5db; margin-top: 6px; max-width: 420px;
+    }
+    .qber-fill { height: 100%; width: 0%; background: #166534; transition: width .4s, background .4s; }
+    .qber-fill.alert { background: #b91c1c; }
+    .table-wrap { overflow-x: auto; margin-top: 12px; }
+    table.bb84 { border-collapse: collapse; font-size: 0.82rem; min-width: 100%; }
+    table.bb84 th, table.bb84 td {
+      border: 1px solid #d1d5db; padding: 4px 6px; text-align: center; white-space: nowrap;
+    }
+    table.bb84 th { background: #e7f3f7; color: var(--primary); font-weight: 700; }
+    table.bb84 td.rowhead { background: #f1f5f9; font-weight: 700; text-align: left; }
+    table.bb84 td.matched { background: #dcfce7; }
+    table.bb84 td.err { background: #fee2e2; color: #b91c1c; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>BB84 양자 키 분배</h1>
+    <div class="en">BB84 Quantum Key Distribution</div>
+    <div class="meta">1984 · 베넷 · 브라사르 (Bennett · Brassard) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="760" height="320" role="img"
+        aria-label="앨리스가 무작위 기저로 편광 광자를 보내고 밥이 무작위 기저로 측정하는 BB84 양자 키 분배 시뮬레이션. 도청자 이브가 켜지면 광자가 교란되어 오류율(QBER)이 약 25퍼센트로 올라간다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="nSel">전송할 광자 수 N</label>
+          <select id="nSel" aria-label="전송할 광자 수 선택">
+            <option value="12">12 개</option>
+            <option value="20" selected>20 개</option>
+            <option value="40">40 개</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="eveToggle" aria-describedby="eve-desc">
+            <label for="eveToggle">🕵️ 이브 (도청자) 가로채기 ON</label>
+          </div>
+          <p id="eve-desc" style="margin-top:6px; color:var(--text-muted); font-size:0.85rem;">
+            이브가 켜지면 각 광자를 무작위 기저로 측정한 뒤 그 기저로 다시 보냅니다 → 광자 교란 → 오류 발생.
+          </p>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="runBtn">▶ 실행</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>기저 일치(채택) 위치: <strong id="r-sifted">0</strong> 개</div>
+          <div>표본 비교 오류: <strong id="r-errors">0 / 0</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>QBER(양자 비트 오류율): <strong id="r-qber">— %</strong></div>
+          <div>보안 상태: <strong id="r-status" class="status-safe">대기 중</strong></div>
+        </div>
+        <div style="margin-top:8px;">
+          <div class="qber-meter" role="img" aria-label="QBER 막대 그래프">
+            <div class="qber-fill" id="qber-fill"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <div>선별된 공유 키 (sifted key):</div>
+          <div class="keystr" id="r-key" aria-live="polite">—</div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap" aria-live="polite"></div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 앨리스와 밥은 측정이 끝난 뒤 <strong>비트값이 아니라 "기저"만</strong>
+        공개 비교하여, 기저가 같았던 위치만 남긴 것을 <em>선별 키(sifted key)</em>로 씁니다. 도청자가 없으면
+        기저가 같았던 위치의 비트는 항상 일치하므로 오류율(QBER)이 0에 가깝습니다. 하지만 이브가 가로채면,
+        이브의 기저가 앨리스와 다를 때 광자가 교란되어 <strong>기저가 같은 위치에서도 약 25%</strong>의 오류가
+        생깁니다. 따라서 표본을 비교했을 때 QBER이 높으면 <strong>도청을 즉시 탐지</strong>할 수 있습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>두 가지 편광 기저(직선 +, 대각 ×)와 4가지 편광 상태(↑ → ↗ ↘)를 이해한다.</li>
+        <li>기저가 같으면 정확히 측정되고, 다르면 결과가 무작위가 되는 이유를 익힌다.</li>
+        <li>기저(비트값이 아님)를 공개 비교해 선별 키를 만드는 과정을 따라간다.</li>
+        <li>도청자가 측정-재전송하면 QBER이 약 25%로 올라가 탐지됨을 정량적으로 파악한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>BB84는 <strong>두 개의 켤레 기저</strong>를 사용한다. 직선 기저 <em>+</em>는 비트 0을 수직 편광 ↑,
+        비트 1을 수평 편광 →로, 대각 기저 <em>×</em>는 비트 0을 ↗(45°), 비트 1을 ↘(135°)로 부호화한다.</p>
+        <p>앨리스는 광자마다 <strong>무작위 비트</strong>와 <strong>무작위 기저</strong>를 골라 편광 광자를
+        보낸다. 밥도 광자마다 <strong>무작위 기저</strong>를 골라 측정한다. 밥의 기저가 앨리스와 <em>같으면</em>
+        앨리스의 비트를 정확히 얻는다. 그러나 기저가 <em>다르면</em> 결과는 50:50으로 <strong>무작위</strong>가
+        된다(서로 켤레인 기저에서 한쪽의 확정 상태는 다른 쪽에서 완전 중첩이기 때문).</p>
+        <p>전송 후 두 사람은 공개 채널로 <strong>기저만</strong> 비교하여 일치한 위치만 남긴다(선별 키). 이 중
+        일부를 표본으로 공개 대조해 오류율 <strong>QBER</strong>을 추정한다. 이브가 가로채 측정-재전송하면,
+        이브의 기저가 앨리스와 다를 확률 ½, 그때 밥이 틀릴 확률 ½ → <strong>기저 일치 위치에서 오류 확률
+        ½·½ = ¼ = 25%</strong>. 즉 QBER이 0에서 약 25%로 치솟아 도청이 드러난다.</p>
+      </div>
+
+      <div class="formula-box">
+        + 기저: 0 → ↑ (수직), 1 → → (수평)<br>
+        × 기저: 0 → ↗ (45°), 1 → ↘ (135°)<br>
+        기저 일치 → P(정확) = 1 , 기저 불일치 → P(정확) = ½<br>
+        이브 ON → QBER ≈ ½ × ½ = ¼ ≈ 25%
+      </div>
+
+      <!-- SVG 다이어그램: 4가지 편광 상태 -->
+      <svg width="440" height="160" viewBox="0 0 440 160" role="img"
+        aria-label="BB84의 네 가지 편광 상태: 직선 기저의 수직 화살표(0)와 수평 화살표(1), 대각 기저의 45도 화살표(0)와 135도 화살표(1)">
+        <text x="60" y="22" font-size="12" fill="#0E7490" text-anchor="middle">직선 기저 +</text>
+        <text x="300" y="22" font-size="12" fill="#0E7490" text-anchor="middle">대각 기저 ×</text>
+        <!-- + 0: vertical up -->
+        <line x1="40" y1="120" x2="40" y2="50" stroke="#1d4ed8" stroke-width="3"/>
+        <polygon points="40,44 35,56 45,56" fill="#1d4ed8"/>
+        <text x="40" y="142" font-size="11" fill="#374151" text-anchor="middle">0 → ↑</text>
+        <!-- + 1: horizontal right -->
+        <line x1="90" y1="85" x2="160" y2="85" stroke="#b91c1c" stroke-width="3"/>
+        <polygon points="166,85 154,80 154,90" fill="#b91c1c"/>
+        <text x="125" y="142" font-size="11" fill="#374151" text-anchor="middle">1 → →</text>
+        <!-- × 0: diagonal 45 (up-right) -->
+        <line x1="240" y1="120" x2="290" y2="55" stroke="#166534" stroke-width="3"/>
+        <polygon points="293,50 282,55 290,62" fill="#166534"/>
+        <text x="265" y="142" font-size="11" fill="#374151" text-anchor="middle">0 → ↗</text>
+        <!-- × 1: diagonal 135 (down-right) -->
+        <line x1="340" y1="55" x2="390" y2="120" stroke="#92400e" stroke-width="3"/>
+        <polygon points="393,125 382,118 386,112" fill="#92400e"/>
+        <text x="365" y="142" font-size="11" fill="#374151" text-anchor="middle">1 → ↘</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        같은 비트값도 어느 기저로 부호화했느냐에 따라 편광 방향이 달라진다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "앨리스와 밥이 비트값을 공개 비교한다"고 오해하기 쉽다. 실제로 공개하는
+        것은 <em>기저</em>뿐이며, 기저가 같았던 위치의 <em>비트값은 비밀</em>로 남겨 키로 쓴다. 또 "도청자가
+        몰래 복사하면 들키지 않는다"고 생각하기 쉽지만, <em>복제 불가 정리(no-cloning)</em> 때문에 미지의
+        양자 상태는 복제할 수 없고, 측정 자체가 상태를 교란해 QBER이 올라가므로 도청은 반드시 흔적을 남긴다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>전송이 끝난 뒤 앨리스와 밥이 공개 채널로 <em>비교</em>하여 선별 키를 만드는 대상은 무엇인가?</p>
+        <label><input type="radio" name="q1" value="wrong"> 각 광자의 비트값(0/1)을 모두 공개해서 비교</label>
+        <label><input type="radio" name="q1" value="correct"> 각 광자에 쓴 기저(+/×)를 비교하고 일치한 위치만 남김</label>
+        <label><input type="radio" name="q1" value="wrong"> 광자의 도착 시각을 비교</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>도청자 이브가 측정-재전송으로 가로챌 때, 기저가 일치한 위치에서 나타나는 오류율(QBER)은 약 얼마인가?</p>
+        <label><input type="radio" name="q2" value="wrong"> 약 0% (전혀 탐지되지 않음)</label>
+        <label><input type="radio" name="q2" value="correct"> 약 25% (½ × ½)</label>
+        <label><input type="radio" name="q2" value="wrong"> 약 100% (모든 비트가 뒤집힘)</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 찰스 베넷 (Charles H. Bennett, 1943~) · 질 브라사르 (Gilles Brassard, 1955~)</h3>
+        <p>찰스 베넷은 미국 IBM의 물리학자·정보이론가로 가역 계산과 양자 정보 이론의 토대를 닦았다. 질
+        브라사르는 캐나다 몬트리올 대학의 컴퓨터 과학자다. 두 사람은 1984년 인도 방갈로르에서 열린 학회에서
+        발표한 논문 "Quantum Cryptography: Public Key Distribution and Coin Tossing"에서 광자의 편광을
+        이용한 키 분배 규약을 제시했고, 이 규약은 두 저자의 이름과 연도를 따 <strong>BB84</strong>로 불린다.</p>
+        <p>1991년 베넷·브라사르는 동료들과 함께 약 32cm 거리에서 BB84를 실제로 구현해 양자 암호가 단순한
+        이론이 아님을 보였다. 두 사람은 이후 양자 원격전송(quantum teleportation) 제안에도 함께 참여했다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1970년경 — 스티븐 위스너, "공액 부호화(conjugate coding)"와 위조 불가 양자 화폐 아이디어를 구상</li>
+          <li>1982년 — 우터스·주렉, 복제 불가 정리(no-cloning theorem) 발표</li>
+          <li>1984년 — 베넷·브라사르, BB84 양자 키 분배 규약 제안</li>
+          <li>1991년 — 에커트, 얽힘을 이용한 E91 규약 제안 / BB84 첫 실험 구현(32cm)</li>
+          <li>2004년 — 빈에서 양자 키로 은행 송금을 암호화한 공개 시연</li>
+          <li>2017년 — 중국 묵자(Micius) 위성, 1,200km 위성-지상 양자 키 분배 성공</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> BB84는 보안의 근거를 "계산이 어렵다"는 가정이 아니라 <strong>물리
+        법칙(측정 교란·복제 불가)</strong>에 둔 최초의 실용적 양자 암호 규약이다. 도청 시도가 반드시 흔적을
+        남긴다는 성질 덕분에 원리적으로 도청을 탐지할 수 있으며, 오늘날 광섬유·위성 기반 양자 키 분배(QKD)
+        네트워크와 양자 인터넷 연구의 출발점이 되었다. 또한 양자 컴퓨터가 기존 공개키 암호를 위협하는 시대에
+        대비한 차세대 보안 기술로 주목받고 있다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        N: 20,
+        eve: false,
+        photons: [], // {aBit, aBasis, eBasis, eBit, bBasis, bBit, matched, error}
+        ran: false,
+        anim: 0,      // 진행도 (0~N), rAF 애니메이션
+        running: false,
+        lastTs: null
+      };
+
+      const PLUS = '+';
+      const CROSS = '×';
+
+      // 편광 화살표: 기저+비트 → 기호
+      function arrowFor(basis, bit) {
+        if (basis === PLUS) return bit === 0 ? '↑' : '→';
+        return bit === 0 ? '↗' : '↘';
+      }
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nSel = document.getElementById('nSel');
+      const eveToggle = document.getElementById('eveToggle');
+      const runBtn = document.getElementById('runBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rSifted = document.getElementById('r-sifted');
+      const rErrors = document.getElementById('r-errors');
+      const rQber = document.getElementById('r-qber');
+      const rStatus = document.getElementById('r-status');
+      const rKey = document.getElementById('r-key');
+      const qberFill = document.getElementById('qber-fill');
+      const tableWrap = document.getElementById('tableWrap');
+
+      // ----- (1) 탭 전환 (템플릿 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 시뮬레이션 로직 -----
+      function randBit() { return Math.random() < 0.5 ? 0 : 1; }
+      function randBasis() { return Math.random() < 0.5 ? PLUS : CROSS; }
+
+      function simulate() {
+        const N = state.N;
+        const photons = [];
+        for (let i = 0; i < N; i++) {
+          const aBit = randBit();
+          const aBasis = randBasis();
+
+          let eBasis = null, eBit = null;
+          // 밥에게 실제로 도달하는 (기저, 비트)
+          let incomingBasis = aBasis;
+          let incomingBit = aBit;
+
+          if (state.eve) {
+            // 이브: 무작위 기저로 측정 → 측정한 기저로 재전송
+            eBasis = randBasis();
+            if (eBasis === aBasis) {
+              eBit = aBit;            // 기저 같음 → 정확히 측정
+            } else {
+              eBit = randBit();       // 기저 다름 → 무작위 결과
+            }
+            // 이브는 자신이 측정한 기저(eBasis)와 결과(eBit)로 재전송
+            incomingBasis = eBasis;
+            incomingBit = eBit;
+          }
+
+          // 밥: 무작위 기저로 측정
+          const bBasis = randBasis();
+          let bBit;
+          if (bBasis === incomingBasis) {
+            bBit = incomingBit;       // 들어온 상태의 기저와 같음 → 정확
+          } else {
+            bBit = randBit();         // 기저 다름 → 무작위
+          }
+
+          const matched = (aBasis === bBasis);    // 기저 일치(공개 비교 후 채택)
+          const error = matched && (bBit !== aBit);
+
+          photons.push({ aBit, aBasis, eBasis, eBit, bBasis, bBit, matched, error });
+        }
+        state.photons = photons;
+        state.ran = true;
+      }
+
+      function computeStats() {
+        const matched = state.photons.filter((p) => p.matched);
+        const errors = matched.filter((p) => p.error).length;
+        const siftedCount = matched.length;
+        const qber = siftedCount > 0 ? (errors / siftedCount) : 0;
+        const key = matched.map((p) => p.aBit).join('');
+        return { matched, errors, siftedCount, qber, key };
+      }
+
+      function renderStats() {
+        const s = computeStats();
+        rSifted.textContent = String(s.siftedCount);
+        rErrors.textContent = s.errors + ' / ' + s.siftedCount;
+        const pct = Math.round(s.qber * 100);
+        rQber.textContent = (s.siftedCount > 0 ? pct : 0) + ' %';
+        rKey.textContent = s.key.length ? s.key : '—';
+
+        qberFill.style.width = Math.min(100, pct) + '%';
+        if (state.eve) {
+          qberFill.classList.add('alert');
+          rStatus.textContent = '도청 탐지! (QBER≈25%)';
+          rStatus.className = 'status-danger';
+        } else {
+          qberFill.classList.remove('alert');
+          rStatus.textContent = '안전 (QBER≈0)';
+          rStatus.className = 'status-safe';
+        }
+      }
+
+      // ----- 결과 테이블 렌더 -----
+      function renderTable() {
+        if (!state.ran) { tableWrap.innerHTML = ''; return; }
+        const ph = state.photons;
+        const rows = [];
+
+        function rowHeader(label) { return '<td class="rowhead">' + label + '</td>'; }
+
+        // 광자 번호
+        let head = '<tr><th>항목 \\ 광자</th>';
+        for (let i = 0; i < ph.length; i++) head += '<th>' + (i + 1) + '</th>';
+        head += '</tr>';
+
+        // 앨리스 비트
+        let rA = '<tr>' + rowHeader('앨리스 비트');
+        ph.forEach((p) => { rA += '<td>' + p.aBit + '</td>'; });
+        rA += '</tr>';
+
+        // 앨리스 기저 + 편광
+        let rAB = '<tr>' + rowHeader('앨리스 기저/편광');
+        ph.forEach((p) => { rAB += '<td>' + p.aBasis + ' ' + arrowFor(p.aBasis, p.aBit) + '</td>'; });
+        rAB += '</tr>';
+
+        rows.push(head, rA, rAB);
+
+        // 이브 (옵션)
+        if (state.eve) {
+          let rE = '<tr>' + rowHeader('🕵️ 이브 기저/결과');
+          ph.forEach((p) => { rE += '<td>' + p.eBasis + ' ' + p.eBit + '</td>'; });
+          rE += '</tr>';
+          rows.push(rE);
+        }
+
+        // 밥 기저
+        let rBB = '<tr>' + rowHeader('밥 기저');
+        ph.forEach((p) => { rBB += '<td>' + p.bBasis + '</td>'; });
+        rBB += '</tr>';
+
+        // 밥 결과
+        let rBR = '<tr>' + rowHeader('밥 결과');
+        ph.forEach((p) => {
+          const cls = p.error ? ' class="err"' : (p.matched ? ' class="matched"' : '');
+          rBR += '<td' + cls + '>' + p.bBit + '</td>';
+        });
+        rBR += '</tr>';
+
+        // 기저 일치?
+        let rM = '<tr>' + rowHeader('기저 일치?');
+        ph.forEach((p) => {
+          const cls = p.matched ? ' class="matched"' : '';
+          rM += '<td' + cls + '>' + (p.matched ? '✓' : '✗') + '</td>';
+        });
+        rM += '</tr>';
+
+        // 선별 비트 일치?
+        let rK = '<tr>' + rowHeader('선별 비트');
+        ph.forEach((p) => {
+          if (!p.matched) { rK += '<td>—</td>'; return; }
+          const cls = p.error ? ' class="err"' : ' class="matched"';
+          const mark = p.error ? '✗' : p.aBit;
+          rK += '<td' + cls + '>' + mark + '</td>';
+        });
+        rK += '</tr>';
+
+        rows.push(rBB, rBR, rM, rK);
+
+        tableWrap.innerHTML =
+          '<table class="bb84" aria-label="BB84 광자별 전송·측정 결과 표">' +
+          '<tbody>' + rows.join('') + '</tbody></table>';
+      }
+
+      // ----- Canvas 애니메이션 (rAF) -----
+      function drawCanvas() {
+        if (!ctx) return;
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 패널
+        ctx.fillStyle = '#0b2730';
+        ctx.fillRect(0, 0, W, H);
+
+        // 라벨: 앨리스 / (이브) / 밥
+        const aliceX = 80, bobX = W - 80, midY = H / 2;
+        ctx.font = '15px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+
+        ctx.fillStyle = '#7dd3e8';
+        ctx.fillText('앨리스 (Alice)', aliceX, 28);
+        ctx.fillText('밥 (Bob)', bobX, 28);
+        if (state.eve) {
+          ctx.fillStyle = '#fca5a5';
+          ctx.fillText('🕵️ 이브', W / 2, 28);
+        }
+
+        // 송수신 박스
+        ctx.fillStyle = '#1597b8';
+        ctx.fillRect(aliceX - 36, midY - 60, 72, 120);
+        ctx.fillRect(bobX - 36, midY - 60, 72, 120);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('📡', aliceX, midY + 6);
+        ctx.fillText('🔭', bobX, midY + 6);
+
+        if (state.eve) {
+          ctx.fillStyle = '#b91c1c';
+          ctx.fillRect(W / 2 - 26, midY - 26, 52, 52);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText('✂', W / 2, midY + 6);
+        }
+
+        // 채널 선
+        ctx.strokeStyle = '#1e4a57';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(aliceX + 36, midY);
+        ctx.lineTo(bobX - 36, midY);
+        ctx.stroke();
+
+        if (!state.ran || state.photons.length === 0) {
+          ctx.fillStyle = '#94c4d2';
+          ctx.font = '14px system-ui, sans-serif';
+          ctx.fillText('"▶ 실행"을 눌러 광자를 전송하세요', W / 2, H - 24);
+          return;
+        }
+
+        // 진행 중인 광자 (애니메이션 진행도에 따라 이동)
+        const N = state.photons.length;
+        const startX = aliceX + 40;
+        const endX = bobX - 40;
+        const span = endX - startX;
+
+        // 현재 애니메이션이 가리키는 광자 인덱스
+        const cur = Math.min(N - 1, Math.floor(state.anim));
+        const frac = Math.max(0, Math.min(1, state.anim - cur)); // 0~1 이동 비율
+        const p = state.photons[cur];
+        const px = startX + span * frac;
+
+        // 이미 전송 완료된 광자 카운트
+        ctx.fillStyle = '#cfeaf2';
+        ctx.font = '13px system-ui, sans-serif';
+        ctx.fillText('전송 중: 광자 ' + (cur + 1) + ' / ' + N, W / 2, H - 18);
+
+        // 광자: 색은 앨리스 기저로, 회전 각도는 편광 방향
+        const arrow = arrowFor(p.aBasis, p.aBit);
+        ctx.save();
+        ctx.translate(px, midY);
+        ctx.fillStyle = p.aBasis === PLUS ? '#7dd3e8' : '#fbbf77';
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0b2730';
+        ctx.font = 'bold 16px system-ui, sans-serif';
+        ctx.fillText(arrow, 0, 6);
+        ctx.restore();
+      }
+
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs == null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        // 광자 한 칸 이동 속도: 초당 약 2.2 광자
+        state.anim += dt * 2.2;
+        const N = state.photons.length;
+        if (state.anim >= N) {
+          state.anim = N;
+          state.running = false;
+          state.lastTs = null;
+          drawCanvas();
+          // 전송 종료 → 결과/테이블 표시
+          renderStats();
+          renderTable();
+          return;
+        }
+        drawCanvas();
+        requestAnimationFrame(loop);
+      }
+
+      function run() {
+        state.N = parseInt(nSel.value, 10) || 20;
+        state.eve = !!eveToggle.checked;
+        simulate();
+        // 초기엔 통계/테이블 미표시 → 애니메이션 후 표시
+        state.anim = 0;
+        state.lastTs = null;
+        state.running = true;
+        requestAnimationFrame(loop);
+      }
+
+      function reset() {
+        state.running = false;
+        state.ran = false;
+        state.photons = [];
+        state.anim = 0;
+        state.lastTs = null;
+        rSifted.textContent = '0';
+        rErrors.textContent = '0 / 0';
+        rQber.textContent = '— %';
+        rKey.textContent = '—';
+        qberFill.style.width = '0%';
+        qberFill.classList.remove('alert');
+        rStatus.textContent = '대기 중';
+        rStatus.className = 'status-safe';
+        tableWrap.innerHTML = '';
+        drawCanvas();
+      }
+
+      // ----- 이벤트 -----
+      if (runBtn) runBtn.addEventListener('click', run);
+      if (resetBtn) resetBtn.addEventListener('click', reset);
+      if (eveToggle) eveToggle.addEventListener('change', () => {
+        // 토글 변경 시 기존 결과는 리셋(혼동 방지)
+        if (state.ran) reset();
+      });
+      if (nSel) nSel.addEventListener('change', () => { if (state.ran) reset(); });
+
+      // ----- 퀴즈 채점 -----
+      function gradeQuiz(name, btnId, fbId) {
+        const btn = document.getElementById(btnId);
+        const fb = document.getElementById(fbId);
+        if (!btn || !fb) return;
+        btn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="' + name + '"]:checked');
+          if (!sel) {
+            fb.textContent = '먼저 보기를 선택하세요.';
+            fb.style.color = '#92400e';
+            return;
+          }
+          if (sel.value === 'correct') {
+            fb.textContent = '✓ 정답입니다!';
+            fb.style.color = '#166534';
+          } else {
+            fb.textContent = '✗ 다시 생각해 보세요.';
+            fb.style.color = '#b91c1c';
+          }
+        });
+      }
+      gradeQuiz('q1', 'q1-btn', 'q1-feedback');
+      gradeQuiz('q2', 'q2-btn', 'q2-feedback');
+
+      // ----- 초기 렌더 -----
+      drawCanvas();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./05-teleportation.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 양자 순간이동</a>
+      <a href="./07-error-correction.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 양자 오류정정 (3-큐비트)</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/BB84" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=BB84&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=BB84+quantum+key+distribution+explained" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 64, "slug": "06-bb84", "category": "09-quantum-computing", "icon": "🔐", "title": "BB84 양자 키 분배", "titleEn": "BB84 Quantum Key Distribution", "year": "1984", "scientist": "베넷 · 브라사르 (Bennett · Brassard)", "difficulty": 3, "description": "편광 광자로 비밀 키를 나누고, 도청자가 끼면 오류율이 튀어 발각된다.", "keywords": ["BB84", "양자 암호", "키 분배", "편광", "도청 탐지", "기저"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

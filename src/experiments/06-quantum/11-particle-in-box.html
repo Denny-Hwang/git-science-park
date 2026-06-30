@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>무한 퍼텐셜 우물 (상자 속 입자) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f5f3fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .psi-real { color: #2563eb; font-weight: 700; }
+    .psi-prob { color: #b91c1c; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·난이도) -->
+  <header>
+    <h1>무한 퍼텐셜 우물 (상자 속 입자)</h1>
+    <div class="en">Particle in a Box</div>
+    <div class="meta">1920년대 · 양자역학 기초 · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" role="img"
+        aria-label="폭 L의 무한 퍼텐셜 우물 속 입자 시뮬레이션. 좌우의 무한히 높은 벽 사이에서 에너지 준위가 n제곱에 비례해 벌어지고, 선택한 양자수 n에 대한 정상파 파동함수와 확률밀도를 보여준다"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="nlevel">양자수 n (에너지 준위): <span id="nlevel-val">1</span></label>
+          <input type="range" id="nlevel" min="1" max="8" step="1" value="1"
+            aria-describedby="nlevel-val">
+        </div>
+
+        <div class="control-row">
+          <label>표시 모드</label>
+          <div class="btn-row" role="group" aria-label="표시 모드 선택">
+            <button type="button" class="btn preset active" data-view="psi">∿ 파동함수 ψₙ(x)</button>
+            <button type="button" class="btn preset" data-view="prob">▮ 확률밀도 |ψₙ(x)|²</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>중첩 상태 (시간 의존: 비트/슬로싱)</label>
+          <div class="btn-row" role="group" aria-label="모드 선택">
+            <button type="button" class="btn preset active" data-mode="single">단일 상태</button>
+            <button type="button" class="btn preset" data-mode="super">중첩 |Ψ(x,t)|²</button>
+          </div>
+        </div>
+
+        <div class="control-row" id="superControls" hidden>
+          <label for="levelA">중첩 준위 a: <span id="levelA-val">1</span></label>
+          <input type="range" id="levelA" min="1" max="8" step="1" value="1"
+            aria-describedby="levelA-val">
+          <label for="levelB" style="margin-top:10px;">중첩 준위 b: <span id="levelB-val">2</span></label>
+          <input type="range" id="levelB" min="1" max="8" step="1" value="2"
+            aria-describedby="levelB-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>양자수 n: <strong id="r-n">1</strong></div>
+          <div>에너지 Eₙ: <strong id="r-energy">1 · E₁</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>내부 마디(node) 수 = n−1: <strong id="r-nodes">0</strong> 개</div>
+          <div>드브로이 파장 λ = 2L/n: <strong id="r-lambda">2L</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>현재 표시: <strong id="r-view">파동함수 ψₙ(x)</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 벽 사이에 딱 맞는 정상파만 허용되므로 에너지가
+        <strong>이산적</strong>으로 양자화됩니다. 옆의 에너지 사다리를 보면 간격이 일정하지 않고
+        <strong>n²에 비례</strong>해 위로 갈수록 급격히 벌어집니다(조화 진동자의 균등 간격과 대비됨).
+        파동함수 ψₙ은 양쪽 벽에서 항상 0이고, 내부 마디 수는 정확히 <strong>n−1</strong>개,
+        배(antinode)는 n개입니다. "중첩 |Ψ(x,t)|²" 모드에서는 두 준위가 섞여 확률밀도가
+        (E<sub>b</sub>−E<sub>a</sub>)에 비례하는 진동수로 좌우로 출렁입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>벽이라는 경계 조건(ψ(0)=ψ(L)=0)에서 에너지 양자화가 어떻게 나오는지 이해한다.</li>
+        <li>허용된 정상파 ψₙ(x)=√(2/L)·sin(nπx/L)의 모양(배 n개, 마디 n−1개)을 익힌다.</li>
+        <li>에너지가 Eₙ = n²·E₁로 n²에 비례함을 사다리 그림으로 확인한다.</li>
+        <li>두 준위 중첩 상태에서 확률밀도가 시간에 따라 출렁이는 비트 현상을 관찰한다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>폭 <em>L</em>인 무한 깊이 우물 안(0&lt;x&lt;L)에서는 퍼텐셜 <em>V=0</em>이고, 벽 밖에서는
+        <em>V=∞</em>이라 입자가 절대 존재할 수 없다. 따라서 파동함수는 <strong>양쪽 벽에서 0</strong>이어야
+        한다(<em>ψ(0)=ψ(L)=0</em>). 이 경계 조건을 만족하는 정상파는 반파장이 우물에 정수 개 들어맞는
+        경우뿐이다: <em>L = n·(λ/2)</em>. 그래서 파장은 <em>λ = 2L/n</em>으로 띄엄띄엄한 값만 가질 수 있다.</p>
+        <p>파장이 양자화되면 운동량 <em>p = h/λ</em>도, 따라서 에너지 <em>E = p²/2m</em>도 양자화된다.
+        결과적으로 허용 에너지는 <em>Eₙ = n²·E₁</em>이며, 기저 단위 <em>E₁ = h²/(8mL²)</em>이다. 핵심은
+        간격이 <strong>균등하지 않고 n²로 커진다</strong>는 점이다(E₂는 4E₁, E₃는 9E₁, E₄는 16E₁ …).
+        이는 간격이 일정한 조화 진동자(Eₙ ∝ n)와 결정적으로 다르다.</p>
+        <p>고유상태 ψₙ은 <strong>정상파</strong>로, 배(antinode)가 n개, 내부 마디(node)가 <strong>n−1</strong>개
+        있고 양 끝(벽)에서는 항상 0이다. 단일 고유상태의 확률밀도 |ψₙ|²는 시간에 무관(정상상태)하지만,
+        서로 다른 두 준위를 중첩하면 |Ψ(x,t)|²가 진동수 (E<sub>b</sub>−E<sub>a</sub>)/h로 출렁인다.</p>
+      </div>
+
+      <div class="formula-box">
+        ψₙ(x) = √(2/L) · sin(nπx / L) ,  n = 1, 2, 3, …<br>
+        Eₙ = n² · E₁ ,  E₁ = h² / (8 m L²)<br>
+        λ = 2L / n ,  마디(node) 수 = n − 1<br>
+        |Ψ(x,t)|² = | ( ψₐ e<sup>−iEₐt/ħ</sup> + ψ_b e<sup>−iE_b t/ħ</sup> ) / √2 |²
+      </div>
+
+      <!-- SVG 다이어그램: n² 에너지 사다리 (우물 vs 조화진동자) -->
+      <svg width="440" height="240" viewBox="0 0 440 240" role="img"
+        aria-label="무한 우물의 에너지 준위는 n제곱에 비례해 위로 갈수록 간격이 급격히 벌어지고, 조화 진동자의 준위는 간격이 일정함을 비교하는 사다리 다이어그램">
+        <!-- 무한 우물: n^2 간격 -->
+        <text x="60" y="22" font-size="12" fill="#6B46C1" font-weight="bold">무한 우물: Eₙ ∝ n²</text>
+        <line x1="40" y1="30" x2="40" y2="220" stroke="#374151" stroke-width="2"/>
+        <line x1="200" y1="30" x2="200" y2="220" stroke="#374151" stroke-width="2"/>
+        <!-- n=1 (E=1) y=215, n=4 (E=16) y=35; scale: y = 220 - (E/16)*185 -->
+        <line x1="40" y1="208.4" x2="200" y2="208.4" stroke="#6B46C1" stroke-width="2"/>
+        <text x="206" y="212" font-size="10" fill="#374151">n=1 (E₁)</text>
+        <line x1="40" y1="173.8" x2="200" y2="173.8" stroke="#6B46C1" stroke-width="2"/>
+        <text x="206" y="177" font-size="10" fill="#374151">n=2 (4E₁)</text>
+        <line x1="40" y1="115.9" x2="200" y2="115.9" stroke="#6B46C1" stroke-width="2"/>
+        <text x="206" y="119" font-size="10" fill="#374151">n=3 (9E₁)</text>
+        <line x1="40" y1="35" x2="200" y2="35" stroke="#6B46C1" stroke-width="2"/>
+        <text x="206" y="39" font-size="10" fill="#374151">n=4 (16E₁)</text>
+        <!-- 조화 진동자: 균등 간격 -->
+        <text x="300" y="22" font-size="12" fill="#b91c1c" font-weight="bold">조화 진동자: Eₙ ∝ n</text>
+        <line x1="300" y1="30" x2="430" y2="30" stroke="#9ca3af" stroke-width="1" stroke-dasharray="2 2"/>
+        <line x1="300" y1="208" x2="430" y2="208" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="300" y1="166" x2="430" y2="166" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="300" y1="124" x2="430" y2="124" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="300" y1="82" x2="430" y2="82" stroke="#b91c1c" stroke-width="2"/>
+        <text x="300" y="230" font-size="9" fill="#6b7280">간격 일정 (균등)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        왼쪽(우물)은 위로 갈수록 간격이 n²로 급격히 벌어지고, 오른쪽(조화 진동자)은 간격이 일정하다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "에너지 준위 간격이 일정하다"고 착각하기 쉽다. 무한 우물에서는
+        간격이 <em>n²에 비례</em>해 위로 갈수록 점점 넓어진다(균등 간격은 조화 진동자의 특징이다). 또
+        "바닥상태(n=1)는 에너지가 0"이라 오해하기 쉽지만, n=1에서도 <em>E₁ = h²/(8mL²) ≠ 0</em>인
+        <strong>영점 에너지</strong>가 남는다(불확정성 원리 때문에 입자는 결코 완전히 멈출 수 없다). 그리고
+        파동함수 ψₙ의 부호(±)는 그 자체로 관측되는 것이 아니며, 실제 확률은 항상 |ψₙ|²로 0 이상이다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>폭 L인 무한 우물에서 양자수 n인 상태의 에너지는 기저 단위 E₁의 몇 배인가?</p>
+        <label><input type="radio" name="q1" value="wrong"> n 배 (간격 일정)</label>
+        <label><input type="radio" name="q1" value="correct"> n² 배 (간격이 점점 넓어짐)</label>
+        <label><input type="radio" name="q1" value="wrong"> 2n 배</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>양자수 n인 정상파 ψₙ(x)의 내부 마디(node, ψ=0인 지점, 벽 제외) 개수는?</p>
+        <label><input type="radio" name="q2" value="wrong"> n 개</label>
+        <label><input type="radio" name="q2" value="correct"> n − 1 개</label>
+        <label><input type="radio" name="q2" value="wrong"> 항상 0 개</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 에르빈 슈뢰딩거 (Erwin Schrödinger, 1887~1961)</h3>
+        <p>오스트리아의 물리학자 에르빈 슈뢰딩거는 1926년 파동방정식(슈뢰딩거 방정식)을 발표하여
+        양자역학에 파동역학의 틀을 세웠다. 무한 퍼텐셜 우물(상자 속 입자)은 이 방정식을 정확히 풀 수
+        있는 가장 단순한 모형으로, 경계 조건만으로 에너지가 양자화되는 과정을 한눈에 보여주는 교과서적
+        예제가 되었다. 그는 이 공로로 1933년 폴 디랙과 함께 노벨 물리학상을 받았다.</p>
+        <p>이 단순한 1차원 상자 모형은 단순한 연습문제를 넘어, 분자 속 전자(공액 이중결합의 색),
+        양자점(quantum dot)의 발광 색, 반도체 나노구조 등 실제 시스템의 에너지 준위를 추정하는 직관적
+        도구로 폭넓게 쓰인다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1900년 — 플랑크, 흑체복사에서 에너지 양자(quantum) 개념 도입</li>
+          <li>1913년 — 보어, 수소 원자의 에너지 준위 양자화 모형 제시</li>
+          <li>1924년 — 드브로이, 물질파 가설(λ = h/p) 제안 — 정상파 양자화의 토대</li>
+          <li>1925년 — 하이젠베르크, 행렬역학 형태의 양자역학 정식화</li>
+          <li>1926년 — 슈뢰딩거, 파동방정식 발표 — 상자 속 입자가 정석 예제로 등장</li>
+          <li>1927년 — 보른, 파동함수의 확률 해석(|ψ|²)을 확립</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 무한 우물은 "에너지가 왜 이산적인가?"라는 양자역학의 핵심
+        질문에 가장 명료한 답을 준다. 갇힌 파동(정상파)에는 경계 조건이 강제되고, 그 결과 에너지가
+        <strong>양자화</strong>된다는 통찰은 원자·분자·고체뿐 아니라 양자점 디스플레이, 반도체 나노소자,
+        양자우물 레이저 같은 현대 기술의 설계 원리로 직접 이어진다. 가장 단순한 모형이지만 양자역학의
+        본질을 가장 선명하게 보여 주는 출발점이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        n: 1,            // 선택된 양자수 (1~8)
+        view: 'psi',     // 'psi' | 'prob'
+        mode: 'single',  // 'single' | 'super'
+        levelA: 1,       // 중첩 준위 a
+        levelB: 2,       // 중첩 준위 b
+        running: false,  // 중첩 애니메이션 재생 여부
+        lastTs: null,
+        t: 0             // 시뮬레이션 시간 (무차원)
+      };
+
+      // ----- 레이아웃 상수(px) -----
+      const NMAX = 8;          // 최대 양자수
+      const LADDER_X = 70;     // 에너지 사다리 가로 위치
+      const LADDER_W = 90;     // 사다리 폭
+      const PLOT_X0 = 210;     // 파동 그래프 좌측 벽 (x=0)
+      const PLOT_X1 = 600;     // 파동 그래프 우측 벽 (x=L)
+      const PLOT_TOP = 40;     // 그래프 윗 여백
+      const PLOT_BOT = 380;    // 그래프 바닥(E=0 기준선 영역)
+      const AMP = 26;          // 파형 진폭(px)
+
+      // ----- DOM (사용 전에 모두 확보) -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nSlider = document.getElementById('nlevel');
+      const nVal = document.getElementById('nlevel-val');
+      const viewBtns = document.querySelectorAll('.btn.preset[data-view]');
+      const modeBtns = document.querySelectorAll('.btn.preset[data-mode]');
+      const superControls = document.getElementById('superControls');
+      const aSlider = document.getElementById('levelA');
+      const aVal = document.getElementById('levelA-val');
+      const bSlider = document.getElementById('levelB');
+      const bVal = document.getElementById('levelB-val');
+
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      // ----- (1) 탭 전환 (템플릿 동일) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 물리 헬퍼 -----
+      // 정규화 고유함수 (상대 진폭): √2·sin(nπ·u), u = x/L ∈ [0,1]
+      function psi(n, u) {
+        return Math.SQRT2 * Math.sin(n * Math.PI * u);
+      }
+      // 에너지 (E₁ 단위)
+      function energy(n) { return n * n; }
+      // x=u(0..1)를 캔버스 px로
+      function px(u) { return PLOT_X0 + u * (PLOT_X1 - PLOT_X0); }
+
+      // ----- 결과 텍스트 갱신 -----
+      function updateResult() {
+        const n = state.n;
+        document.getElementById('r-n').textContent = String(n);
+        document.getElementById('r-energy').textContent = energy(n) + ' · E₁';
+        document.getElementById('r-nodes').textContent = String(n - 1);
+        document.getElementById('r-lambda').textContent = '2L / ' + n;
+        document.getElementById('r-view').textContent =
+          (state.view === 'psi' ? '파동함수 ψₙ(x)' : '확률밀도 |ψₙ(x)|²');
+      }
+
+      // ----- (2) 에너지 사다리 그리기: 간격 ∝ n² -----
+      function drawLadder() {
+        const baseY = PLOT_BOT;             // E=0 기준
+        const topY = PLOT_TOP + 6;          // E_max 위치
+        const eMax = energy(NMAX);          // 64 (E₁ 단위)
+        function ey(E) { return baseY - (E / eMax) * (baseY - topY); }
+
+        // 사다리 세로축
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(LADDER_X, baseY); ctx.lineTo(LADDER_X, topY); ctx.stroke();
+
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('에너지 Eₙ ∝ n²', LADDER_X - 8, topY - 10);
+
+        for (let n = 1; n <= NMAX; n++) {
+          const y = ey(energy(n));
+          const isSel = (state.mode === 'single' && n === state.n) ||
+                        (state.mode === 'super' && (n === state.levelA || n === state.levelB));
+          ctx.strokeStyle = isSel ? '#a78bfa' : 'rgba(167,139,250,0.35)';
+          ctx.lineWidth = isSel ? 2.5 : 1.2;
+          ctx.beginPath();
+          ctx.moveTo(LADDER_X, y); ctx.lineTo(LADDER_X + LADDER_W, y); ctx.stroke();
+          ctx.fillStyle = isSel ? '#ddd6fe' : '#7c7596';
+          ctx.font = (isSel ? 'bold ' : '') + '10px sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('n=' + n, LADDER_X + LADDER_W + 4, y + 3);
+        }
+      }
+
+      // ----- (3) 우물 + 파형 그리기 -----
+      function drawWell() {
+        // 무한 벽 (x=0, x=L)
+        ctx.strokeStyle = '#f4f4f4';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(PLOT_X0, PLOT_TOP - 6); ctx.lineTo(PLOT_X0, PLOT_BOT + 6); ctx.stroke();
+        ctx.moveTo(PLOT_X1, PLOT_TOP - 6); ctx.lineTo(PLOT_X1, PLOT_BOT + 6); ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // V=∞ 라벨
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('V = ∞', PLOT_X0 - 24, PLOT_TOP + 8);
+        ctx.fillText('V = ∞', PLOT_X1 + 24, PLOT_TOP + 8);
+        ctx.fillText('V = 0 (우물 내부)', (PLOT_X0 + PLOT_X1) / 2, PLOT_BOT + 26);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillText('x = 0', PLOT_X0, PLOT_BOT + 26);
+        ctx.fillText('x = L', PLOT_X1, PLOT_BOT + 26);
+      }
+
+      // 한 준위의 baseline y (에너지 사다리와 같은 스케일로 그래프 영역에 맞춤)
+      function baselineY(n) {
+        const baseY = PLOT_BOT;
+        const topY = PLOT_TOP + 6;
+        const eMax = energy(NMAX);
+        return baseY - (energy(n) / eMax) * (baseY - topY);
+      }
+
+      function drawSingle() {
+        const n = state.n;
+        const y0 = baselineY(n);
+
+        // baseline (에너지 준위 위에 파형을 얹음)
+        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath();
+        ctx.moveTo(PLOT_X0, y0); ctx.lineTo(PLOT_X1, y0); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#a78bfa';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('E' + subscript(n) + ' = ' + energy(n) + 'E₁', PLOT_X0 + 6, y0 - AMP - 8);
+
+        const steps = 240;
+        if (state.view === 'psi') {
+          // ψₙ(x): 부호 있는 정상파
+          ctx.strokeStyle = '#60a5fa';
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const u = i / steps;
+            const v = psi(n, u);                 // -√2 .. √2
+            const X = px(u);
+            const Y = y0 - (v / Math.SQRT2) * AMP;
+            if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+          }
+          ctx.stroke();
+        } else {
+          // |ψₙ(x)|²: 0 이상, 채워서 표시
+          ctx.fillStyle = 'rgba(248,113,113,0.35)';
+          ctx.strokeStyle = '#f87171';
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.moveTo(PLOT_X0, y0);
+          for (let i = 0; i <= steps; i++) {
+            const u = i / steps;
+            const v = psi(n, u);
+            const p = (v * v) / 2;               // |√2 sin|² /2 -> 0..1
+            const X = px(u);
+            const Y = y0 - p * AMP * 2;
+            ctx.lineTo(X, Y);
+          }
+          ctx.lineTo(PLOT_X1, y0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        // 내부 마디 표시 (n-1개)
+        ctx.fillStyle = '#fde68a';
+        for (let k = 1; k < n; k++) {
+          const u = k / n;
+          ctx.beginPath();
+          ctx.arc(px(u), y0, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 중첩: |Ψ(x,t)|² 슬로싱/비트
+      function drawSuper() {
+        let a = state.levelA, b = state.levelB;
+        if (a === b) b = (a % NMAX) + 1; // 같은 준위면 비트가 없으므로 보정
+        const Ea = energy(a), Eb = energy(b);
+        // 중심 baseline (두 준위 평균 높이)
+        const y0 = (baselineY(a) + baselineY(b)) / 2;
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath();
+        ctx.moveTo(PLOT_X0, y0); ctx.lineTo(PLOT_X1, y0); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#a78bfa';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('중첩: (ψ' + subscript(a) + ' + ψ' + subscript(b) + ')/√2 · |Ψ(x,t)|²',
+          PLOT_X0 + 6, y0 - AMP - 26);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('비트 진동수 ∝ (E_b − E_a) = ' + (Eb - Ea) + 'E₁', PLOT_X0 + 6, y0 - AMP - 12);
+
+        const t = state.t;
+        const steps = 240;
+        ctx.fillStyle = 'rgba(248,113,113,0.35)';
+        ctx.strokeStyle = '#f87171';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(PLOT_X0, y0);
+        for (let i = 0; i <= steps; i++) {
+          const u = i / steps;
+          // 실수/허수부: ψ_a e^{-iE_a t}, ψ_b e^{-iE_b t}, /√2
+          const pa = psi(a, u), pb = psi(b, u);
+          const re = (pa * Math.cos(Ea * t) + pb * Math.cos(Eb * t)) / Math.SQRT2;
+          const im = -(pa * Math.sin(Ea * t) + pb * Math.sin(Eb * t)) / Math.SQRT2;
+          const prob = (re * re + im * im) / 2;  // 정규화 스케일
+          const X = px(u);
+          const Y = y0 - prob * AMP * 1.6;
+          ctx.lineTo(X, Y);
+        }
+        ctx.lineTo(PLOT_X1, y0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // 아래첨자 숫자 문자열
+      function subscript(n) {
+        const subs = '₀₁₂₃₄₅₆₇₈₉';
+        return String(n).split('').map((d) => subs[+d]).join('');
+      }
+
+      // ----- 전체 렌더 -----
+      function draw() {
+        if (!ctx) return;
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // 제목
+        ctx.fillStyle = '#a78bfa';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('무한 퍼텐셜 우물 — 정상파와 n² 에너지 사다리', 14, 22);
+
+        drawLadder();
+        drawWell();
+        if (state.mode === 'single') drawSingle();
+        else drawSuper();
+      }
+
+      // ----- 애니메이션 루프 (rAF만 사용) -----
+      function loop(ts) {
+        if (!state.running) return;
+        if (state.lastTs === null) state.lastTs = ts;
+        let dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+        if (dt > 0.05) dt = 0.05; // 탭 비활성 등 큰 점프 방지
+
+        // 무차원 시간 진행 (비트가 보기 좋은 속도)
+        state.t += dt * 1.2;
+        draw();
+
+        if (state.running) requestAnimationFrame(loop);
+      }
+
+      function play() {
+        if (state.mode !== 'super') {
+          // 단일 상태는 정상상태(시간 무관)이므로 중첩 모드로 안내
+          setMode('super');
+        }
+        if (state.running) return;
+        state.running = true;
+        state.lastTs = null;
+        requestAnimationFrame(loop);
+      }
+
+      function pause() {
+        state.running = false;
+        state.lastTs = null;
+      }
+
+      function resetSim() {
+        pause();
+        state.t = 0;
+        updateResult();
+        draw();
+      }
+
+      // ----- 모드/뷰 전환 -----
+      function setView(v) {
+        state.view = v;
+        viewBtns.forEach((btn) => {
+          const on = btn.dataset.view === v;
+          btn.classList.toggle('active', on);
+        });
+        updateResult();
+        draw();
+      }
+
+      function setMode(m) {
+        state.mode = m;
+        modeBtns.forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.mode === m);
+        });
+        if (m === 'super') {
+          superControls.hidden = false;
+        } else {
+          superControls.hidden = true;
+          pause();
+          state.t = 0;
+        }
+        updateResult();
+        draw();
+      }
+
+      // ----- 이벤트 배선 -----
+      nSlider.addEventListener('input', () => {
+        state.n = parseInt(nSlider.value, 10);
+        nVal.textContent = String(state.n);
+        updateResult();
+        draw();
+      });
+
+      viewBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setView(btn.dataset.view));
+      });
+      modeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setMode(btn.dataset.mode));
+      });
+
+      aSlider.addEventListener('input', () => {
+        state.levelA = parseInt(aSlider.value, 10);
+        aVal.textContent = String(state.levelA);
+        draw();
+      });
+      bSlider.addEventListener('input', () => {
+        state.levelB = parseInt(bSlider.value, 10);
+        bVal.textContent = String(state.levelB);
+        draw();
+      });
+
+      playBtn.addEventListener('click', play);
+      pauseBtn.addEventListener('click', pause);
+      resetBtn.addEventListener('click', resetSim);
+
+      // ----- (4) 퀴즈 채점 (템플릿 동일 패턴) -----
+      function grade(name, btnId, feedbackId, correctMsg, wrongMsg) {
+        document.getElementById(btnId).addEventListener('click', () => {
+          const picked = document.querySelector('input[name="' + name + '"]:checked');
+          const out = document.getElementById(feedbackId);
+          if (!picked) {
+            out.textContent = '답을 선택하세요.';
+            out.style.color = '#6b7280';
+            return;
+          }
+          if (picked.value === 'correct') {
+            out.textContent = '정답입니다! 🎉 ' + correctMsg;
+            out.style.color = '#166534';
+          } else {
+            out.textContent = '다시 생각해 보세요. ' + wrongMsg;
+            out.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      grade('q1', 'q1-btn', 'q1-feedback',
+        'Eₙ = n²·E₁ 이므로 위로 갈수록 간격이 점점 넓어집니다(E₂=4E₁, E₃=9E₁ …).',
+        '간격이 일정한 것은 조화 진동자(Eₙ ∝ n)입니다. 무한 우물은 Eₙ ∝ n²입니다.');
+      grade('q2', 'q2-btn', 'q2-feedback',
+        'ψₙ은 배(antinode) n개, 내부 마디 n−1개를 가지며 양 벽에서는 항상 0입니다.',
+        'ψₙ(x)=√(2/L)sin(nπx/L)을 그려 보면 내부에서 0이 되는 점은 n−1개입니다.');
+
+      // ----- 초기 렌더 -----
+      updateResult();
+      draw();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./10-harmonic-oscillator.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 양자 조화 진동자</a>
+      <a href="./12-wave-packet.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 파동묶음의 분산</a>
+      <a href="../05-atomic/09-franck-hertz.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 프랑크-헤르츠 실험</a>
+      <a href="../06-quantum/03-schrodinger.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 슈뢰딩거 방정식</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Particle_in_a_box" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%83%81%EC%9E%90+%EC%86%8D+%EC%9E%85%EC%9E%90&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=particle+in+a+box+quantum+well+energy+levels" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 61, "slug": "11-particle-in-box", "category": "06-quantum", "icon": "📦", "title": "무한 퍼텐셜 우물 (상자 속 입자)", "titleEn": "Particle in a Box", "year": "1920년대", "scientist": "양자역학 기초", "difficulty": 3, "description": "무한 우물에 갇힌 입자의 양자화된 에너지 준위 Eₙ ∝ n² 와 정상파 파동함수를 본다.", "keywords": ["퍼텐셜 우물", "상자 속 입자", "에너지 양자화", "정상파", "경계 조건", "n제곱"], "catName": "양자역학", "catIcon": "🌊"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

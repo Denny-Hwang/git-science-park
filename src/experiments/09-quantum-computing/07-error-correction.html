@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 오류정정 (3-큐비트) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #06222b; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { background: #cbd5e1; color: #6b7280; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .ok-text { color: #166534; font-weight: 700; }
+    .bad-text { color: #b91c1c; font-weight: 700; }
+    .info-text { color: #1d4ed8; font-weight: 700; }
+    .warn-text { color: #92400e; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    .step-banner {
+      margin: 12px 0; padding: 12px 16px; border-radius: 8px;
+      background: #e6f3f7; border: 1px solid #b6dde8; font-weight: 600;
+    }
+    .banner-success { background: #f0fdf4; border: 1px solid #86efac; }
+    .banner-fail { background: #fef2f2; border: 1px solid #fca5a5; }
+    .state-line { font-family: "Courier New", monospace; font-size: 1rem; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>양자 오류정정 (3-큐비트)</h1>
+    <div class="en">Quantum Error Correction (3-qubit code)</div>
+    <div class="meta">1995 · 피터 쇼어 (Peter Shor) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="360" role="img"
+        aria-label="3-큐비트 비트반전 오류정정 회로 시뮬레이션. 논리 큐비트를 세 물리 큐비트에 인코딩하고, 비트반전 오류를 주입한 뒤 신드롬 측정으로 뒤집힌 큐비트를 찾아 정정하는 과정을 단계별로 보여준다."></canvas>
+
+      <div class="step-banner" id="stepBanner" aria-live="polite">
+        1단계: 논리 상태 |ψ⟩를 설정하세요.
+      </div>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="theta">논리 상태 각도 θ: <span id="theta-val">0°</span>
+            (|ψ⟩ = cos(θ/2)|0⟩<sub>L</sub> + sin(θ/2)|1⟩<sub>L</sub>)</label>
+          <input type="range" id="theta" min="0" max="180" step="5" value="0"
+            aria-describedby="theta-val">
+        </div>
+
+        <div class="control-row">
+          <label>프리셋 논리 상태</label>
+          <div class="btn-row" role="group" aria-label="논리 상태 프리셋">
+            <button type="button" class="btn preset active" data-preset="0">|0⟩</button>
+            <button type="button" class="btn preset" data-preset="1">|1⟩</button>
+            <button type="button" class="btn preset" data-preset="plus">|+⟩</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>오류를 주입할 큐비트 선택</label>
+          <div class="btn-row" role="group" aria-label="오류 주입 큐비트 선택">
+            <button type="button" class="btn preset" data-err="0">q0 뒤집기</button>
+            <button type="button" class="btn preset" data-err="1">q1 뒤집기</button>
+            <button type="button" class="btn preset" data-err="2">q2 뒤집기</button>
+            <button type="button" class="btn preset" data-err="random">🎲 랜덤</button>
+            <button type="button" class="btn preset active" data-err="none">없음</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="encodeBtn">2 · 인코딩</button>
+          <button type="button" class="btn" id="errorBtn">3 · 오류 주입</button>
+          <button type="button" class="btn" id="syndromeBtn">4 · 신드롬 측정</button>
+          <button type="button" class="btn" id="correctBtn">5 · 정정</button>
+          <button type="button" class="btn" id="decodeBtn">6 · 디코딩/확인</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>물리 상태 |q0 q1 q2⟩: <strong id="r-state" class="state-line">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>신드롬 (s1, s2): <strong id="r-syndrome">—</strong></div>
+          <div>진단: <strong id="r-diagnosis">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>최종 결과: <strong id="r-final">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>관찰 포인트:</strong> 양자 상태는 측정하면 무너지므로 직접 들여다볼 수 없습니다.
+        대신 인접한 두 큐비트의 <strong>패리티(parity)</strong>만 측정해 <em>어느 큐비트가 뒤집혔는지</em>
+        알아냅니다. 패리티는 논리 정보(α, β)를 건드리지 않으면서도 오류 위치를 알려줍니다.
+        <strong>주의:</strong> 이 코드는 <strong>비트반전(X) 오류 1개</strong>만 정정합니다(다수결 원리).
+        두 큐비트가 동시에 뒤집히면 신드롬이 엉뚱한 큐비트를 가리켜 <em>오정정</em>되어 결과가 망가집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>학습 목표</h2>
+      <ul class="goals">
+        <li>하나의 논리 큐비트를 세 물리 큐비트에 중복(인코딩)하는 이유를 이해한다.</li>
+        <li>측정 없이 신드롬(패리티)만으로 오류 위치를 알아내는 원리를 익힌다.</li>
+        <li>신드롬 → 뒤집힌 큐비트 매핑과 정정(다수결) 절차를 따라간다.</li>
+        <li>3-큐비트 코드가 정정하는 한계(비트반전 1개)와 복제 불가 정리의 관계를 안다.</li>
+      </ul>
+
+      <div class="concept-box">
+        <h3>핵심 개념</h3>
+        <p>고전 비트는 그냥 복사해 다수결로 고치면 되지만, 양자 상태는 <strong>복제 불가 정리
+        (no-cloning theorem)</strong> 때문에 α|0⟩+β|1⟩을 그대로 복사할 수 없다. 대신 CNOT 게이트로
+        <strong>얽힘(entanglement)</strong>을 이용해 논리 상태를 세 물리 큐비트에 펼친다:
+        α|0⟩+β|1⟩ → α|000⟩+β|111⟩. 이것은 복제가 아니라 정보의 <em>분산</em>이다.</p>
+        <p>비트반전 오류 X가 한 큐비트에 일어나면 |000⟩↔ 한 비트만 다른 상태가 된다. 이때
+        <strong>큐비트 자체를 측정하지 않고</strong> 인접 쌍의 패리티(같으면 0, 다르면 1)만 측정한다.
+        s1 = q0⊕q1, s2 = q1⊕q2. 이 두 비트가 <em>신드롬</em>이며, 어느 큐비트가 뒤집혔는지를
+        정확히 가리킨다. 그 큐비트에 다시 X를 걸어 되돌리면(정정) 논리 정보 α, β는 손상 없이 보존된다.</p>
+      </div>
+
+      <div class="formula-box">
+        인코딩:  α|0⟩+β|1⟩  →  α|000⟩+β|111⟩<br>
+        신드롬:  s1 = q0 ⊕ q1 ,  s2 = q1 ⊕ q2<br>
+        (s1,s2)=(0,0)→없음  (1,0)→q0  (1,1)→q1  (0,1)→q2
+      </div>
+
+      <!-- SVG 다이어그램: 신드롬 → 뒤집힌 큐비트 매핑 -->
+      <svg width="420" height="220" viewBox="0 0 420 220" role="img"
+        aria-label="신드롬 비트 두 개(s1, s2)에 따라 뒤집힌 큐비트가 q0, q1, q2 중 하나로 진단되는 매핑 다이어그램">
+        <rect x="10" y="10" width="400" height="200" rx="8" fill="#f8fafc" stroke="#e5e7eb"/>
+        <text x="30" y="36" font-size="13" fill="#0E7490" font-weight="bold">신드롬 → 진단</text>
+        <!-- (0,0) -->
+        <rect x="30" y="50" width="170" height="30" rx="5" fill="#dcfce7" stroke="#86efac"/>
+        <text x="40" y="70" font-size="12" fill="#166534">(s1,s2)=(0,0) → 오류 없음</text>
+        <!-- (1,0) -->
+        <rect x="30" y="88" width="170" height="30" rx="5" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="40" y="108" font-size="12" fill="#b91c1c">(1,0) → q0 뒤집힘</text>
+        <!-- (1,1) -->
+        <rect x="220" y="50" width="170" height="30" rx="5" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="230" y="70" font-size="12" fill="#b91c1c">(1,1) → q1 뒤집힘</text>
+        <!-- (0,1) -->
+        <rect x="220" y="88" width="170" height="30" rx="5" fill="#fee2e2" stroke="#fca5a5"/>
+        <text x="230" y="108" font-size="12" fill="#b91c1c">(0,1) → q2 뒤집힘</text>
+        <!-- 큐비트 줄 -->
+        <line x1="40" y1="150" x2="380" y2="150" stroke="#1d4ed8" stroke-width="2"/>
+        <line x1="40" y1="175" x2="380" y2="175" stroke="#1d4ed8" stroke-width="2"/>
+        <line x1="40" y1="200" x2="380" y2="200" stroke="#1d4ed8" stroke-width="2"/>
+        <text x="386" y="154" font-size="11" fill="#1d4ed8">q0</text>
+        <text x="386" y="179" font-size="11" fill="#1d4ed8">q1</text>
+        <text x="386" y="204" font-size="11" fill="#1d4ed8">q2</text>
+        <text x="40" y="140" font-size="10" fill="#6b7280">s1 = q0⊕q1 (위 두 줄), s2 = q1⊕q2 (아래 두 줄)</text>
+      </svg>
+      <p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">
+        두 패리티 비트의 조합이 뒤집힌 큐비트를 유일하게 지목한다.
+      </p>
+
+      <div class="misconception">
+        <strong>흔한 오개념:</strong> "양자 정보도 그냥 세 번 복사해 다수결로 고친다"고 생각하기 쉽다.
+        하지만 <em>복제 불가 정리</em>로 임의의 양자 상태는 복사할 수 없다. 3-큐비트 코드는 복사가 아니라
+        얽힘으로 정보를 <strong>분산</strong>시킨다. 또 "신드롬을 측정하면 양자 상태가 무너진다"고
+        오해하지만, <em>패리티만</em> 재면 α, β는 그대로 보존된다. 마지막으로 이 코드는
+        <strong>비트반전(X) 1개</strong>만 정정한다 — 위상반전(Z)이나 동시에 두 개의 오류는 정정하지 못한다
+        (그래서 9-큐비트 쇼어 코드 같은 더 강한 코드가 필요하다).
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 1</h3>
+        <p>3-큐비트 비트반전 코드에서 논리 상태 α|0⟩+β|1⟩을 인코딩한 결과는?</p>
+        <label><input type="radio" name="q1" value="wrong"> α|000⟩+β|000⟩ (단순 복사)</label>
+        <label><input type="radio" name="q1" value="correct"> α|000⟩+β|111⟩ (얽힘으로 분산)</label>
+        <label><input type="radio" name="q1" value="wrong"> α|001⟩+β|110⟩</label>
+        <button type="button" id="q1-btn">채점하기</button>
+        <div class="quiz-feedback" id="q1-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈 2</h3>
+        <p>신드롬 측정 결과 (s1, s2) = (0, 1) 이 나왔다. 어느 큐비트가 뒤집혔는가?</p>
+        <label><input type="radio" name="q2" value="wrong"> q0</label>
+        <label><input type="radio" name="q2" value="wrong"> q1</label>
+        <label><input type="radio" name="q2" value="correct"> q2</label>
+        <button type="button" id="q2-btn">채점하기</button>
+        <div class="quiz-feedback" id="q2-feedback" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <div class="scientist">
+        <h3>과학자: 피터 쇼어 (Peter Shor, 1959~)</h3>
+        <p>피터 쇼어는 미국의 수학자이자 컴퓨터 과학자로, 1994년 큰 수를 빠르게 소인수분해하는 양자
+        알고리즘(쇼어 알고리즘)으로 양자컴퓨팅을 단숨에 유명하게 만들었다. 당시 많은 이들은 양자 상태가
+        잡음에 너무 취약해 실용적 양자컴퓨터는 불가능하다고 보았다. 쇼어는 1995년 <strong>양자 오류정정
+        부호</strong>가 가능함을 처음으로 증명해 이 비관론을 뒤집었고, 여기 다룬 3-큐비트 코드를 일반화한
+        9-큐비트 쇼어 코드로 비트반전과 위상반전 오류를 모두 정정할 수 있음을 보였다.</p>
+        <p>이 발견은 "양자 상태는 측정하면 무너지니 오류를 고칠 수 없다"는 통념을 깬 전환점이었다.
+        핵심 통찰은 <em>큐비트 자체가 아니라 패리티만 측정</em>하면 정보를 보존하면서 오류를 진단할 수
+        있다는 점이었다.</p>
+      </div>
+
+      <div class="timeline">
+        <h3>시대 배경</h3>
+        <ul>
+          <li>1982년 — 파인만, 양자계를 시뮬레이션할 양자컴퓨터 아이디어 제시</li>
+          <li>1985년 — 도이치, 보편 양자컴퓨터의 이론적 모형 정립</li>
+          <li>1994년 — 쇼어, 소인수분해 양자 알고리즘 발표(양자컴퓨팅 폭발적 관심)</li>
+          <li>1995년 — 쇼어, 9-큐비트 양자 오류정정 부호 제안 (본 실험은 그 비트반전 부분)</li>
+          <li>1996년 — 스틴(Steane), 7-큐비트 CSS 코드 발표</li>
+          <li>1997년 — 키타예프 등, 결함허용(fault-tolerant) 양자계산과 표면부호 토대 마련</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>과학사적 의의:</strong> 양자 오류정정의 발견은 양자컴퓨터를 "이론상의 호기심"에서
+        <strong>실현 가능한 기술</strong>로 끌어올린 결정적 사건이다. 복제 불가 정리와 측정 붕괴라는
+        근본적 장벽을 우회해, 얽힘과 신드롬 측정으로 오류를 진단·정정할 수 있음을 보였다. 오늘날
+        표면부호(surface code)를 비롯한 결함허용 구조는 모두 이 1995년 통찰의 후예이며,
+        대규모 양자컴퓨터로 가는 핵심 디딤돌이다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ===== 상태 =====
+      // psi: 단계 진행 추적. amps: 8개 실수 진폭 (비트반전 코드는 실수만 필요)
+      // index b = 4*q0 + 2*q1 + q2  (q0=MSB)
+      const state = {
+        amps: new Array(8).fill(0), // 통계벡터 진폭
+        theta: 0,                   // 논리 상태 각도(도)
+        errorChoice: 'none',        // '0'|'1'|'2'|'random'|'none'
+        injectedQubit: -1,          // 실제로 뒤집힌 큐비트 (-1=없음)
+        s1: null, s2: null,         // 신드롬
+        diagnosed: -1,              // 진단된 큐비트
+        step: 1,                    // 1..6 진행 단계
+        origAmps: null              // 원래 논리 상태 진폭(검증용)
+      };
+
+      // ===== DOM =====
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const thetaSlider = document.getElementById('theta');
+      const thetaVal = document.getElementById('theta-val');
+      const presetBtns = document.querySelectorAll('.btn.preset[data-preset]');
+      const errBtns = document.querySelectorAll('.btn.preset[data-err]');
+
+      const encodeBtn = document.getElementById('encodeBtn');
+      const errorBtn = document.getElementById('errorBtn');
+      const syndromeBtn = document.getElementById('syndromeBtn');
+      const correctBtn = document.getElementById('correctBtn');
+      const decodeBtn = document.getElementById('decodeBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const stepBanner = document.getElementById('stepBanner');
+      const rState = document.getElementById('r-state');
+      const rSyndrome = document.getElementById('r-syndrome');
+      const rDiagnosis = document.getElementById('r-diagnosis');
+      const rFinal = document.getElementById('r-final');
+
+      // ===== (1) 탭 전환 (템플릿 그대로) =====
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ===== 게이트 연산 (통계벡터) =====
+      // bit(q): q0 -> 비트값 4, q1 -> 2, q2 -> 1
+      function bitVal(q) { return q === 0 ? 4 : (q === 1 ? 2 : 1); }
+
+      // X on qubit q: 비트 q가 다른 두 진폭을 교환
+      function applyX(q) {
+        const v = bitVal(q);
+        for (let i = 0; i < 8; i++) {
+          if ((i & v) === 0) {
+            const j = i | v;
+            const t = state.amps[i];
+            state.amps[i] = state.amps[j];
+            state.amps[j] = t;
+          }
+        }
+      }
+
+      // CNOT(control c, target t): control 비트=1인 진폭에서 target 비트가 다른 쌍을 교환
+      function applyCNOT(c, t) {
+        const cv = bitVal(c), tv = bitVal(t);
+        for (let i = 0; i < 8; i++) {
+          if ((i & cv) !== 0 && (i & tv) === 0) {
+            const j = i | tv;
+            const tmp = state.amps[i];
+            state.amps[i] = state.amps[j];
+            state.amps[j] = tmp;
+          }
+        }
+      }
+
+      // ===== 논리 상태 설정 (1단계) =====
+      function setLogicalState() {
+        const rad = state.theta * Math.PI / 180;
+        const a = Math.cos(rad / 2); // |0...>
+        const b = Math.sin(rad / 2); // |1 on q0, q1=q2=0 -> index 100 = 4
+        state.amps = new Array(8).fill(0);
+        state.amps[0] = a; // |000>
+        state.amps[4] = b; // |100>  (q0=1)
+        state.origAmps = state.amps.slice();
+      }
+
+      // ===== 단계 동작 =====
+      function doEncode() {
+        if (state.step !== 1) return;
+        applyCNOT(0, 1);
+        applyCNOT(0, 2);
+        // 이제 a|000> + b|111>
+        state.step = 2;
+        render();
+      }
+
+      function doError() {
+        if (state.step !== 2) return;
+        let q = -1;
+        if (state.errorChoice === '0') q = 0;
+        else if (state.errorChoice === '1') q = 1;
+        else if (state.errorChoice === '2') q = 2;
+        else if (state.errorChoice === 'random') q = Math.floor(Math.random() * 3);
+        else q = -1; // none
+        if (q >= 0) applyX(q);
+        state.injectedQubit = q;
+        state.step = 3;
+        render();
+      }
+
+      function doSyndrome() {
+        if (state.step !== 3) return;
+        // 비트반전 코드: 신드롬은 어느 큐비트가 뒤집혔는지로 결정된다.
+        // s1 = q0 XOR q1, s2 = q1 XOR q2 (논리 정보를 무너뜨리지 않고 패리티만 읽음)
+        const f = state.injectedQubit; // -1, 0, 1, 2
+        let s1 = 0, s2 = 0;
+        if (f === 0) { s1 = 1; s2 = 0; }
+        else if (f === 1) { s1 = 1; s2 = 1; }
+        else if (f === 2) { s1 = 0; s2 = 1; }
+        else { s1 = 0; s2 = 0; }
+        state.s1 = s1; state.s2 = s2;
+        // 신드롬 -> 진단
+        if (s1 === 0 && s2 === 0) state.diagnosed = -1;
+        else if (s1 === 1 && s2 === 0) state.diagnosed = 0;
+        else if (s1 === 1 && s2 === 1) state.diagnosed = 1;
+        else state.diagnosed = 2; // (0,1)
+        state.step = 4;
+        render();
+      }
+
+      function doCorrect() {
+        if (state.step !== 4) return;
+        if (state.diagnosed >= 0) applyX(state.diagnosed); // 뒤집힌 큐비트에 X 재적용
+        state.step = 5;
+        render();
+      }
+
+      function doDecode() {
+        if (state.step !== 5) return;
+        // 인코딩의 역: CNOT(q0->q2), CNOT(q0->q1)
+        applyCNOT(0, 2);
+        applyCNOT(0, 1);
+        state.step = 6;
+        render();
+      }
+
+      function resetAll() {
+        state.theta = parseInt(thetaSlider.value, 10) || 0;
+        state.injectedQubit = -1;
+        state.s1 = null; state.s2 = null;
+        state.diagnosed = -1;
+        state.step = 1;
+        setLogicalState();
+        render();
+      }
+
+      // ===== 표현 헬퍼 =====
+      // 통계벡터에서 0이 아닌 항을 켓 표기로
+      function ketString() {
+        const terms = [];
+        for (let i = 0; i < 8; i++) {
+          const a = state.amps[i];
+          if (Math.abs(a) > 1e-9) {
+            const bits = ((i >> 2) & 1).toString() + ((i >> 1) & 1).toString() + (i & 1).toString();
+            let coef;
+            if (Math.abs(a - 1) < 1e-9) coef = '';
+            else if (Math.abs(a + 1) < 1e-9) coef = '-';
+            else coef = a.toFixed(2);
+            terms.push((coef ? coef + '·' : '') + '|' + bits + '⟩');
+          }
+        }
+        return terms.length ? terms.join(' + ').replace(/\+ -/g, '- ') : '0';
+      }
+
+      // 검증: origAmps와 같은가 (디코딩 후 q1=q2=0 이며 q0이 원상 복구)
+      function isRecovered() {
+        if (!state.origAmps) return false;
+        for (let i = 0; i < 8; i++) {
+          if (Math.abs(state.amps[i] - state.origAmps[i]) > 1e-6) return false;
+        }
+        return true;
+      }
+
+      // ===== 결과 박스 / 배너 갱신 =====
+      function updateText() {
+        rState.textContent = ketString();
+
+        if (state.s1 === null) {
+          rSyndrome.textContent = '—';
+          rSyndrome.className = '';
+        } else {
+          rSyndrome.textContent = '(' + state.s1 + ', ' + state.s2 + ')';
+          rSyndrome.className = (state.s1 === 0 && state.s2 === 0) ? 'ok-text' : 'info-text';
+        }
+
+        if (state.step < 4) {
+          rDiagnosis.textContent = '—';
+          rDiagnosis.className = '';
+        } else if (state.diagnosed < 0) {
+          rDiagnosis.textContent = '오류 없음';
+          rDiagnosis.className = 'ok-text';
+        } else {
+          rDiagnosis.textContent = 'q' + state.diagnosed + '이(가) 뒤집힘';
+          rDiagnosis.className = 'bad-text';
+        }
+
+        // 최종 결과
+        if (state.step === 6) {
+          if (isRecovered()) {
+            rFinal.textContent = '✔ 복구 성공 — 논리 상태 보존';
+            rFinal.className = 'ok-text';
+          } else {
+            rFinal.textContent = '✘ 복구 실패 — 논리 상태 손상';
+            rFinal.className = 'bad-text';
+          }
+        } else {
+          rFinal.textContent = '—';
+          rFinal.className = '';
+        }
+
+        // 단계 배너
+        const banners = {
+          1: '1단계: 논리 상태 |ψ⟩를 설정했습니다 (q1=q2=|0⟩). → "2 · 인코딩"을 누르세요.',
+          2: '2단계: 인코딩 완료 — 논리 상태가 α|000⟩+β|111⟩로 세 큐비트에 분산됨. → 오류 큐비트를 고르고 "3 · 오류 주입".',
+          3: '',
+          4: '',
+          5: '5단계: 정정 완료 — 뒤집힌 큐비트에 X를 다시 걸어 되돌렸습니다. → "6 · 디코딩/확인".',
+          6: ''
+        };
+        stepBanner.className = 'step-banner';
+        if (state.step === 3) {
+          if (state.injectedQubit < 0) {
+            stepBanner.textContent = '3단계: 오류 없음(없음 선택) — 비트반전을 주입하지 않았습니다. → "4 · 신드롬 측정".';
+          } else {
+            stepBanner.textContent = '3단계: q' + state.injectedQubit + '에 비트반전(X) 오류 주입! → "4 · 신드롬 측정"으로 진단하세요.';
+            stepBanner.className = 'step-banner banner-fail';
+          }
+        } else if (state.step === 4) {
+          if (state.diagnosed < 0) {
+            stepBanner.textContent = '4단계: 신드롬 (0,0) → 오류 없음으로 진단. → "5 · 정정"(아무것도 안 함) 후 "6 · 디코딩/확인".';
+          } else {
+            stepBanner.textContent = '4단계: 신드롬 (' + state.s1 + ',' + state.s2 + ') → q' + state.diagnosed + '이(가) 뒤집힘으로 진단. → "5 · 정정".';
+          }
+        } else if (state.step === 6) {
+          if (isRecovered()) {
+            stepBanner.textContent = '6단계: ✔ 성공! 논리 상태가 원래대로 복구되고 q1=q2=|0⟩으로 돌아왔습니다.';
+            stepBanner.className = 'step-banner banner-success';
+          } else {
+            stepBanner.textContent = '6단계: ✘ 복구 실패 — 정정된 상태가 원본과 다릅니다.';
+            stepBanner.className = 'step-banner banner-fail';
+          }
+        } else {
+          stepBanner.textContent = banners[state.step];
+        }
+
+        // 버튼 활성/비활성 (단계 흐름 강제)
+        thetaSlider.disabled = state.step !== 1;
+        presetBtns.forEach((b) => { b.disabled = state.step !== 1; });
+        errBtns.forEach((b) => { b.disabled = state.step !== 2; });
+        encodeBtn.disabled = state.step !== 1;
+        errorBtn.disabled = state.step !== 2;
+        syndromeBtn.disabled = state.step !== 3;
+        correctBtn.disabled = state.step !== 4;
+        decodeBtn.disabled = state.step !== 5;
+      }
+
+      // ===== 캔버스 그리기 =====
+      function draw() {
+        if (!ctx) return;
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#06222b';
+        ctx.fillRect(0, 0, W, H);
+
+        // 제목
+        ctx.fillStyle = '#9fdbe9';
+        ctx.font = '15px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('3-큐비트 비트반전 코드 — 현재 단계: ' + state.step + '/6', 20, 28);
+
+        // 세 큐비트 줄
+        const labels = ['q0 (논리)', 'q1', 'q2'];
+        const rowY = [90, 170, 250];
+        const lineX0 = 130, lineX1 = 590;
+
+        // 각 큐비트의 "대표 기저값" 계산 (가장 큰 진폭 항에서의 비트값) — 시각화용
+        // 인코딩 후 a|000>+b|111> 같은 중첩에서는 대표 값이 모호하므로
+        // "뒤집힘 여부"를 강조하기 위해 injected/diagnosed 정보를 사용한다.
+        for (let q = 0; q < 3; q++) {
+          const y = rowY[q];
+          // 선
+          ctx.strokeStyle = '#2b6c7e';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(lineX0, y);
+          ctx.lineTo(lineX1, y);
+          ctx.stroke();
+
+          // 라벨
+          ctx.fillStyle = '#cfeaf2';
+          ctx.font = '14px system-ui, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText(labels[q], lineX0 - 12, y + 5);
+
+          // 큐비트 원
+          const flipped = (state.step >= 3 && state.step <= 4 && state.injectedQubit === q);
+          const corrected = (state.step >= 5 && state.injectedQubit === q);
+          let circleColor = '#1d4ed8';
+          if (flipped) circleColor = '#b91c1c';
+          else if (corrected) circleColor = '#166534';
+          ctx.beginPath();
+          ctx.arc(lineX0 + 40, y, 16, 0, Math.PI * 2);
+          ctx.fillStyle = circleColor;
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Q', lineX0 + 40, y + 5);
+        }
+
+        // 단계별 게이트 마커
+        ctx.textAlign = 'center';
+        ctx.font = '12px system-ui, sans-serif';
+
+        // 인코딩 게이트 (CNOT q0->q1, q0->q2)
+        if (state.step >= 2) {
+          drawCnot(250, rowY[0], rowY[1], '#1597b8');
+          drawCnot(300, rowY[0], rowY[2], '#1597b8');
+          ctx.fillStyle = '#9fdbe9';
+          ctx.fillText('인코딩', 275, 70);
+        }
+
+        // 오류 마커
+        if (state.step >= 3 && state.injectedQubit >= 0) {
+          const y = rowY[state.injectedQubit];
+          ctx.fillStyle = '#b91c1c';
+          ctx.beginPath();
+          ctx.rect(360 - 12, y - 12, 24, 24);
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.fillText('X', 360, y + 5);
+          ctx.fillStyle = '#ffb4b4';
+          ctx.font = '12px system-ui, sans-serif';
+          ctx.fillText('오류!', 360, y - 18);
+        }
+
+        // 신드롬 표시
+        if (state.s1 !== null) {
+          ctx.fillStyle = '#ffe08a';
+          ctx.font = '13px system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('신드롬: s1=q0⊕q1=' + state.s1 + ', s2=q1⊕q2=' + state.s2, 130, 300);
+          if (state.diagnosed >= 0) {
+            ctx.fillStyle = '#ffb4b4';
+            ctx.fillText('→ 진단: q' + state.diagnosed + ' 뒤집힘', 130, 322);
+          } else {
+            ctx.fillStyle = '#a7f3d0';
+            ctx.fillText('→ 진단: 오류 없음', 130, 322);
+          }
+        }
+
+        // 정정 마커
+        if (state.step >= 5 && state.diagnosed >= 0) {
+          const y = rowY[state.diagnosed];
+          ctx.strokeStyle = '#166534';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.rect(440 - 12, y - 12, 24, 24);
+          ctx.stroke();
+          ctx.fillStyle = '#a7f3d0';
+          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('X', 440, y + 5);
+          ctx.font = '12px system-ui, sans-serif';
+          ctx.fillText('정정', 440, y - 18);
+        }
+
+        // 성공/실패 배너
+        if (state.step === 6) {
+          const ok = isRecovered();
+          ctx.fillStyle = ok ? 'rgba(22,101,52,0.85)' : 'rgba(185,28,28,0.85)';
+          ctx.fillRect(130, 332, 460, 22);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 13px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(ok ? '✔ 복구 성공 — 논리 상태 보존됨' : '✘ 복구 실패 — 상태 손상', 360, 348);
+        }
+      }
+
+      function drawCnot(x, yCtrl, yTgt, color) {
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        // 제어점
+        ctx.beginPath();
+        ctx.arc(x, yCtrl, 5, 0, Math.PI * 2);
+        ctx.fill();
+        // 연결선
+        ctx.beginPath();
+        ctx.moveTo(x, yCtrl);
+        ctx.lineTo(x, yTgt);
+        ctx.stroke();
+        // 타겟 (⊕)
+        ctx.beginPath();
+        ctx.arc(x, yTgt, 9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - 9, yTgt); ctx.lineTo(x + 9, yTgt);
+        ctx.moveTo(x, yTgt - 9); ctx.lineTo(x, yTgt + 9);
+        ctx.stroke();
+      }
+
+      function render() {
+        updateText();
+        if (animReq === null) animReq = requestAnimationFrame(frame);
+      }
+
+      // rAF 루프 (정적이지만 요구사항에 따라 rAF로 그림)
+      let animReq = null;
+      function frame() {
+        draw();
+        animReq = null;
+      }
+
+      // ===== 컨트롤 이벤트 =====
+      thetaSlider.addEventListener('input', () => {
+        state.theta = parseInt(thetaSlider.value, 10);
+        thetaVal.textContent = state.theta + '°';
+        // 프리셋 강조 동기화
+        presetBtns.forEach((b) => b.classList.remove('active'));
+        if (state.theta === 0) markPreset('0');
+        else if (state.theta === 180) markPreset('1');
+        else if (state.theta === 90) markPreset('plus');
+        setLogicalState();
+        render();
+      });
+
+      function markPreset(p) {
+        presetBtns.forEach((b) => b.classList.toggle('active', b.dataset.preset === p));
+      }
+
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (state.step !== 1) return;
+          const p = btn.dataset.preset;
+          let deg = 0;
+          if (p === '0') deg = 0;
+          else if (p === '1') deg = 180;
+          else if (p === 'plus') deg = 90;
+          state.theta = deg;
+          thetaSlider.value = deg;
+          thetaVal.textContent = deg + '°';
+          markPreset(p);
+          setLogicalState();
+          render();
+        });
+      });
+
+      errBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (state.step !== 2) return;
+          state.errorChoice = btn.dataset.err;
+          errBtns.forEach((b) => b.classList.toggle('active', b === btn));
+        });
+      });
+
+      encodeBtn.addEventListener('click', doEncode);
+      errorBtn.addEventListener('click', doError);
+      syndromeBtn.addEventListener('click', doSyndrome);
+      correctBtn.addEventListener('click', doCorrect);
+      decodeBtn.addEventListener('click', doDecode);
+      resetBtn.addEventListener('click', resetAll);
+
+      // ===== 초기화 =====
+      thetaVal.textContent = state.theta + '°';
+      resetAll();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./06-bb84.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · BB84 양자 키 분배</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_error_correction" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%98%A4%EB%A5%98+%EC%A0%95%EC%A0%95&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+error+correction+3+qubit+bit+flip+code" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 65, "slug": "07-error-correction", "category": "09-quantum-computing", "icon": "🛡️", "title": "양자 오류정정 (3-큐비트)", "titleEn": "Quantum Error Correction (3-qubit code)", "year": "1995", "scientist": "피터 쇼어 (Peter Shor)", "difficulty": 4, "description": "한 큐비트를 세 개로 인코딩해 비트플립 오류를 신드롬 측정으로 찾아 정정한다.", "keywords": ["양자 오류정정", "비트플립 코드", "신드롬", "쇼어", "논리 큐비트", "다수결"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

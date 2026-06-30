@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>파동묶음의 분산 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f5f3fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .spin-up { color: #2563eb; font-weight: 700; }
+    .spin-down { color: #b91c1c; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>파동묶음의 분산</h1>
+    <div class="en">Wave Packet Dispersion</div>
+    <div class="meta">1920년대 · 드브로이 · 슈뢰딩거 · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="자유 입자 가우시안 파동묶음이 시간이 지나며 오른쪽으로 이동하고 점점 퍼지는 모습. 확률밀도 곡선은 채워진 봉우리로, 실수부 운반파동은 봉우리 안에서 다른 속도로 출렁이는 잔물결로 표시된다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="sigma0">초기 폭 σ₀: <span id="sigma0-val">1.20</span></label>
+          <input type="range" id="sigma0" min="0.4" max="3.0" step="0.05" value="1.2"
+            aria-describedby="sigma0-val">
+        </div>
+
+        <div class="control-row">
+          <label for="k0">운동량 k₀ (= 군속도 v_g): <span id="k0-val">4.0</span></label>
+          <input type="range" id="k0" min="1.0" max="8.0" step="0.1" value="4.0"
+            aria-describedby="k0-val">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="playBtn">▶ 재생</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋 (t=0)</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>경과 시간: <strong id="r-time">0.00</strong></div>
+          <div>현재 폭 σ(t): <strong id="r-sigma">1.20</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>군속도 <span class="spin-up">v_g</span> = k₀: <strong id="r-vg">4.00</strong></div>
+          <div>위상속도 <span class="spin-down">v_p</span> = k₀/2: <strong id="r-vp">2.00</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>봉우리(파란 영역) = 확률밀도 |Ψ|², 잔물결(노란 선) = 실수부 Re[Ψ]</div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 봉우리(군속도)와 안쪽 잔물결(위상속도)이 <strong>서로 다른 속도</strong>로 움직이는 데 주목하세요.
+        또한 시간이 지나면 봉우리가 점점 <strong>넓고 낮아집니다(분산)</strong>. 초기 폭 σ₀를 작게 할수록 더 빨리 퍼집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>자유 입자 파동묶음과 분산</h2>
+
+      <div class="concept-box">
+        <h3>파동묶음이란?</h3>
+        <p>드브로이는 입자가 파동의 성질을 가진다고 제안했습니다. 그러나 무한히 퍼진 단일 평면파
+        <em>e<sup>i(kx−ωt)</sup></em>는 공간 어디에도 국소화되지 않아 "입자"처럼 보이지 않습니다.
+        여러 파장(운동량)을 가진 평면파를 <strong>겹쳐</strong> 만들면 공간의 한 지점에 뭉친
+        <strong>파동묶음(wave packet)</strong>이 되고, 이것이 국소화된 입자를 나타냅니다.</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>군속도 ≠ 위상속도</h3>
+        <p>파동묶음에는 두 가지 속도가 있습니다. <strong>봉우리(포락선)</strong>가 움직이는
+        <span class="spin-up">군속도 v_g = dω/dk = k₀</span>는 입자(확률)가 실제로 이동하는 속도입니다.
+        반면 봉우리 <strong>안쪽 운반파동의 마루</strong>가 움직이는
+        <span class="spin-down">위상속도 v_p = ω/k = k₀/2</span>는 군속도의 절반입니다.
+        그래서 시뮬레이션에서 안쪽 잔물결이 봉우리보다 천천히 흘러가는 것을 볼 수 있습니다.</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>분산(퍼짐)과 불확정성</h3>
+        <p>자유 입자의 가우시안 파동묶음은 시간이 지나며 너비가 커집니다.
+        이는 운동량이 정확히 한 값이 아니라 분포를 가지기 때문입니다 — 빠른 성분과 느린 성분이
+        시간이 갈수록 서로 멀어집니다. <strong>초기 폭 σ₀가 작을수록</strong> 운동량 불확정성 Δp가 커서
+        (불확정성 원리 ΔxΔp ≥ ħ/2) 더 <strong>빠르게 퍼집니다</strong>.</p>
+      </div>
+
+      <div class="formula-box">
+        |Ψ(x, t)|² = 가우시안, 중심 x_c(t) = v_g·t = k₀·t<br>
+        σ(t) = σ₀ · √(1 + (t/τ)²),  τ = σ₀²  (ħ = m = 1)<br>
+        ω = k₀² / 2,   v_g = dω/dk = k₀,   v_p = ω/k₀ = k₀ / 2
+      </div>
+
+      <div class="misconception">
+        <h3>⚠️ 흔한 오해</h3>
+        <p>"파동묶음 안쪽 잔물결이 움직이는 속도가 입자의 속도다" — 아닙니다.
+        입자(확률)는 <strong>봉우리(포락선)의 속도 = 군속도</strong>로 이동합니다.
+        안쪽 운반파동의 위상속도는 측정 가능한 정보를 나르지 않습니다.</p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>🧩 확인 문제</h3>
+        <p>초기 폭 σ₀를 더 <strong>작게</strong> 만들면 파동묶음은 시간이 지남에 따라 어떻게 변할까요?</p>
+        <label><input type="radio" name="quiz" value="a"> 더 천천히 퍼진다</label>
+        <label><input type="radio" name="quiz" value="b"> 더 빠르게 퍼진다</label>
+        <label><input type="radio" name="quiz" value="c"> 전혀 퍼지지 않는다</label>
+        <button type="button" id="quizBtn">채점</button>
+        <div class="quiz-feedback" id="quiz-feedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>물질파에서 파동역학까지</h2>
+
+      <div class="timeline">
+        <h3>📜 타임라인</h3>
+        <ul>
+          <li><strong>1924년</strong> — 루이 드브로이가 박사 논문에서 물질파 가설(λ = h/p)을 제안했습니다.</li>
+          <li><strong>1925년</strong> — 하이젠베르크가 행렬역학을, 보른·요르단이 그 수학적 틀을 정립했습니다.</li>
+          <li><strong>1926년</strong> — 슈뢰딩거가 파동방정식을 발표하고 전자를 파동묶음으로 기술하려 시도했습니다.</li>
+          <li><strong>1926년</strong> — 막스 보른이 |Ψ|²을 확률밀도로 해석(보른 규칙)했습니다.</li>
+          <li><strong>1927년</strong> — 데이비슨·거머 실험이 전자 회절로 물질파를 직접 확인했습니다.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>🔑 핵심 포인트</h3>
+        <p>슈뢰딩거는 파동묶음이 그대로 "입자"가 되기를 기대했지만, 자유 입자의 묶음은
+        <strong>시간이 지나면 퍼져버리는(분산하는)</strong> 문제가 있었습니다. 이 분산은 결국
+        보른의 확률 해석이 받아들여지는 한 계기가 되었습니다. 파동묶음은 입자 자체가 아니라
+        입자를 발견할 <strong>확률의 분포</strong>를 나타냅니다.</p>
+      </div>
+
+      <div class="scientist">
+        <h3>👨‍🔬 관련 과학자</h3>
+        <ul>
+          <li><strong>루이 드브로이 (Louis de Broglie, 1892–1987)</strong> — 물질파 가설로 1929년 노벨 물리학상을 받았습니다.</li>
+          <li><strong>에르빈 슈뢰딩거 (Erwin Schrödinger, 1887–1961)</strong> — 파동방정식을 세웠고 1933년 노벨 물리학상을 받았습니다.</li>
+          <li><strong>막스 보른 (Max Born, 1882–1970)</strong> — |Ψ|²의 확률 해석으로 1954년 노벨 물리학상을 받았습니다.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 (ħ = m = 1) -----
+      const state = {
+        sigma0: 1.2,   // 초기 폭
+        k0: 4.0,       // 운동량 = 군속도
+        t: 0,          // 시뮬레이션 시간
+        running: false,
+        lastTs: null
+      };
+
+      // 물리 영역(x) → 캔버스 픽셀 매핑
+      const X_MIN = -6, X_MAX = 26; // 보이는 x 범위
+      const T_MAX = 5.0;            // 한 사이클의 최대 시간 (이후 리셋/루프)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+
+      const sigma0Slider = document.getElementById('sigma0');
+      const k0Slider = document.getElementById('k0');
+      const sigma0Val = document.getElementById('sigma0-val');
+      const k0Val = document.getElementById('k0-val');
+
+      const playBtn = document.getElementById('playBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rTime = document.getElementById('r-time');
+      const rSigma = document.getElementById('r-sigma');
+      const rVg = document.getElementById('r-vg');
+      const rVp = document.getElementById('r-vp');
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 좌표 변환 -----
+      function xToPx(x) {
+        return ((x - X_MIN) / (X_MAX - X_MIN)) * W;
+      }
+
+      // ----- 물리 헬퍼 -----
+      function sigmaAt(t) {
+        const tau = state.sigma0 * state.sigma0; // τ = σ0² (ħ=m=1)
+        return state.sigma0 * Math.sqrt(1 + (t / tau) * (t / tau));
+      }
+      function centerAt(t) {
+        return state.k0 * t; // x_c = v_g·t, v_g = k0
+      }
+
+      // ----- 그리기 -----
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        const baseY = H - 60;     // 0 기준선 (확률밀도 바닥)
+        const midY = H * 0.5;     // 실수부 중심선
+
+        // 배경 그리드
+        ctx.strokeStyle = 'rgba(139,99,224,0.15)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx <= 32; gx += 4) {
+          const px = xToPx(gx);
+          ctx.beginPath();
+          ctx.moveTo(px, 20);
+          ctx.lineTo(px, baseY);
+          ctx.stroke();
+        }
+
+        const t = state.t;
+        const sig = sigmaAt(t);
+        const xc = centerAt(t);
+        const omega = (state.k0 * state.k0) / 2;
+
+        // 진폭 정규화: 확률밀도 최대값은 σ에 반비례 → 봉우리가 퍼지면 낮아짐
+        const peak0 = 1 / state.sigma0;   // t=0 기준 최대 높이
+        const peakNow = 1 / sig;
+        const probScale = 200;            // px, t=0 봉우리의 표시 높이 기준
+        const reAmpPx = 70;               // 실수부 표시 진폭(px)
+
+        const N = 480; // 표본 개수
+        const xs = [], envs = [], probs = [], res = [];
+        for (let i = 0; i <= N; i++) {
+          const x = X_MIN + (i / N) * (X_MAX - X_MIN);
+          const dx = x - xc;
+          const env = Math.exp(-(dx * dx) / (2 * sig * sig)); // 0~1 포락선
+          const prob = env * env * (peakNow / peak0);         // |Ψ|² (정규화 높이 보정)
+          const re = env * (peakNow / peak0) * Math.cos(state.k0 * x - omega * t);
+          xs.push(x); envs.push(env); probs.push(prob); res.push(re);
+        }
+
+        // (a) 확률밀도 |Ψ|² 채워진 곡선
+        ctx.beginPath();
+        ctx.moveTo(xToPx(xs[0]), baseY);
+        for (let i = 0; i <= N; i++) {
+          ctx.lineTo(xToPx(xs[i]), baseY - probs[i] * probScale);
+        }
+        ctx.lineTo(xToPx(xs[N]), baseY);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, baseY - probScale, 0, baseY);
+        grad.addColorStop(0, 'rgba(139,99,224,0.65)');
+        grad.addColorStop(1, 'rgba(107,70,193,0.15)');
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#b9a6f0';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const px = xToPx(xs[i]), py = baseY - probs[i] * probScale;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // (b) 실수부 Re[Ψ] 운반파동 (위쪽 영역에 별도 표시)
+        ctx.strokeStyle = '#f6d35a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const px = xToPx(xs[i]);
+          const py = midY - res[i] * reAmpPx;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // 실수부 포락선 (점선, 위/아래)
+        ctx.strokeStyle = 'rgba(246,211,90,0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const px = xToPx(xs[i]);
+          const e = envs[i] * (peakNow / peak0);
+          if (i === 0) ctx.moveTo(px, midY - e * reAmpPx);
+          else ctx.lineTo(px, midY - e * reAmpPx);
+        }
+        ctx.stroke();
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+          const px = xToPx(xs[i]);
+          const e = envs[i] * (peakNow / peak0);
+          if (i === 0) ctx.moveTo(px, midY + e * reAmpPx);
+          else ctx.lineTo(px, midY + e * reAmpPx);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 기준선들
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, baseY); ctx.lineTo(W, baseY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+
+        // 봉우리 중심 마커 (군속도 추적)
+        const xcPx = xToPx(xc);
+        if (xcPx >= 0 && xcPx <= W) {
+          ctx.strokeStyle = '#8b63e0';
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath(); ctx.moveTo(xcPx, 20); ctx.lineTo(xcPx, baseY); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // 라벨
+        ctx.fillStyle = '#f6d35a';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('Re[Ψ] (운반파동, 위상속도 v_p)', 12, midY - reAmpPx - 12);
+        ctx.fillStyle = '#b9a6f0';
+        ctx.fillText('|Ψ|² (확률밀도, 군속도 v_g)', 12, baseY - probScale - 8);
+      }
+
+      // ----- 판독값 갱신 -----
+      function updateReadout() {
+        const sig = sigmaAt(state.t);
+        rTime.textContent = state.t.toFixed(2);
+        rSigma.textContent = sig.toFixed(2);
+        rVg.textContent = state.k0.toFixed(2);
+        rVp.textContent = (state.k0 / 2).toFixed(2);
+      }
+
+      // ----- 애니메이션 루프 (rAF only) -----
+      function frame(ts) {
+        if (!state.running) { state.lastTs = null; return; }
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = Math.min((ts - state.lastTs) / 1000, 0.05); // 초 단위, 안정성 위해 상한
+        state.lastTs = ts;
+
+        state.t += dt; // 시뮬레이션 시간 진행
+        if (state.t > T_MAX) state.t = 0; // 루프 리셋
+
+        draw();
+        updateReadout();
+        requestAnimationFrame(frame);
+      }
+
+      function play() {
+        if (state.running) {
+          state.running = false;
+          playBtn.textContent = '▶ 재생';
+        } else {
+          state.running = true;
+          playBtn.textContent = '⏸ 일시정지';
+          state.lastTs = null;
+          requestAnimationFrame(frame);
+        }
+      }
+
+      function reset() {
+        state.t = 0;
+        draw();
+        updateReadout();
+      }
+
+      // ----- 이벤트 -----
+      sigma0Slider.addEventListener('input', () => {
+        state.sigma0 = parseFloat(sigma0Slider.value);
+        sigma0Val.textContent = state.sigma0.toFixed(2);
+        draw();
+        updateReadout();
+      });
+      k0Slider.addEventListener('input', () => {
+        state.k0 = parseFloat(k0Slider.value);
+        k0Val.textContent = state.k0.toFixed(1);
+        draw();
+        updateReadout();
+      });
+      playBtn.addEventListener('click', play);
+      resetBtn.addEventListener('click', reset);
+
+      // ----- 퀴즈 채점 -----
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quiz-feedback');
+      quizBtn.addEventListener('click', () => {
+        const sel = document.querySelector('input[name="quiz"]:checked');
+        if (!sel) {
+          quizFeedback.textContent = '먼저 답을 선택해 주세요.';
+          quizFeedback.style.color = '#92400e';
+          return;
+        }
+        if (sel.value === 'b') {
+          quizFeedback.textContent = '✅ 정답입니다! σ₀가 작을수록 운동량 불확정성 Δp가 커서 더 빠르게 퍼집니다 (τ = σ₀²).';
+          quizFeedback.style.color = '#166534';
+        } else {
+          quizFeedback.textContent = '❌ 다시 생각해 보세요. 초기 폭이 작을수록 분산 시간 τ = σ₀²가 짧아져 더 빨리 퍼집니다.';
+          quizFeedback.style.color = '#b91c1c';
+        }
+      });
+
+      // ----- 초기 렌더 -----
+      sigma0Val.textContent = state.sigma0.toFixed(2);
+      k0Val.textContent = state.k0.toFixed(1);
+      draw();
+      updateReadout();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./11-particle-in-box.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 무한 퍼텐셜 우물 (상자 속 입자)</a>
+      <a href="../06-quantum/04-uncertainty.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 하이젠베르크 불확정성 원리</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Wave_packet" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%ED%8C%8C%EB%8F%99+%EB%AC%B6%EC%9D%8C&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=wave+packet+dispersion+group+velocity+phase+velocity" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 62, "slug": "12-wave-packet", "category": "06-quantum", "icon": "🫧", "title": "파동묶음의 분산", "titleEn": "Wave Packet Dispersion", "year": "1920년대", "scientist": "드브로이 · 슈뢰딩거", "difficulty": 4, "description": "가우시안 파동묶음이 퍼지며 이동한다 — 군속도와 위상속도의 차이를 본다.", "keywords": ["파동묶음", "분산", "군속도", "위상속도", "불확정성", "자유 입자"], "catName": "양자역학", "catIcon": "🌊"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

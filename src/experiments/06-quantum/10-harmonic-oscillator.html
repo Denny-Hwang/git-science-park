@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 조화 진동자 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #6B46C1;
+      --primary-light: #8b63e0;
+      --bg: #f5f3fb;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .spin-up { color: #2563eb; font-weight: 700; }
+    .spin-down { color: #b91c1c; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🌊 양자역학 (Quantum Mechanics)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>양자 조화 진동자</h1>
+    <div class="en">Quantum Harmonic Oscillator</div>
+    <div class="meta">1925~ · 하이젠베르크 · 슈뢰딩거 · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" role="img"
+        aria-label="포물선 모양의 퍼텐셜 우물 V(x)=½x² 안에 동일한 간격으로 그려진 에너지 준위들과, 선택된 준위 n의 파동함수 ψₙ(x)를 보여주는 양자 조화 진동자 시뮬레이션"></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>표시 모드 선택</label>
+          <div class="btn-row" role="group" aria-label="시뮬레이션 모드 선택">
+            <button type="button" class="btn preset active" data-mode="states">🪜 정상상태 (에너지 준위)</button>
+            <button type="button" class="btn preset" data-mode="coherent">🌊 결맞음 상태 (coherent)</button>
+          </div>
+        </div>
+
+        <!-- 정상상태 모드 컨트롤 -->
+        <div id="states-controls">
+          <div class="control-row">
+            <label for="level">양자수 n (에너지 준위 선택): <span id="level-val">0</span></label>
+            <input type="range" id="level" min="0" max="6" step="1" value="0"
+              aria-describedby="level-val">
+          </div>
+
+          <div class="control-row">
+            <div class="toggle-row">
+              <input type="checkbox" id="probToggle">
+              <label for="probToggle">확률밀도 |ψₙ(x)|² 로 보기 (체크 해제 시 ψₙ(x))</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 결맞음 상태 모드 컨트롤 -->
+        <div id="coherent-controls" style="display:none;">
+          <div class="control-row">
+            <label for="amp">진폭 A (파속 진동 폭): <span id="amp-val">2.5</span></label>
+            <input type="range" id="amp" min="0.5" max="3.5" step="0.1" value="2.5"
+              aria-describedby="amp-val">
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn" id="playBtn">▶ 재생</button>
+            <button type="button" class="btn secondary" id="pauseBtn">⏸ 일시정지</button>
+          </div>
+          <p style="margin-top:10px; color:var(--text-muted); font-size:0.9rem;">
+            결맞음 상태의 가우시안 파속 |Ψ(x,t)|²는 퍼지지 않고 우물 안에서 좌우로 진동합니다 (x꜀(t)=A·cos t) — 고전적 진자 운동과 닮았습니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>선택한 양자수: <strong id="r-n">n = 0</strong></div>
+          <div>에너지: <strong id="r-energy">E₀ = 0.5 ħω</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>마디(node) 수: <strong id="r-nodes">0 개</strong></div>
+          <div>대칭성: <strong id="r-sym">짝함수 (even)</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>영점 에너지: <strong id="r-zpe">E₀ = ½ ħω = 0.5</strong></div>
+          <div>준위 간격: <strong id="r-gap">ΔE = ħω = 1 (균등)</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 에너지 준위 선들이 위로 갈수록 좁아지지 않고 <strong>정확히 같은 간격(ΔE = ħω)</strong>으로 쌓여 있는 점에 주목하세요.
+        이것이 조화 진동자의 가장 큰 특징입니다. 또한 가장 아래 준위(n=0)도 바닥에 닿지 않고 떠 있습니다 — 이것이 <strong>영점 에너지</strong>입니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>양자 조화 진동자의 핵심 원리</h2>
+
+      <div class="concept-box">
+        <h3>1. 포물선 퍼텐셜과 양자화</h3>
+        <p>
+          용수철에 매달린 입자처럼, 평형점 주변의 모든 진동은 근사적으로 <strong>포물선 퍼텐셜 V(x)=½mω²x²</strong>로 기술됩니다.
+          (단위계 ħ=m=ω=1 에서는 V(x)=½x².) 고전적으로는 어떤 에너지든 가질 수 있지만,
+          양자역학에서는 에너지가 띄엄띄엄한 값만 허용됩니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>2. 균등한 에너지 준위 (Equal Spacing)</h3>
+        <p>
+          허용된 에너지는 <strong>Eₙ = (n + ½)ħω</strong> (n = 0, 1, 2, …) 입니다.
+          수소 원자에서는 준위 간격이 위로 갈수록 좁아지지만, 조화 진동자는 이웃한 준위 사이 간격이
+          항상 정확히 <strong>ħω</strong>로 일정합니다. 이 균등 간격이 바로 빛(광자)이 진동 모드를 한 칸씩
+          여기시킬 수 있는 이유이며, 양자장론에서 입자를 '진동의 한 단위'로 보는 토대가 됩니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>3. 영점 에너지 (Zero-Point Energy)</h3>
+        <p>
+          n=0 인 바닥상태조차 에너지가 0이 아니라 <strong>E₀ = ½ħω</strong> 입니다.
+          입자를 완전히 멈춰 한 점에 가둘 수 없다는 <strong>하이젠베르크 불확정성 원리</strong>의 직접적 결과입니다.
+          절대영도에서도 진동이 완전히 사라지지 않습니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>4. 마디 수 = n, 그리고 대칭성</h3>
+        <p>
+          파동함수 ψₙ(x)는 정확히 <strong>n개의 마디(node)</strong>를 갖습니다 (ψ가 0을 가로지르는 내부 지점 수).
+          또한 n이 짝수이면 짝함수(even), 홀수이면 홀함수(odd) 대칭을 가집니다.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        ψₙ(x) = Nₙ · Hₙ(x) · e<sup>−x²/2</sup><br>
+        Eₙ = (n + ½) ħω<br>
+        ΔE = E<sub>n+1</sub> − Eₙ = ħω (일정)<br>
+        H₀=1, &nbsp; H₁=2x, &nbsp; H₂=4x²−2<br>
+        H₃=8x³−12x, &nbsp; H₄=16x⁴−48x²+12
+      </div>
+
+      <div class="misconception">
+        <strong>❌ 흔한 오해:</strong> "에너지가 가장 낮은 상태(n=0)에서는 입자가 정지해 에너지가 0이다."<br>
+        ✅ 실제로는 영점 에너지 ½ħω가 남아 있어 결코 완전히 멈추지 않습니다. 또 다른 오해는
+        "준위 간격이 위로 갈수록 좁아진다"인데, 조화 진동자에서는 간격이 항상 동일합니다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>🧠 확인 퀴즈</h3>
+        <p id="quiz-q">조화 진동자에서 이웃한 에너지 준위 사이의 간격 ΔE는 양자수 n이 커질수록 어떻게 되는가?</p>
+        <form id="quiz-form">
+          <label><input type="radio" name="quiz" value="a"> 위로 갈수록 점점 좁아진다 (수소 원자처럼)</label>
+          <label><input type="radio" name="quiz" value="b"> 양자수와 무관하게 항상 ħω로 일정하다</label>
+          <label><input type="radio" name="quiz" value="c"> 위로 갈수록 점점 넓어진다</label>
+          <label><input type="radio" name="quiz" value="d"> n이 짝수일 때만 ħω가 된다</label>
+        </form>
+        <button type="button" id="quiz-check">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>📜 주요 연표</h3>
+        <ul>
+          <li><strong>1900년 — 플랑크:</strong> 흑체 복사를 설명하기 위해 진동자의 에너지가 hν의 정수배로만 존재한다고 가정 (양자 가설의 출발).</li>
+          <li><strong>1905년 — 아인슈타인:</strong> 고체 비열을 양자화된 진동자(아인슈타인 모형)로 설명.</li>
+          <li><strong>1925년 — 하이젠베르크:</strong> 행렬역학을 창시하면서 조화 진동자를 첫 적용 대상으로 삼아 에너지 준위 Eₙ=(n+½)ħω를 유도.</li>
+          <li><strong>1926년 — 슈뢰딩거:</strong> 파동방정식을 풀어 에르미트 다항식 기반의 파동함수 ψₙ(x)와 동일한 에너지 스펙트럼을 얻음.</li>
+          <li><strong>1927년 — 디랙:</strong> 올림·내림 연산자(사다리 연산자)로 우아하게 재정식화 — 광자/포논 개념과 양자장론의 토대.</li>
+        </ul>
+      </div>
+
+      <div class="scientist">
+        <h3>👤 핵심 과학자</h3>
+        <ul>
+          <li><strong>베르너 하이젠베르크 (Werner Heisenberg, 1901–1976):</strong> 행렬역학을 통해 조화 진동자의 양자화된 에너지를 처음으로 도출. 불확정성 원리로 영점 에너지의 물리적 의미를 제공.</li>
+          <li><strong>에르빈 슈뢰딩거 (Erwin Schrödinger, 1887–1961):</strong> 파동방정식으로 ψₙ(x)의 명시적 형태(에르미트 다항식 × 가우시안)를 제시.</li>
+          <li><strong>폴 디랙 (Paul Dirac, 1902–1984):</strong> 사다리 연산자로 문제를 재구성, 진동의 '한 단위'를 입자로 보는 양자장론적 관점의 씨앗을 뿌림.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>왜 중요한가?</strong> 조화 진동자는 양자역학에서 <em>정확히 풀리는</em> 몇 안 되는 모형 중 하나이며,
+        분자 진동, 결정 격자의 포논, 전자기장의 양자화(광자)까지 — 자연의 거의 모든 진동 현상이 이 모형으로 환원됩니다.
+        "물리학자가 우주를 진동자들의 집합으로 본다"는 말의 근거입니다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        mode: 'states',   // 'states' | 'coherent'
+        n: 0,             // 양자수 0..6
+        showProb: false,  // |ψ|² 표시 여부
+        amp: 2.5,         // 결맞음 파속 진폭
+        running: false,   // 결맞음 애니메이션 재생 여부
+        t: 0,             // 결맞음 시간
+        lastTs: null,
+        rafId: 0
+      };
+
+      // ----- 물리 좌표 매핑 -----
+      const X_MIN = -5, X_MAX = 5;   // 표시할 x 범위
+      const E_MAX = 7;               // y축(에너지) 상한 (n=6 준위 6.5 포함)
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+      const W = canvas ? canvas.width : 640;
+      const H = canvas ? canvas.height : 420;
+
+      const modeBtns = document.querySelectorAll('.btn.preset[data-mode]');
+      const statesControls = document.getElementById('states-controls');
+      const coherentControls = document.getElementById('coherent-controls');
+
+      const levelSlider = document.getElementById('level');
+      const levelVal = document.getElementById('level-val');
+      const probToggle = document.getElementById('probToggle');
+
+      const ampSlider = document.getElementById('amp');
+      const ampVal = document.getElementById('amp-val');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+
+      const rN = document.getElementById('r-n');
+      const rEnergy = document.getElementById('r-energy');
+      const rNodes = document.getElementById('r-nodes');
+      const rSym = document.getElementById('r-sym');
+      const rZpe = document.getElementById('r-zpe');
+      const rGap = document.getElementById('r-gap');
+
+      // ----- (1) 탭 전환 (템플릿 동일) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- (2) 물리 헬퍼: 에르미트 다항식 -----
+      function hermite(n, x) {
+        switch (n) {
+          case 0: return 1;
+          case 1: return 2 * x;
+          case 2: return 4 * x * x - 2;
+          case 3: return 8 * x * x * x - 12 * x;
+          case 4: return 16 * Math.pow(x, 4) - 48 * x * x + 12;
+          case 5: return 32 * Math.pow(x, 5) - 160 * Math.pow(x, 3) + 120 * x;
+          case 6: return 64 * Math.pow(x, 6) - 480 * Math.pow(x, 4) + 720 * x * x - 120;
+          default: return 1;
+        }
+      }
+
+      // 정규화 상수 Nₙ = 1 / sqrt(2^n · n! · sqrt(π))
+      function factorial(k) {
+        let f = 1;
+        for (let i = 2; i <= k; i++) f *= i;
+        return f;
+      }
+      function normConst(n) {
+        return 1 / Math.sqrt(Math.pow(2, n) * factorial(n) * Math.sqrt(Math.PI));
+      }
+
+      // 정규화된 파동함수 ψₙ(x)
+      function psi(n, x) {
+        return normConst(n) * hermite(n, x) * Math.exp(-x * x / 2);
+      }
+
+      // ----- (3) 좌표 변환 -----
+      const PAD_L = 56, PAD_R = 16, PAD_T = 16, PAD_B = 34;
+      function xToPx(x) {
+        return PAD_L + (x - X_MIN) / (X_MAX - X_MIN) * (W - PAD_L - PAD_R);
+      }
+      function eToPx(E) {
+        // 에너지가 클수록 위(작은 y). 0 이 바닥.
+        return (H - PAD_B) - (E / E_MAX) * (H - PAD_T - PAD_B);
+      }
+
+      // ----- (4) 그리기: 배경/축 -----
+      function drawAxes() {
+        ctx.strokeStyle = '#3a3350';
+        ctx.lineWidth = 1;
+        // 세로 격자 (x=0 중심선 강조)
+        for (let x = X_MIN; x <= X_MAX; x++) {
+          ctx.beginPath();
+          ctx.moveTo(xToPx(x), PAD_T);
+          ctx.lineTo(xToPx(x), H - PAD_B);
+          ctx.strokeStyle = (x === 0) ? '#5a5070' : '#2a2540';
+          ctx.stroke();
+        }
+        // 바닥 축
+        ctx.strokeStyle = '#6a6080';
+        ctx.beginPath();
+        ctx.moveTo(PAD_L, H - PAD_B);
+        ctx.lineTo(W - PAD_R, H - PAD_B);
+        ctx.stroke();
+        // 라벨
+        ctx.fillStyle = '#bdb4d6';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('x  (위치)', (PAD_L + W - PAD_R) / 2, H - 10);
+        ctx.save();
+        ctx.translate(16, (PAD_T + H - PAD_B) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('E  (에너지)', 0, 0);
+        ctx.restore();
+      }
+
+      // 포물선 퍼텐셜 V(x)=½x²
+      function drawPotential() {
+        ctx.beginPath();
+        let first = true;
+        for (let px = PAD_L; px <= W - PAD_R; px += 1) {
+          const x = X_MIN + (px - PAD_L) / (W - PAD_L - PAD_R) * (X_MAX - X_MIN);
+          const V = 0.5 * x * x;
+          const py = eToPx(Math.min(V, E_MAX));
+          if (first) { ctx.moveTo(px, py); first = false; }
+          else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = '#f6c453';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.fillStyle = '#f6c453';
+        ctx.font = '13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('V(x) = ½x²', xToPx(2.3), eToPx(0.5 * 2.3 * 2.3) - 6);
+      }
+
+      // 에너지 준위 선들 (n=0..6, 균등 간격)
+      function drawLevels() {
+        for (let n = 0; n <= 6; n++) {
+          const E = n + 0.5;
+          const py = eToPx(E);
+          // 고전적 전회점: ½x² = E → x = ±sqrt(2E)
+          const xt = Math.sqrt(2 * E);
+          const x1 = Math.max(xt * -1, X_MIN);
+          const x2 = Math.min(xt, X_MAX);
+          const selected = (n === state.n && state.mode === 'states');
+          ctx.beginPath();
+          ctx.moveTo(xToPx(x1), py);
+          ctx.lineTo(xToPx(x2), py);
+          ctx.strokeStyle = selected ? '#c4b5fd' : '#6f6390';
+          ctx.lineWidth = selected ? 2 : 1;
+          ctx.stroke();
+          // 라벨
+          ctx.fillStyle = selected ? '#e9e3fb' : '#9a8fb8';
+          ctx.font = (selected ? 'bold ' : '') + '11px system-ui, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText('E' + n + '=' + E.toFixed(1), PAD_L - 4, py + 4);
+        }
+      }
+
+      // 선택된 준위의 파동함수 ψₙ(x) (또는 |ψₙ|²) — 준위선을 기준선으로
+      function drawWavefunction() {
+        const n = state.n;
+        const E = n + 0.5;
+        const baseline = eToPx(E);
+
+        // 화면용 스케일: 준위 간격(=ħω=1)의 약 0.42배 안에 들어오게
+        // ψ 진폭 최댓값을 표본으로 추정해 정규화
+        let maxAbs = 0;
+        const samples = [];
+        const NPTS = 360;
+        for (let i = 0; i <= NPTS; i++) {
+          const x = X_MIN + (i / NPTS) * (X_MAX - X_MIN);
+          let v = psi(n, x);
+          if (state.showProb) v = v * v;
+          samples.push({ x: x, v: v });
+          if (Math.abs(v) > maxAbs) maxAbs = Math.abs(v);
+        }
+        if (maxAbs === 0) maxAbs = 1;
+        // 픽셀 진폭: 준위 간격 1 단위가 차지하는 픽셀 높이
+        const unitPx = (H - PAD_T - PAD_B) / E_MAX;
+        const ampPx = unitPx * (state.showProb ? 0.85 : 0.42) / maxAbs;
+
+        // |ψ|² 모드면 채워서 보여주기
+        if (state.showProb) {
+          ctx.beginPath();
+          ctx.moveTo(xToPx(samples[0].x), baseline);
+          for (let i = 0; i < samples.length; i++) {
+            ctx.lineTo(xToPx(samples[i].x), baseline - samples[i].v * ampPx);
+          }
+          ctx.lineTo(xToPx(samples[samples.length - 1].x), baseline);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(139,99,224,0.45)';
+          ctx.fill();
+        }
+
+        // 기준선(준위) 점선
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(PAD_L, baseline);
+        ctx.lineTo(W - PAD_R, baseline);
+        ctx.strokeStyle = 'rgba(196,181,253,0.5)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 파형 곡선
+        ctx.beginPath();
+        for (let i = 0; i < samples.length; i++) {
+          const px = xToPx(samples[i].x);
+          const py = baseline - samples[i].v * ampPx;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = state.showProb ? '#d8b4fe' : '#9af0d0';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // 라벨
+        ctx.fillStyle = state.showProb ? '#e9d5ff' : '#9af0d0';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        const label = state.showProb ? ('|ψ' + n + '(x)|²') : ('ψ' + n + '(x)');
+        ctx.fillText(label, xToPx(-4.7), baseline - 8);
+      }
+
+      // ----- 결맞음 상태: 퍼지지 않는 가우시안 파속 |Ψ(x,t)|² -----
+      function drawCoherent() {
+        const A = state.amp;
+        const xc = A * Math.cos(state.t);           // 중심 위치 x_c(t)
+        const sigma = 1 / Math.SQRT2;               // 결맞음 상태 폭 (불변)
+        const Eclassical = 0.5 * A * A + 0.5;        // 대략적 평균 에너지 ⟨E⟩ ≈ ½A² + ½
+        const baseline = eToPx(Math.min(Eclassical, E_MAX));
+
+        // |Ψ|² = (1/(σ√(2π))) exp(-(x-xc)²/(2σ²))  (정규화 가우시안)
+        const samples = [];
+        let maxAbs = 0;
+        const NPTS = 360;
+        for (let i = 0; i <= NPTS; i++) {
+          const x = X_MIN + (i / NPTS) * (X_MAX - X_MIN);
+          const g = Math.exp(-(x - xc) * (x - xc) / (2 * sigma * sigma)) /
+                    (sigma * Math.sqrt(2 * Math.PI));
+          samples.push({ x: x, v: g });
+          if (g > maxAbs) maxAbs = g;
+        }
+        if (maxAbs === 0) maxAbs = 1;
+        const unitPx = (H - PAD_T - PAD_B) / E_MAX;
+        const ampPx = unitPx * 1.6 / maxAbs;
+
+        // 채워진 파속
+        ctx.beginPath();
+        ctx.moveTo(xToPx(samples[0].x), baseline);
+        for (let i = 0; i < samples.length; i++) {
+          ctx.lineTo(xToPx(samples[i].x), baseline - samples[i].v * ampPx);
+        }
+        ctx.lineTo(xToPx(samples[samples.length - 1].x), baseline);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(154,240,208,0.40)';
+        ctx.fill();
+
+        // 외곽선
+        ctx.beginPath();
+        for (let i = 0; i < samples.length; i++) {
+          const px = xToPx(samples[i].x);
+          const py = baseline - samples[i].v * ampPx;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = '#9af0d0';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // 중심 표시
+        ctx.beginPath();
+        ctx.arc(xToPx(xc), baseline, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#fef08a';
+        ctx.fill();
+
+        // 라벨
+        ctx.fillStyle = '#9af0d0';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('|Ψ(x,t)|²  (퍼지지 않는 파속)', xToPx(-4.7), PAD_T + 16);
+        ctx.fillStyle = '#bdb4d6';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText('x꜀(t) = A·cos t = ' + xc.toFixed(2), xToPx(-4.7), PAD_T + 34);
+      }
+
+      // ----- 전체 렌더 -----
+      function render() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#14101f';
+        ctx.fillRect(0, 0, W, H);
+        drawAxes();
+        drawPotential();
+        drawLevels();
+        if (state.mode === 'states') {
+          drawWavefunction();
+        } else {
+          drawCoherent();
+        }
+      }
+
+      // ----- 리드아웃 갱신 -----
+      function updateReadout() {
+        const n = state.n;
+        const E = n + 0.5;
+        if (rN) rN.textContent = 'n = ' + n;
+        if (rEnergy) rEnergy.textContent = 'E' + n + ' = ' + E.toFixed(1) + ' ħω';
+        if (rNodes) rNodes.textContent = n + ' 개';
+        if (rSym) rSym.textContent = (n % 2 === 0) ? '짝함수 (even)' : '홀함수 (odd)';
+        if (rZpe) rZpe.textContent = 'E₀ = ½ ħω = 0.5';
+        if (rGap) rGap.textContent = 'ΔE = ħω = 1 (균등)';
+      }
+
+      // ----- 애니메이션 루프 (결맞음 전용) -----
+      function loop(ts) {
+        if (!state.running || state.mode !== 'coherent') {
+          state.rafId = 0;
+          return;
+        }
+        if (state.lastTs == null) state.lastTs = ts;
+        const dt = Math.min((ts - state.lastTs) / 1000, 0.05);
+        state.lastTs = ts;
+        state.t += dt;  // ω=1 이므로 시간이 곧 위상
+        render();
+        state.rafId = requestAnimationFrame(loop);
+      }
+
+      function startAnim() {
+        if (state.mode !== 'coherent') return;
+        if (!state.running) {
+          state.running = true;
+          state.lastTs = null;
+          state.rafId = requestAnimationFrame(loop);
+        }
+      }
+      function stopAnim() {
+        state.running = false;
+      }
+
+      // ----- 모드 전환 -----
+      function setMode(mode) {
+        state.mode = mode;
+        modeBtns.forEach((b) => {
+          const on = b.dataset.mode === mode;
+          b.classList.toggle('active', on);
+        });
+        if (statesControls) statesControls.style.display = (mode === 'states') ? '' : 'none';
+        if (coherentControls) coherentControls.style.display = (mode === 'coherent') ? '' : 'none';
+        if (mode === 'states') {
+          stopAnim();
+          render();
+        } else {
+          state.t = 0;
+          startAnim();   // 결맞음 모드로 들어오면 자동 재생
+          if (!state.running) render();
+        }
+      }
+
+      // ----- 이벤트 바인딩 -----
+      modeBtns.forEach((b) => {
+        b.addEventListener('click', () => setMode(b.dataset.mode));
+      });
+
+      if (levelSlider) {
+        levelSlider.addEventListener('input', () => {
+          state.n = parseInt(levelSlider.value, 10);
+          if (levelVal) levelVal.textContent = state.n;
+          updateReadout();
+          render();
+        });
+      }
+      if (probToggle) {
+        probToggle.addEventListener('change', () => {
+          state.showProb = probToggle.checked;
+          render();
+        });
+      }
+      if (ampSlider) {
+        ampSlider.addEventListener('input', () => {
+          state.amp = parseFloat(ampSlider.value);
+          if (ampVal) ampVal.textContent = state.amp.toFixed(1);
+          if (!state.running) render();
+        });
+      }
+      if (playBtn) playBtn.addEventListener('click', startAnim);
+      if (pauseBtn) pauseBtn.addEventListener('click', stopAnim);
+
+      // ----- 퀴즈 채점 -----
+      const quizCheck = document.getElementById('quiz-check');
+      const quizFeedback = document.getElementById('quiz-feedback');
+      if (quizCheck && quizFeedback) {
+        quizCheck.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="quiz"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 하나 선택해 주세요.';
+            quizFeedback.style.color = '#92400e';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '정답입니다! 조화 진동자의 준위 간격은 양자수와 무관하게 항상 ħω로 일정합니다. 이 균등 간격이 가장 큰 특징입니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 간격이 좁아지는 것은 수소 원자이고, 조화 진동자는 ΔE = ħω로 항상 일정합니다. (정답: 2번)';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ----- 초기화 -----
+      updateReadout();
+      render();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./09-hydrogen-orbitals.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 수소 원자 오비탈</a>
+      <a href="./11-particle-in-box.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 무한 퍼텐셜 우물 (상자 속 입자)</a>
+      <a href="../05-atomic/08-bohr.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 보어의 원자 모형</a>
+      <a href="../06-quantum/03-schrodinger.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 슈뢰딩거 방정식</a>
+      <a href="../06-quantum/06-quantum-tunneling.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 터널링</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_harmonic_oscillator" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%A1%B0%ED%99%94+%EC%A7%84%EB%8F%99%EC%9E%90&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+harmonic+oscillator+wavefunctions" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 60, "slug": "10-harmonic-oscillator", "category": "06-quantum", "icon": "🪜", "title": "양자 조화 진동자", "titleEn": "Quantum Harmonic Oscillator", "year": "1925~", "scientist": "하이젠베르크 · 슈뢰딩거", "difficulty": 4, "description": "포물선 퍼텐셜 속 입자의 등간격 에너지 준위와 파동함수 ψₙ, 결맞음 상태의 진동을 본다.", "keywords": ["조화 진동자", "에너지 준위", "파동함수", "제로점 에너지", "결맞음 상태", "에르미트"], "catName": "양자역학", "catIcon": "🌊"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

@@ -2303,6 +2303,234 @@
         }
       ],
       "status": "ready"
+    },
+    {
+      "id": 60,
+      "slug": "10-harmonic-oscillator",
+      "icon": "🪜",
+      "category": "06-quantum",
+      "title": "양자 조화 진동자",
+      "titleEn": "Quantum Harmonic Oscillator",
+      "year": "1925~",
+      "scientist": "하이젠베르크 · 슈뢰딩거",
+      "difficulty": 4,
+      "description": "포물선 퍼텐셜 속 입자의 등간격 에너지 준위와 파동함수 ψₙ, 결맞음 상태의 진동을 본다.",
+      "keywords": [
+        "조화 진동자",
+        "에너지 준위",
+        "파동함수",
+        "제로점 에너지",
+        "결맞음 상태",
+        "에르미트"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_harmonic_oscillator"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%A1%B0%ED%99%94+%EC%A7%84%EB%8F%99%EC%9E%90&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+harmonic+oscillator+wavefunctions"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 61,
+      "slug": "11-particle-in-box",
+      "icon": "📦",
+      "category": "06-quantum",
+      "title": "무한 퍼텐셜 우물 (상자 속 입자)",
+      "titleEn": "Particle in a Box",
+      "year": "1920년대",
+      "scientist": "양자역학 기초",
+      "difficulty": 3,
+      "description": "무한 우물에 갇힌 입자의 양자화된 에너지 준위 Eₙ ∝ n² 와 정상파 파동함수를 본다.",
+      "keywords": [
+        "퍼텐셜 우물",
+        "상자 속 입자",
+        "에너지 양자화",
+        "정상파",
+        "경계 조건",
+        "n제곱"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Particle_in_a_box"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%83%81%EC%9E%90+%EC%86%8D+%EC%9E%85%EC%9E%90&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=particle+in+a+box+quantum+well+energy+levels"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 62,
+      "slug": "12-wave-packet",
+      "icon": "🫧",
+      "category": "06-quantum",
+      "title": "파동묶음의 분산",
+      "titleEn": "Wave Packet Dispersion",
+      "year": "1920년대",
+      "scientist": "드브로이 · 슈뢰딩거",
+      "difficulty": 4,
+      "description": "가우시안 파동묶음이 퍼지며 이동한다 — 군속도와 위상속도의 차이를 본다.",
+      "keywords": [
+        "파동묶음",
+        "분산",
+        "군속도",
+        "위상속도",
+        "불확정성",
+        "자유 입자"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Wave_packet"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%8C%8C%EB%8F%99+%EB%AC%B6%EC%9D%8C&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=wave+packet+dispersion+group+velocity+phase+velocity"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 63,
+      "slug": "05-teleportation",
+      "icon": "🔁",
+      "category": "09-quantum-computing",
+      "title": "양자 순간이동",
+      "titleEn": "Quantum Teleportation",
+      "year": "1993",
+      "scientist": "베넷 외 (Bennett et al.)",
+      "difficulty": 4,
+      "description": "얽힘과 고전 통신 2비트로 미지의 큐비트 상태를 복제 없이 다른 곳으로 전송한다.",
+      "keywords": [
+        "양자 순간이동",
+        "얽힘",
+        "벨 측정",
+        "고전 비트",
+        "복제 불가",
+        "큐비트"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_teleportation"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%88%9C%EA%B0%84%EC%9D%B4%EB%8F%99&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+teleportation+protocol+explained"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 64,
+      "slug": "06-bb84",
+      "icon": "🔐",
+      "category": "09-quantum-computing",
+      "title": "BB84 양자 키 분배",
+      "titleEn": "BB84 Quantum Key Distribution",
+      "year": "1984",
+      "scientist": "베넷 · 브라사르 (Bennett · Brassard)",
+      "difficulty": 3,
+      "description": "편광 광자로 비밀 키를 나누고, 도청자가 끼면 오류율이 튀어 발각된다.",
+      "keywords": [
+        "BB84",
+        "양자 암호",
+        "키 분배",
+        "편광",
+        "도청 탐지",
+        "기저"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/BB84"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=BB84&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=BB84+quantum+key+distribution+explained"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 65,
+      "slug": "07-error-correction",
+      "icon": "🛡️",
+      "category": "09-quantum-computing",
+      "title": "양자 오류정정 (3-큐비트)",
+      "titleEn": "Quantum Error Correction (3-qubit code)",
+      "year": "1995",
+      "scientist": "피터 쇼어 (Peter Shor)",
+      "difficulty": 4,
+      "description": "한 큐비트를 세 개로 인코딩해 비트플립 오류를 신드롬 측정으로 찾아 정정한다.",
+      "keywords": [
+        "양자 오류정정",
+        "비트플립 코드",
+        "신드롬",
+        "쇼어",
+        "논리 큐비트",
+        "다수결"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_error_correction"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%98%A4%EB%A5%98+%EC%A0%95%EC%A0%95&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+error+correction+3+qubit+bit+flip+code"
+        }
+      ],
+      "status": "ready"
     }
   ]
 }
