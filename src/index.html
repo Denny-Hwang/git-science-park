@@ -274,6 +274,19 @@
     .card .accent-band { height: 5px; background: var(--cat-accent); }
     .card .card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
 
+    /* 대표 아이콘 + 제목 헤더 */
+    .card-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+    .card-head-text { min-width: 0; flex: 1; }
+    .card-thumb {
+      flex: none;
+      width: 52px; height: 52px;
+      display: grid; place-items: center;
+      font-size: 1.75rem; line-height: 1;
+      border-radius: 14px;
+      background: var(--cat-accent-soft, rgba(91, 157, 255, 0.16));
+      border: 1px solid var(--cat-accent, rgba(127, 127, 127, 0.3));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
     .card-eyebrow {
       display: flex;
       align-items: center;
@@ -686,11 +699,16 @@
               (FAV.has(exp.id) ? "true" : "false") + '" title="즐겨찾기" aria-label="즐겨찾기 토글">' +
               (FAV.has(exp.id) ? "★" : "☆") + "</button>" +
             '<div class="card-body">' +
-              '<div class="card-eyebrow"><span class="dot"></span>' +
-                esc(cat.icon || "") + " " + esc(catName(cat)) +
+              '<div class="card-head">' +
+                '<div class="card-thumb" aria-hidden="true">' + esc(exp.icon || "🔬") + "</div>" +
+                '<div class="card-head-text">' +
+                  '<div class="card-eyebrow"><span class="dot"></span>' +
+                    esc(cat.icon || "") + " " + esc(catName(cat)) +
+                  "</div>" +
+                  '<h3 class="card-title">' + esc(exp.title) + "</h3>" +
+                  '<p class="card-title-en">' + esc(exp.titleEn || "") + "</p>" +
+                "</div>" +
               "</div>" +
-              '<h3 class="card-title">' + esc(exp.title) + "</h3>" +
-              '<p class="card-title-en">' + esc(exp.titleEn || "") + "</p>" +
               '<div class="card-meta">' + metaBits.join("") + "</div>" +
               '<div class="card-stars">' + stars(exp.difficulty) + "</div>" +
               '<p class="card-desc">' + esc(exp.description || "") + "</p>" +

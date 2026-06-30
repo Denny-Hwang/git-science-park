@@ -161,7 +161,7 @@ window.Classroom = (function () {
         var row = h('li', { 'class': 'gsp-course-item' }, [
           h('span', { 'class': 'idx', text: String(i + 1) }),
           h('span', { 'class': 'ci-title' }, [
-            h('b', { text: item.title }),
+            h('b', { text: (item.icon ? item.icon + ' ' : '') + item.title }),
             h('small', { text: catIcon(opts, item.category) + ' ' + catName(opts, item.category) })
           ]),
           h('button', { 'class': 'gsp-iconbtn', 'aria-label': 'up', text: '▲',
@@ -207,13 +207,13 @@ window.Classroom = (function () {
           text: added ? T('classroom.inCourse', '✓ 담김') : T('classroom.addToCourse', '담기') });
         btn.addEventListener('click', function () {
           if (courseHas(e.id)) courseRemove(e.id);
-          else courseAdd({ id: e.id, slug: e.slug, category: e.category, title: e.title });
+          else courseAdd({ id: e.id, slug: e.slug, category: e.category, title: e.title, icon: e.icon });
           renderGuide(); renderCourse();
         });
         var ready = e.status === 'ready';
         tbody.appendChild(h('tr', { style: ready ? '' : 'opacity:.5' }, [
           h('td', {}, [
-            h('b', { text: catIcon(opts, e.category) + ' ' + e.title }),
+            h('b', { text: (e.icon || catIcon(opts, e.category)) + ' ' + e.title }),
             h('div', { 'class': 'gsp-muted', text: catName(opts, e.category) })
           ]),
           h('td', { 'class': 'gsp-muted', html: esc(e.year || '') + '<br>' + esc(e.scientist || '') }),
@@ -265,7 +265,7 @@ window.Classroom = (function () {
     }
     addBtn.addEventListener('click', function () {
       if (courseHas(exp.id)) courseRemove(exp.id);
-      else courseAdd({ id: exp.id, slug: exp.slug, category: exp.category, title: exp.title });
+      else courseAdd({ id: exp.id, slug: exp.slug, category: exp.category, title: exp.title, icon: exp.icon });
       syncAdd();
     });
     syncAdd();
@@ -304,6 +304,7 @@ window.Classroom = (function () {
   /* ---- 교사 가이드 패널 ---- */
   function openGuidePanel(exp) {
     var meta = h('div', { 'class': 'gsp-guide-meta' }, [
+      exp.icon ? h('span', { text: exp.icon + ' ' + (exp.titleEn || '') }) : null,
       h('span', { text: (exp.catIcon || '') + ' ' + (exp.catName || exp.category) }),
       exp.scientist ? h('span', { text: '👤 ' + exp.scientist }) : null,
       exp.year ? h('span', { text: '📅 ' + exp.year }) : null,

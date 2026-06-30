@@ -35,7 +35,18 @@
   line-height: 1.2;
   cursor: pointer;
 }
-.lang-switcher { padding-inline-end: 22px; }
+/* 언어 드롭다운: 닫힌 컨트롤과 펼친 옵션 목록 모두 테마(다크 허브/라이트 실험)에
+   맞춰 불투명 배경 + 대비되는 글자색을 명시한다. (기존엔 옵션 팝업이 흰 배경 +
+   흰 글자로 보이지 않던 문제 수정) */
+.lang-switcher {
+  padding-inline-end: 22px;
+  background-color: var(--bg-card, var(--card-bg, #ffffff));
+  color: var(--text, #1a1a1a);
+}
+.lang-switcher option {
+  background-color: var(--bg-card, var(--card-bg, #ffffff));
+  color: var(--text, #1a1a1a);
+}
 .topbar-btn:hover,
 .lang-switcher:hover { border-color: currentColor; }
 .topbar-btn:focus-visible,

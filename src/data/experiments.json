@@ -71,6 +71,7 @@
     {
       "id": 1,
       "slug": "01-eratosthenes",
+      "icon": "🌍",
       "category": "01-ancient",
       "title": "에라토스테네스의 지구 둘레 측정",
       "titleEn": "Eratosthenes Measures the Earth",
@@ -90,6 +91,7 @@
     {
       "id": 2,
       "slug": "02-archimedes-buoyancy",
+      "icon": "🛁",
       "category": "01-ancient",
       "title": "아르키메데스의 부력 원리",
       "titleEn": "Archimedes' Principle of Buoyancy",
@@ -109,6 +111,7 @@
     {
       "id": 3,
       "slug": "03-archimedes-lever",
+      "icon": "⚖️",
       "category": "01-ancient",
       "title": "아르키메데스의 지레 원리",
       "titleEn": "Archimedes' Law of the Lever",
@@ -128,6 +131,7 @@
     {
       "id": 4,
       "slug": "04-ptolemy-copernicus",
+      "icon": "☀️",
       "category": "01-ancient",
       "title": "천동설 vs 지동설",
       "titleEn": "Ptolemy vs Copernicus",
@@ -147,6 +151,7 @@
     {
       "id": 5,
       "slug": "01-kepler",
+      "icon": "🪐",
       "category": "02-scientific-revolution",
       "title": "케플러의 행성 운동 법칙",
       "titleEn": "Kepler's Laws of Planetary Motion",
@@ -166,6 +171,7 @@
     {
       "id": 6,
       "slug": "02-galileo-freefall",
+      "icon": "🪶",
       "category": "02-scientific-revolution",
       "title": "갈릴레오의 자유낙하",
       "titleEn": "Galileo's Free Fall",
@@ -185,6 +191,7 @@
     {
       "id": 7,
       "slug": "03-galileo-incline",
+      "icon": "📐",
       "category": "02-scientific-revolution",
       "title": "갈릴레오의 경사면 실험",
       "titleEn": "Galileo's Inclined Plane",
@@ -204,6 +211,7 @@
     {
       "id": 8,
       "slug": "04-galileo-telescope",
+      "icon": "🔭",
       "category": "02-scientific-revolution",
       "title": "갈릴레오의 망원경 관측",
       "titleEn": "Galileo's Telescope",
@@ -223,6 +231,7 @@
     {
       "id": 9,
       "slug": "05-newton-prism",
+      "icon": "🌈",
       "category": "02-scientific-revolution",
       "title": "뉴턴의 프리즘 분광",
       "titleEn": "Newton's Prism Experiment",
@@ -242,6 +251,7 @@
     {
       "id": 10,
       "slug": "06-newton-cannon",
+      "icon": "🛰️",
       "category": "02-scientific-revolution",
       "title": "뉴턴의 대포 사고실험",
       "titleEn": "Newton's Cannonball",
@@ -261,6 +271,7 @@
     {
       "id": 11,
       "slug": "07-newton-gravitation",
+      "icon": "🍎",
       "category": "02-scientific-revolution",
       "title": "뉴턴의 만유인력 법칙",
       "titleEn": "Newton's Law of Universal Gravitation",
@@ -280,6 +291,7 @@
     {
       "id": 12,
       "slug": "01-boyle",
+      "icon": "🎈",
       "category": "03-precision-era",
       "title": "보일의 법칙",
       "titleEn": "Boyle's Law",
@@ -299,6 +311,7 @@
     {
       "id": 13,
       "slug": "02-cavendish",
+      "icon": "🌐",
       "category": "03-precision-era",
       "title": "캐번디시의 중력 상수 측정",
       "titleEn": "Cavendish Experiment",
@@ -318,6 +331,7 @@
     {
       "id": 14,
       "slug": "03-coulomb",
+      "icon": "⚡",
       "category": "03-precision-era",
       "title": "쿨롱의 법칙",
       "titleEn": "Coulomb's Law",
@@ -337,6 +351,7 @@
     {
       "id": 15,
       "slug": "04-volta",
+      "icon": "🔋",
       "category": "03-precision-era",
       "title": "볼타의 전지",
       "titleEn": "Volta's Pile",
@@ -356,6 +371,7 @@
     {
       "id": 16,
       "slug": "05-young-double-slit",
+      "icon": "🌊",
       "category": "03-precision-era",
       "title": "영의 이중 슬릿 실험",
       "titleEn": "Young's Double-Slit Experiment",
@@ -375,6 +391,7 @@
     {
       "id": 17,
       "slug": "01-foucault",
+      "icon": "🌀",
       "category": "04-energy-field",
       "title": "푸코의 진자",
       "titleEn": "Foucault Pendulum",
@@ -394,6 +411,7 @@
     {
       "id": 18,
       "slug": "02-joule",
+      "icon": "🔥",
       "category": "04-energy-field",
       "title": "줄의 열-일 등가 실험",
       "titleEn": "Joule's Mechanical Equivalent of Heat",
@@ -413,6 +431,7 @@
     {
       "id": 19,
       "slug": "03-carnot",
+      "icon": "🚂",
       "category": "04-energy-field",
       "title": "카르노 기관",
       "titleEn": "Carnot Engine",
@@ -432,6 +451,7 @@
     {
       "id": 20,
       "slug": "04-faraday",
+      "icon": "🧲",
       "category": "04-energy-field",
       "title": "패러데이의 전자기 유도",
       "titleEn": "Faraday's Electromagnetic Induction",
@@ -451,6 +471,7 @@
     {
       "id": 21,
       "slug": "05-maxwell",
+      "icon": "📡",
       "category": "04-energy-field",
       "title": "맥스웰 방정식",
       "titleEn": "Maxwell's Equations",
@@ -470,6 +491,7 @@
     {
       "id": 22,
       "slug": "06-hertz",
+      "icon": "📻",
       "category": "04-energy-field",
       "title": "헤르츠의 전자기파 실험",
       "titleEn": "Hertz's Electromagnetic Waves",
@@ -489,6 +511,7 @@
     {
       "id": 23,
       "slug": "07-boltzmann",
+      "icon": "🎲",
       "category": "04-energy-field",
       "title": "볼츠만의 통계역학",
       "titleEn": "Boltzmann's Statistical Mechanics",
@@ -508,6 +531,7 @@
     {
       "id": 24,
       "slug": "01-michelson-morley",
+      "icon": "🪞",
       "category": "05-atomic",
       "title": "미켈슨-몰리 실험",
       "titleEn": "Michelson-Morley Experiment",
@@ -527,6 +551,7 @@
     {
       "id": 25,
       "slug": "02-roentgen",
+      "icon": "🩻",
       "category": "05-atomic",
       "title": "뢴트겐의 X선 발견",
       "titleEn": "Röntgen's Discovery of X-rays",
@@ -546,6 +571,7 @@
     {
       "id": 26,
       "slug": "03-thomson",
+      "icon": "📺",
       "category": "05-atomic",
       "title": "톰슨의 음극선 실험",
       "titleEn": "Thomson's Cathode Ray Experiment",
@@ -565,6 +591,7 @@
     {
       "id": 27,
       "slug": "04-planck",
+      "icon": "🌡️",
       "category": "05-atomic",
       "title": "플랑크의 흑체복사",
       "titleEn": "Planck's Blackbody Radiation",
@@ -584,6 +611,7 @@
     {
       "id": 28,
       "slug": "05-photoelectric",
+      "icon": "💡",
       "category": "05-atomic",
       "title": "광전 효과",
       "titleEn": "Photoelectric Effect",
@@ -603,6 +631,7 @@
     {
       "id": 29,
       "slug": "06-millikan",
+      "icon": "💧",
       "category": "05-atomic",
       "title": "밀리컨의 기름방울 실험",
       "titleEn": "Millikan's Oil Drop Experiment",
@@ -622,6 +651,7 @@
     {
       "id": 30,
       "slug": "07-rutherford",
+      "icon": "🥇",
       "category": "05-atomic",
       "title": "러더퍼드 산란 실험",
       "titleEn": "Rutherford Scattering",
@@ -641,6 +671,7 @@
     {
       "id": 31,
       "slug": "08-bohr",
+      "icon": "⚛️",
       "category": "05-atomic",
       "title": "보어의 원자 모형",
       "titleEn": "Bohr's Atomic Model",
@@ -660,6 +691,7 @@
     {
       "id": 32,
       "slug": "09-franck-hertz",
+      "icon": "💥",
       "category": "05-atomic",
       "title": "프랑크-헤르츠 실험",
       "titleEn": "Franck-Hertz Experiment",
@@ -679,6 +711,7 @@
     {
       "id": 33,
       "slug": "01-de-broglie",
+      "icon": "〰️",
       "category": "06-quantum",
       "title": "드브로이 물질파",
       "titleEn": "de Broglie Matter Waves",
@@ -698,6 +731,7 @@
     {
       "id": 34,
       "slug": "02-davisson-germer",
+      "icon": "💎",
       "category": "06-quantum",
       "title": "데이비슨-거머 실험",
       "titleEn": "Davisson-Germer Experiment",
@@ -717,6 +751,7 @@
     {
       "id": 35,
       "slug": "03-schrodinger",
+      "icon": "🐱",
       "category": "06-quantum",
       "title": "슈뢰딩거 방정식",
       "titleEn": "Schrödinger Equation",
@@ -736,6 +771,7 @@
     {
       "id": 36,
       "slug": "04-uncertainty",
+      "icon": "🌫️",
       "category": "06-quantum",
       "title": "하이젠베르크 불확정성 원리",
       "titleEn": "Heisenberg Uncertainty Principle",
@@ -755,6 +791,7 @@
     {
       "id": 37,
       "slug": "05-stern-gerlach",
+      "icon": "↕️",
       "category": "06-quantum",
       "title": "슈테른-게를라흐 실험",
       "titleEn": "Stern-Gerlach Experiment",
@@ -774,6 +811,7 @@
     {
       "id": 38,
       "slug": "06-quantum-tunneling",
+      "icon": "🚇",
       "category": "06-quantum",
       "title": "양자 터널링",
       "titleEn": "Quantum Tunneling",
@@ -793,6 +831,7 @@
     {
       "id": 39,
       "slug": "07-bell-inequality",
+      "icon": "🔗",
       "category": "06-quantum",
       "title": "벨 부등식과 얽힘",
       "titleEn": "Bell's Inequality",
@@ -812,6 +851,7 @@
     {
       "id": 40,
       "slug": "01-time-dilation",
+      "icon": "⏱️",
       "category": "07-relativity",
       "title": "시간 지연",
       "titleEn": "Time Dilation",
@@ -831,6 +871,7 @@
     {
       "id": 41,
       "slug": "02-length-contraction",
+      "icon": "📏",
       "category": "07-relativity",
       "title": "길이 수축",
       "titleEn": "Length Contraction",
@@ -850,6 +891,7 @@
     {
       "id": 42,
       "slug": "03-spacetime-curvature",
+      "icon": "🌌",
       "category": "07-relativity",
       "title": "시공간 곡률",
       "titleEn": "Spacetime Curvature",
@@ -869,6 +911,7 @@
     {
       "id": 43,
       "slug": "04-eddington",
+      "icon": "🌑",
       "category": "07-relativity",
       "title": "에딩턴의 일식 관측",
       "titleEn": "Eddington's Eclipse Expedition",
@@ -888,6 +931,7 @@
     {
       "id": 44,
       "slug": "05-gravitational-lensing",
+      "icon": "🔍",
       "category": "07-relativity",
       "title": "중력 렌즈",
       "titleEn": "Gravitational Lensing",
@@ -907,6 +951,7 @@
     {
       "id": 45,
       "slug": "06-hubble",
+      "icon": "📈",
       "category": "07-relativity",
       "title": "허블의 우주 팽창",
       "titleEn": "Hubble's Expanding Universe",
@@ -926,6 +971,7 @@
     {
       "id": 46,
       "slug": "07-cmb",
+      "icon": "🌅",
       "category": "07-relativity",
       "title": "우주배경복사 발견",
       "titleEn": "Discovery of the CMB",
@@ -945,6 +991,7 @@
     {
       "id": 47,
       "slug": "01-laser",
+      "icon": "🔦",
       "category": "08-modern",
       "title": "레이저의 원리",
       "titleEn": "How a Laser Works",
@@ -964,6 +1011,7 @@
     {
       "id": 48,
       "slug": "02-superconductivity",
+      "icon": "🧊",
       "category": "08-modern",
       "title": "초전도 현상",
       "titleEn": "Superconductivity",
@@ -983,6 +1031,7 @@
     {
       "id": 49,
       "slug": "03-nuclear-fission",
+      "icon": "☢️",
       "category": "08-modern",
       "title": "핵분열 연쇄반응",
       "titleEn": "Nuclear Fission",
@@ -1002,6 +1051,7 @@
     {
       "id": 50,
       "slug": "04-gravitational-waves",
+      "icon": "💫",
       "category": "08-modern",
       "title": "중력파 검출 (LIGO)",
       "titleEn": "Gravitational Waves (LIGO)",
@@ -1021,6 +1071,7 @@
     {
       "id": 51,
       "slug": "05-black-hole-eht",
+      "icon": "🕳️",
       "category": "08-modern",
       "title": "블랙홀 영상화 (EHT)",
       "titleEn": "Black Hole Imaging (EHT)",
@@ -1040,6 +1091,7 @@
     {
       "id": 52,
       "slug": "06-higgs-boson",
+      "icon": "🧩",
       "category": "08-modern",
       "title": "힉스 보손 발견",
       "titleEn": "Discovery of the Higgs Boson",
@@ -1059,6 +1111,7 @@
     {
       "id": 53,
       "slug": "07-qubit",
+      "icon": "💻",
       "category": "08-modern",
       "title": "양자컴퓨팅 큐비트",
       "titleEn": "Quantum Computing Qubit",
