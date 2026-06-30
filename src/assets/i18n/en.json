@@ -66,6 +66,7 @@
     "05-atomic": { "name": "Atomic Age", "tagline": "The ultimate structure of matter" },
     "06-quantum": { "name": "Quantum Mechanics", "tagline": "The making of quantum theory" },
     "07-relativity": { "name": "Relativity & Cosmology", "tagline": "Relativity and the cosmos" },
-    "08-modern": { "name": "Modern Physics", "tagline": "Exploring the extremes" }
+    "08-modern": { "name": "Modern Physics", "tagline": "Exploring the extremes" },
+    "09-quantum-computing": { "name": "Quantum Computing", "tagline": "Computing with qubits" }
   }
 }

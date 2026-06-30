@@ -66,6 +66,7 @@
     "05-atomic": { "name": "원자의 시대", "tagline": "물질의 궁극 구조" },
     "06-quantum": { "name": "양자역학", "tagline": "양자역학의 형성" },
     "07-relativity": { "name": "상대성·우주론", "tagline": "상대성이론과 우주론" },
-    "08-modern": { "name": "현대 물리학", "tagline": "극한의 탐험" }
+    "08-modern": { "name": "현대 물리학", "tagline": "극한의 탐험" },
+    "09-quantum-computing": { "name": "양자정보·컴퓨팅", "tagline": "큐비트로 계산하다" }
   }
 }

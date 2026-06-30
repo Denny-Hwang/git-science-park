@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 회로 시뮬레이터 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #14101f; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #f3effc; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .spin-up { color: #2563eb; font-weight: 700; }
+    .spin-down { color: #b91c1c; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #2563eb; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #d97706; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+    /* ----- 양자 회로 전용 ----- */
+    .gate-palette { display: flex; flex-wrap: wrap; gap: 8px; }
+    .gate-palette .btn { font-family: "Courier New", monospace; font-weight: 700; min-width: 56px; }
+    .circuit-wrap {
+      background: #fafcfd; border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 12px; overflow-x: auto;
+    }
+    .circuit-wrap svg { background: #fafcfd; border: none; }
+    .bars { display: flex; gap: 12px; align-items: flex-end; justify-content: center;
+      margin: 12px auto; max-width: 640px; }
+    .bar-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;
+      align-items: center; gap: 4px; }
+    .bar-track {
+      width: 100%; height: 160px; background: #eef6f9; border-radius: 6px;
+      border: 1px solid #d6e6ec; display: flex; align-items: flex-end; overflow: hidden;
+    }
+    .bar-fill {
+      width: 100%; background: var(--primary); border-radius: 0 0 5px 5px;
+      transition: height 0.25s ease; min-height: 0;
+    }
+    .bar-pct { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+    .bar-label { font-family: "Courier New", monospace; font-weight: 700; color: var(--primary); }
+    .bar-amp { font-size: 0.72rem; color: var(--text-muted); font-family: "Courier New", monospace; text-align: center; }
+    .phase-chip { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #d6e6ec; }
+    .entangle-note { font-weight: 700; }
+    .entangle-yes { color: #166534; }
+    .entangle-no { color: #1d4ed8; }
+    .measure-out { font-weight: 700; color: #92400e; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <header>
+    <h1>양자 회로 시뮬레이터</h1>
+    <div class="en">Quantum Circuit Simulator</div>
+    <div class="meta">1980년대~ · 도이치 외 · 양자 회로 모형 · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <h2>2-큐비트 양자 회로 만들기</h2>
+      <p>게이트 버튼을 누르면 회로 끝에 게이트가 추가되고, 상태벡터(|00⟩에서 시작)가 다시 계산됩니다.</p>
+
+      <div class="circuit-wrap">
+        <svg id="circuit" width="640" height="160" role="img"
+          aria-label="두 개의 큐비트 와이어 q0(위), q1(아래)에 순서대로 배치된 양자 게이트들을 보여주는 회로 다이어그램"></svg>
+      </div>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>게이트 팔레트 (클릭하여 회로에 추가)</label>
+          <div class="gate-palette" role="group" aria-label="게이트 선택">
+            <button type="button" class="btn" data-gate="H q0">H q0</button>
+            <button type="button" class="btn" data-gate="H q1">H q1</button>
+            <button type="button" class="btn" data-gate="X q0">X q0</button>
+            <button type="button" class="btn" data-gate="X q1">X q1</button>
+            <button type="button" class="btn" data-gate="Z q0">Z q0</button>
+            <button type="button" class="btn" data-gate="Z q1">Z q1</button>
+            <button type="button" class="btn" data-gate="CNOT 0→1">CNOT 0→1</button>
+            <button type="button" class="btn" data-gate="CNOT 1→0">CNOT 1→0</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>프리셋 회로</label>
+          <div class="btn-row" role="group" aria-label="프리셋 선택">
+            <button type="button" class="btn preset" id="presetBell">벨 상태 (H q0, CNOT 0→1)</button>
+            <button type="button" class="btn preset" id="presetSuper">균등 중첩 (H q0, H q1)</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn secondary" id="undoBtn">↶ 되돌리기</button>
+          <button type="button" class="btn secondary" id="clearBtn">⟲ 초기화</button>
+          <button type="button" class="btn" id="measureBtn">📏 측정</button>
+        </div>
+      </div>
+
+      <h3>확률 분포 (상태벡터 |amp|²)</h3>
+      <div class="bars" id="bars" role="img"
+        aria-label="네 개 기저 상태 |00⟩, |01⟩, |10⟩, |11⟩의 측정 확률을 보여주는 막대 그래프"></div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>회로 게이트 수: <strong id="r-gates">0</strong> 개</div>
+          <div>총 확률 합: <strong id="r-norm">1.00</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>얽힘 여부: <strong id="r-entangle" class="entangle-note entangle-no">곱 상태 (분리 가능)</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>측정 결과: <strong id="r-measure" class="measure-out">아직 측정하지 않음</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        <strong>💡 시도해 보기:</strong> ① <em>H q0</em> → <em>H q1</em> 을 누르면 네 상태가 각각 25%. ②
+        <em>H q0</em> → <em>CNOT 0→1</em> 을 누르면 |00⟩과 |11⟩만 50%씩 나타나는 <strong>얽힘 상태(벨 상태)</strong>가 됩니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>양자 회로 모형의 원리</h2>
+
+      <div class="concept-box">
+        <h3>큐비트와 상태벡터</h3>
+        <p>1개 큐비트는 |0⟩과 |1⟩의 중첩 α|0⟩ + β|1⟩ 로 표현됩니다. 2개 큐비트는
+        |00⟩, |01⟩, |10⟩, |11⟩ 네 기저 상태의 중첩, 즉 <strong>4개의 복소 진폭</strong>으로 이루어진 상태벡터입니다.</p>
+        <p>각 진폭의 절댓값 제곱 |amp|² 이 그 상태가 측정될 <strong>확률</strong>이며, 모든 확률의 합은 항상 1입니다(정규화).</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>게이트 = 유니타리 변환</h3>
+        <p><strong>H (아다마르):</strong> |0⟩ → (|0⟩+|1⟩)/√2, |1⟩ → (|0⟩−|1⟩)/√2. 중첩을 만든다.</p>
+        <p><strong>X (NOT):</strong> |0⟩ ↔ |1⟩ 비트 반전.</p>
+        <p><strong>Z:</strong> |1⟩에 −1 위상을 곱한다(|0⟩은 그대로).</p>
+        <p><strong>CNOT:</strong> 제어 큐비트가 1일 때만 목표 큐비트를 반전. 얽힘을 만드는 핵심 게이트.</p>
+      </div>
+
+      <div class="formula-box">
+        H = (1/√2) [ 1&nbsp;&nbsp;1 ; 1&nbsp;−1 ]<br>
+        |ψ⟩ = a₀₀|00⟩ + a₀₁|01⟩ + a₁₀|10⟩ + a₁₁|11⟩<br>
+        Σ |aᵢ|² = 1
+      </div>
+
+      <div class="key-point">
+        <strong>🔑 얽힘(Entanglement):</strong> 2-큐비트 상태가 곱 상태이면
+        a₀₀·a₁₁ = a₀₁·a₁₀ 가 성립합니다. 이 등식이 깨지면 두 큐비트를 따로 떼어 표현할 수 없는
+        <strong>얽힘 상태</strong>입니다. 벨 상태 (|00⟩+|11⟩)/√2 가 대표적입니다.
+      </div>
+
+      <div class="misconception">
+        <strong>⚠️ 흔한 오해:</strong> "측정 전에도 큐비트는 0 또는 1 중 하나로 정해져 있다." →
+        아닙니다. 측정 전에는 진폭의 중첩 상태이며, 측정하는 순간 확률적으로 하나의 기저 상태로 <strong>붕괴</strong>합니다.
+      </div>
+
+      <div class="quiz-box">
+        <h3>🧠 퀴즈</h3>
+        <p>|00⟩ 상태에서 <strong>H q0</strong> 후 <strong>CNOT 0→1</strong> 을 적용하면 어떤 상태가 되나요?</p>
+        <label><input type="radio" name="quiz" value="a"> 네 상태가 각각 25% 확률</label>
+        <label><input type="radio" name="quiz" value="b"> |00⟩과 |11⟩만 각각 50%, 얽힘 상태</label>
+        <label><input type="radio" name="quiz" value="c"> |01⟩과 |10⟩만 각각 50%</label>
+        <label><input type="radio" name="quiz" value="d"> |00⟩ 100% 그대로</label>
+        <button type="button" id="quizCheck">채점하기</button>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>양자 컴퓨팅의 역사</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1980</strong> — 폴 베니오프(Paul Benioff), 양자역학적 튜링 기계 모형 제안.</li>
+          <li><strong>1981/82</strong> — 리처드 파인만(Richard Feynman), 양자계를 효율적으로 시뮬레이션하려면 양자 컴퓨터가 필요하다고 주장.</li>
+          <li><strong>1985</strong> — 데이비드 도이치(David Deutsch), 보편 양자 컴퓨터와 양자 회로 모형의 기초를 정식화.</li>
+          <li><strong>1994</strong> — 피터 쇼어(Peter Shor), 소인수분해를 지수적으로 빠르게 푸는 양자 알고리즘 발표.</li>
+          <li><strong>1996</strong> — 로브 그로버(Lov Grover), 탐색 문제를 가속하는 그로버 알고리즘.</li>
+          <li><strong>2019~</strong> — 다양한 하드웨어 플랫폼에서 수십~수백 큐비트 회로 실증.</li>
+        </ul>
+      </div>
+
+      <div class="scientist">
+        <h3>인물: 데이비드 도이치 (David Deutsch, 1953~ )</h3>
+        <ul>
+          <li>영국의 물리학자로, 양자 컴퓨팅 이론의 창시자 중 한 명.</li>
+          <li>1985년 논문에서 <strong>보편 양자 컴퓨터</strong> 개념과 양자 회로의 계산 능력을 형식화했습니다.</li>
+          <li>도이치–조사(Deutsch–Jozsa) 알고리즘은 고전보다 빠른 양자 알고리즘의 초기 사례입니다.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <strong>🔑 의의:</strong> 양자 회로 모형은 게이트의 순차 적용으로 임의의 양자 계산을 표현하는
+        표준 언어가 되었습니다. 오늘날 거의 모든 양자 프로그래밍 프레임워크가 이 모형 위에 세워져 있습니다.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- (1) 탭 전환 (템플릿 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- (2) 복소수 헬퍼 -----
+      const EPS = 1e-9;
+      const SQRT1_2 = Math.SQRT1_2; // 1/√2
+      function c(re, im) { return { re: re, im: im || 0 }; }
+      function cAdd(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+      function cSub(a, b) { return { re: a.re - b.re, im: a.im - b.im }; }
+      function cMul(a, b) { return { re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }; }
+      function cScale(a, s) { return { re: a.re * s, im: a.im * s }; }
+      function cAbs2(a) { return a.re * a.re + a.im * a.im; }
+      function cEq(a, b) { return Math.abs(a.re - b.re) < 1e-6 && Math.abs(a.im - b.im) < 1e-6; }
+
+      // ----- (3) 상태 -----
+      // 기저 인덱스 b = 2*q0 + q1 (q0 = 좌측/최상위 큐비트)
+      const state = {
+        circuit: [],      // 순서 있는 게이트 목록 (문자열)
+        amp: null,        // 4개 복소 진폭
+        measured: null    // {q0, q1} 또는 null
+      };
+
+      // 비트 q (0 또는 1)에 대한 기저 인덱스의 해당 비트 값.
+      // b는 0..3. q0은 2의 자리(상위), q1은 1의 자리(하위).
+      function bitOf(b, q) {
+        return q === 0 ? (b >> 1) & 1 : b & 1;
+      }
+      // 기저 b에서 비트 q를 뒤집은 인덱스
+      function flipBit(b, q) {
+        return q === 0 ? (b ^ 0b10) : (b ^ 0b01);
+      }
+
+      function initAmp() {
+        return [c(1, 0), c(0, 0), c(0, 0), c(0, 0)];
+      }
+
+      // ----- (4) 게이트 적용 -----
+      function applyH(amp, q) {
+        const out = amp.map((x) => c(x.re, x.im));
+        const seen = [false, false, false, false];
+        for (let b = 0; b < 4; b++) {
+          if (seen[b]) continue;
+          if (bitOf(b, q) === 1) continue; // 0-비트 기준 인덱스를 a로 처리
+          const bi = b;                 // bit q = 0
+          const bj = flipBit(b, q);     // bit q = 1
+          seen[bi] = seen[bj] = true;
+          const a = amp[bi], bb = amp[bj];
+          out[bi] = cScale(cAdd(a, bb), SQRT1_2);  // (a+b)/√2
+          out[bj] = cScale(cSub(a, bb), SQRT1_2);  // (a−b)/√2
+        }
+        return out;
+      }
+      function applyX(amp, q) {
+        const out = amp.map((x) => c(x.re, x.im));
+        for (let b = 0; b < 4; b++) {
+          if (bitOf(b, q) === 0) {
+            const bj = flipBit(b, q);
+            out[b] = c(amp[bj].re, amp[bj].im);
+            out[bj] = c(amp[b].re, amp[b].im);
+          }
+        }
+        return out;
+      }
+      function applyZ(amp, q) {
+        const out = amp.map((x) => c(x.re, x.im));
+        for (let b = 0; b < 4; b++) {
+          if (bitOf(b, q) === 1) out[b] = cScale(out[b], -1);
+        }
+        return out;
+      }
+      function applyCNOT(amp, ctrl, tgt) {
+        const out = amp.map((x) => c(x.re, x.im));
+        const seen = [false, false, false, false];
+        for (let b = 0; b < 4; b++) {
+          if (seen[b]) continue;
+          if (bitOf(b, ctrl) === 1 && bitOf(b, tgt) === 0) {
+            const bj = flipBit(b, tgt);
+            seen[b] = seen[bj] = true;
+            out[b] = c(amp[bj].re, amp[bj].im);
+            out[bj] = c(amp[b].re, amp[b].im);
+          }
+        }
+        return out;
+      }
+
+      function parseAndApply(amp, gate) {
+        if (gate === 'H q0') return applyH(amp, 0);
+        if (gate === 'H q1') return applyH(amp, 1);
+        if (gate === 'X q0') return applyX(amp, 0);
+        if (gate === 'X q1') return applyX(amp, 1);
+        if (gate === 'Z q0') return applyZ(amp, 0);
+        if (gate === 'Z q1') return applyZ(amp, 1);
+        if (gate === 'CNOT 0→1') return applyCNOT(amp, 0, 1);
+        if (gate === 'CNOT 1→0') return applyCNOT(amp, 1, 0);
+        return amp;
+      }
+
+      function simulate() {
+        let amp = initAmp();
+        for (let i = 0; i < state.circuit.length; i++) {
+          amp = parseAndApply(amp, state.circuit[i]);
+        }
+        state.amp = amp;
+        state.measured = null;
+      }
+
+      // ----- (5) 얽힘 판별: 곱 상태 iff a00*a11 == a01*a10 -----
+      function isEntangled() {
+        const a = state.amp;
+        const lhs = cMul(a[0], a[3]); // a00 * a11
+        const rhs = cMul(a[1], a[2]); // a01 * a10
+        return !cEq(lhs, rhs);
+      }
+
+      // ----- (6) DOM -----
+      const svg = document.getElementById('circuit');
+      const barsEl = document.getElementById('bars');
+      const rGates = document.getElementById('r-gates');
+      const rNorm = document.getElementById('r-norm');
+      const rEntangle = document.getElementById('r-entangle');
+      const rMeasure = document.getElementById('r-measure');
+
+      const SVGNS = 'http://www.w3.org/2000/svg';
+      function svgEl(name, attrs, text) {
+        const el = document.createElementNS(SVGNS, name);
+        for (const k in attrs) el.setAttribute(k, attrs[k]);
+        if (text != null) el.textContent = text;
+        return el;
+      }
+
+      // ----- (7) 회로 SVG 그리기 -----
+      const WIRE_Y = { 0: 50, 1: 110 };
+      const X_START = 70;
+      const COL_W = 56;
+
+      function drawCircuit() {
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        const cols = state.circuit.length;
+        const width = Math.max(640, X_START + (cols + 1) * COL_W + 20);
+        svg.setAttribute('width', width);
+        svg.setAttribute('viewBox', '0 0 ' + width + ' 160');
+
+        // 와이어
+        [0, 1].forEach((q) => {
+          svg.appendChild(svgEl('line', {
+            x1: 40, y1: WIRE_Y[q], x2: width - 10, y2: WIRE_Y[q],
+            stroke: '#0E7490', 'stroke-width': 2
+          }));
+          svg.appendChild(svgEl('text', {
+            x: 10, y: WIRE_Y[q] + 5, fill: '#1a1a1a',
+            'font-family': 'Courier New, monospace', 'font-weight': 'bold', 'font-size': 14
+          }, 'q' + q));
+        });
+
+        // 게이트
+        state.circuit.forEach((g, i) => {
+          const cx = X_START + i * COL_W + COL_W / 2;
+          if (g.indexOf('CNOT') === 0) {
+            const ctrl = g === 'CNOT 0→1' ? 0 : 1;
+            const tgt = g === 'CNOT 0→1' ? 1 : 0;
+            // 수직 연결선
+            svg.appendChild(svgEl('line', {
+              x1: cx, y1: WIRE_Y[ctrl], x2: cx, y2: WIRE_Y[tgt],
+              stroke: '#0E7490', 'stroke-width': 2
+            }));
+            // 제어 점 ●
+            svg.appendChild(svgEl('circle', {
+              cx: cx, cy: WIRE_Y[ctrl], r: 6, fill: '#0E7490'
+            }));
+            // 목표 ⊕
+            svg.appendChild(svgEl('circle', {
+              cx: cx, cy: WIRE_Y[tgt], r: 12, fill: '#fafcfd',
+              stroke: '#0E7490', 'stroke-width': 2
+            }));
+            svg.appendChild(svgEl('line', {
+              x1: cx - 12, y1: WIRE_Y[tgt], x2: cx + 12, y2: WIRE_Y[tgt],
+              stroke: '#0E7490', 'stroke-width': 2
+            }));
+            svg.appendChild(svgEl('line', {
+              x1: cx, y1: WIRE_Y[tgt] - 12, x2: cx, y2: WIRE_Y[tgt] + 12,
+              stroke: '#0E7490', 'stroke-width': 2
+            }));
+          } else {
+            // 단일 큐비트 게이트 박스
+            const letter = g.charAt(0);
+            const q = g.indexOf('q0') >= 0 ? 0 : 1;
+            const y = WIRE_Y[q];
+            svg.appendChild(svgEl('rect', {
+              x: cx - 16, y: y - 16, width: 32, height: 32, rx: 5,
+              fill: '#0E7490', stroke: '#0a5566', 'stroke-width': 1
+            }));
+            svg.appendChild(svgEl('text', {
+              x: cx, y: y + 6, fill: '#ffffff', 'text-anchor': 'middle',
+              'font-family': 'Courier New, monospace', 'font-weight': 'bold', 'font-size': 18
+            }, letter));
+          }
+        });
+
+        if (cols === 0) {
+          svg.appendChild(svgEl('text', {
+            x: width / 2, y: 145, fill: '#5f6671', 'text-anchor': 'middle', 'font-size': 13
+          }, '게이트를 추가하세요 — 현재 상태는 |00⟩ 입니다.'));
+        }
+      }
+
+      // ----- (8) 막대 그래프 -----
+      const BASIS = ['00', '01', '10', '11'];
+      function phaseDeg(a) {
+        if (cAbs2(a) < 1e-12) return 0;
+        let d = Math.atan2(a.im, a.re) * 180 / Math.PI;
+        return d;
+      }
+      function phaseColor(a) {
+        const h = ((phaseDeg(a) + 360) % 360);
+        return 'hsl(' + h.toFixed(0) + ', 65%, 55%)';
+      }
+
+      function drawBars() {
+        while (barsEl.firstChild) barsEl.removeChild(barsEl.firstChild);
+        for (let b = 0; b < 4; b++) {
+          const a = state.amp[b];
+          const p = cAbs2(a);
+          const pct = (p * 100);
+
+          const col = document.createElement('div');
+          col.className = 'bar-col';
+
+          const pctLabel = document.createElement('div');
+          pctLabel.className = 'bar-pct';
+          pctLabel.textContent = pct.toFixed(0) + '%';
+
+          const track = document.createElement('div');
+          track.className = 'bar-track';
+          const fill = document.createElement('div');
+          fill.className = 'bar-fill';
+          fill.style.height = (p * 100).toFixed(1) + '%';
+          fill.style.background = p > 1e-9 ? phaseColor(a) : 'var(--primary)';
+          track.appendChild(fill);
+
+          const label = document.createElement('div');
+          label.className = 'bar-label';
+          label.textContent = '|' + BASIS[b] + '⟩';
+
+          const amp = document.createElement('div');
+          amp.className = 'bar-amp';
+          amp.textContent = '(' + a.re.toFixed(2) + ', ' + a.im.toFixed(2) + 'i)\n' +
+            phaseDeg(a).toFixed(0) + '°';
+          amp.style.whiteSpace = 'pre-line';
+
+          col.appendChild(pctLabel);
+          col.appendChild(track);
+          col.appendChild(label);
+          col.appendChild(amp);
+          barsEl.appendChild(col);
+        }
+      }
+
+      // ----- (9) 리드아웃 -----
+      function render() {
+        drawCircuit();
+        drawBars();
+        rGates.textContent = String(state.circuit.length);
+        let norm = 0;
+        for (let b = 0; b < 4; b++) norm += cAbs2(state.amp[b]);
+        rNorm.textContent = norm.toFixed(2);
+
+        if (isEntangled()) {
+          rEntangle.textContent = '✅ 얽힘 상태 (분리 불가)';
+          rEntangle.className = 'entangle-note entangle-yes';
+        } else {
+          rEntangle.textContent = '곱 상태 (분리 가능)';
+          rEntangle.className = 'entangle-note entangle-no';
+        }
+
+        if (state.measured) {
+          rMeasure.textContent = 'q0=' + state.measured.q0 + ', q1=' + state.measured.q1 +
+            '  →  |' + state.measured.q0 + state.measured.q1 + '⟩';
+        } else {
+          rMeasure.textContent = '아직 측정하지 않음';
+        }
+      }
+
+      // ----- (10) 동작 -----
+      function addGate(g) {
+        state.circuit.push(g);
+        simulate();
+        render();
+      }
+      function undo() {
+        if (state.circuit.length > 0) {
+          state.circuit.pop();
+          simulate();
+          render();
+        }
+      }
+      function clearAll() {
+        state.circuit = [];
+        simulate();
+        render();
+      }
+      function measure() {
+        const probs = state.amp.map(cAbs2);
+        const r = Math.random();
+        let acc = 0, chosen = 0;
+        for (let b = 0; b < 4; b++) {
+          acc += probs[b];
+          if (r <= acc) { chosen = b; break; }
+          chosen = b;
+        }
+        // 붕괴
+        const amp = initAmp().map(() => c(0, 0));
+        amp[chosen] = c(1, 0);
+        state.amp = amp;
+        state.measured = { q0: bitOf(chosen, 0), q1: bitOf(chosen, 1) };
+        render();
+      }
+
+      // ----- (11) 이벤트 바인딩 -----
+      document.querySelectorAll('[data-gate]').forEach((btn) => {
+        btn.addEventListener('click', () => addGate(btn.dataset.gate));
+      });
+      document.getElementById('undoBtn').addEventListener('click', undo);
+      document.getElementById('clearBtn').addEventListener('click', clearAll);
+      document.getElementById('measureBtn').addEventListener('click', measure);
+      document.getElementById('presetBell').addEventListener('click', () => {
+        state.circuit = ['H q0', 'CNOT 0→1'];
+        simulate();
+        render();
+      });
+      document.getElementById('presetSuper').addEventListener('click', () => {
+        state.circuit = ['H q0', 'H q1'];
+        simulate();
+        render();
+      });
+
+      // ----- (12) 퀴즈 채점 -----
+      document.getElementById('quizCheck').addEventListener('click', () => {
+        const sel = document.querySelector('input[name="quiz"]:checked');
+        const fb = document.getElementById('quizFeedback');
+        if (!sel) {
+          fb.textContent = '먼저 보기를 선택해 주세요.';
+          fb.style.color = '#92400e';
+          return;
+        }
+        if (sel.value === 'b') {
+          fb.textContent = '✅ 정답! H q0 로 q0이 중첩되고 CNOT 0→1 이 얽힘을 만들어 (|00⟩+|11⟩)/√2 벨 상태가 됩니다.';
+          fb.style.color = '#166534';
+        } else {
+          fb.textContent = '❌ 다시 생각해 보세요. H q0 후 CNOT 0→1 은 |00⟩과 |11⟩만 50%씩 남기는 얽힘 상태를 만듭니다.';
+          fb.style.color = '#b91c1c';
+        }
+      });
+
+      // ----- (13) 초기 렌더 -----
+      simulate();
+      render();
+    })();
+  </script>
+</body>
+</html>

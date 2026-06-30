@@ -66,6 +66,7 @@
     "05-atomic": { "name": "原子時代", "tagline": "物質の究極の構造" },
     "06-quantum": { "name": "量子力学", "tagline": "量子論の構築" },
     "07-relativity": { "name": "相対論と宇宙論", "tagline": "相対性と宇宙" },
-    "08-modern": { "name": "現代物理学", "tagline": "極限の探究" }
+    "08-modern": { "name": "現代物理学", "tagline": "極限の探究" },
+    "09-quantum-computing": { "name": "量子情報・計算", "tagline": "量子ビットで計算する" }
   }
 }

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>그로버 검색 알고리즘 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #062a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .answer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .answer-grid .btn.preset { min-width: 42px; padding: 6px 10px; font-size: 0.9rem; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .warn-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #fffbeb; border-left: 4px solid #92400e; color: #92400e;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .peak-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #f0fdf4; border-left: 4px solid #166534; color: #166534;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>그로버 검색 알고리즘</h1>
+    <div class="en">Grover's Search Algorithm</div>
+    <div class="meta">1996 · 로브 그로버 (Lov Grover) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="그로버 검색 알고리즘의 진폭 증폭을 보여주는 막대그래프. 정답 항목의 막대(진폭)는 반복할수록 커지고 나머지 항목의 진폭은 작아집니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>탐색 공간 크기 N 선택</label>
+          <div class="btn-row" role="group" aria-label="N 선택">
+            <button type="button" class="btn preset active" data-n="8">N = 8</button>
+            <button type="button" class="btn preset" data-n="16">N = 16</button>
+            <button type="button" class="btn preset" data-n="32">N = 32</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>정답 위치 선택 (막대를 직접 눌러도 됩니다)</label>
+          <div class="answer-grid" id="answerGrid" role="group" aria-label="정답 위치 선택"></div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="stepBtn">▶ 1회 반복 (오라클→확산)</button>
+          <button type="button" class="btn" id="optBtn">⏭ 최적까지</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>반복 횟수 k: <strong id="r-k">0</strong></div>
+          <div>이론적 최적 반복: <strong id="r-opt">—</strong> 회</div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>정답 위치: <strong id="r-marked">—</strong></div>
+          <div>성공 확률 (정답 진폭²): <strong id="r-prob">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>현재 단계: <strong id="r-phase">초기 균등 중첩</strong></div>
+        </div>
+        <div class="peak-note" id="peakNote" style="display:none;"></div>
+        <div class="warn-note" id="warnNote" style="display:none;"></div>
+      </div>
+
+      <div class="hint-box">
+        💡 한 번의 반복은 <strong>오라클</strong>(정답 진폭의 부호를 뒤집음)과 <strong>확산</strong>(평균에 대한 반사)으로 이루어집니다.
+        정답 막대가 자랄수록 성공 확률이 올라가지만, 최적 횟수를 넘기면 다시 줄어듭니다(과회전).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>그로버 알고리즘의 원리</h2>
+
+      <div class="concept-box">
+        <h3>문제: 정렬되지 않은 검색</h3>
+        <p>
+          N개의 항목 중 조건을 만족하는 단 하나의 "정답"을 찾는다고 합시다.
+          고전 컴퓨터는 운이 나쁘면 항목을 하나씩 모두 확인해야 하므로 평균 <strong>N/2</strong>번, 최악의 경우 N번을 시도해야 합니다.
+          그로버 알고리즘은 양자 중첩과 간섭을 이용해 약 <strong>√N</strong>번 만에 정답을 찾습니다 (이차 가속, quadratic speedup).
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>진폭 증폭 (Amplitude Amplification)</h3>
+        <p>
+          먼저 모든 항목에 동일한 진폭 1/√N 을 주어 균등 중첩 상태를 만듭니다.
+          그 다음 아래 두 연산을 반복합니다.
+        </p>
+        <ul class="goals">
+          <li><strong>오라클(Oracle):</strong> 정답 항목의 진폭에만 −1을 곱해 부호를 뒤집습니다. (정답을 "표시")</li>
+          <li><strong>확산(Diffusion, 평균에 대한 반사):</strong> 모든 진폭을 그 평균값을 기준으로 뒤집습니다. 부호가 뒤집힌 정답은 평균보다 한참 아래에 있으므로, 반사 후 평균보다 한참 위로 올라가 진폭이 커집니다.</li>
+        </ul>
+        <p>
+          이 두 단계를 거칠 때마다 정답의 진폭(과 확률)이 조금씩 커지고 나머지는 작아집니다.
+          이는 상태 벡터를 정답 방향으로 일정 각도만큼 회전시키는 것과 같습니다.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        균등 중첩: a[i] = 1/√N<br>
+        오라클: a[정답] → −a[정답]<br>
+        확산: a[i] → 2·평균 − a[i]<br>
+        최적 반복 횟수 k ≈ (π/4)·√N<br>
+        성공 확률 = a[정답]²
+      </div>
+
+      <div class="misconception">
+        <h3>흔한 오해</h3>
+        <p>
+          "반복을 많이 할수록 더 정확해진다"는 <strong>틀린</strong> 생각입니다.
+          상태 벡터는 매 반복마다 일정 각도씩 회전하므로, 최적 횟수에서 정답 방향에 가장 가까워졌다가
+          그 이후로는 <strong>지나쳐(과회전)</strong> 성공 확률이 다시 떨어집니다. 그래서 멈출 시점이 중요합니다.
+        </p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈: 확인해 봅시다</h3>
+        <p><strong>N = 16일 때, 그로버 알고리즘의 대략적인 최적 반복 횟수는?</strong></p>
+        <form id="quizForm">
+          <label><input type="radio" name="q1" value="a"> 약 16회 (모든 항목을 확인)</label>
+          <label><input type="radio" name="q1" value="b"> 약 8회 (N/2)</label>
+          <label><input type="radio" name="q1" value="c"> 약 3회 (≈ π/4·√16 = π)</label>
+          <label><input type="radio" name="q1" value="d"> 1회면 충분</label>
+          <button type="button" id="quizBtn">채점하기</button>
+        </form>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1994년</strong> — 피터 쇼어(Peter Shor)가 소인수분해를 위한 양자 알고리즘을 발표, 양자 알고리즘 연구가 폭발적으로 시작됨.</li>
+          <li><strong>1996년</strong> — 로브 그로버(Lov Grover)가 벨 연구소에서 정렬되지 않은 데이터베이스 검색 알고리즘을 발표 (논문 "A fast quantum mechanical algorithm for database search").</li>
+          <li><strong>1997년</strong> — 베넷, 베른슈타인, 브라사르, 바지라니가 그로버의 √N 속도가 양자 검색의 <strong>최적</strong>임을 증명 (더 빠를 수 없음).</li>
+          <li><strong>1998년</strong> — 핵자기공명(NMR) 기반의 소규모 양자 시스템에서 그로버 검색이 최초로 실험적으로 시연됨.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>왜 중요한가</h3>
+        <p>
+          그로버 알고리즘은 쇼어 알고리즘과 함께 양자 컴퓨팅의 대표적인 두 기둥입니다.
+          쇼어가 특정 문제(소인수분해)에 지수적 가속을 주는 반면, 그로버는 매우 광범위한 검색·최적화 문제에
+          일반적으로 적용 가능한 <strong>이차 가속</strong>을 제공합니다. 이는 암호학(대칭키 길이 권장치)에도 영향을 줍니다.
+        </p>
+      </div>
+
+      <div class="scientist">
+        <h3>로브 그로버 (Lov Kumar Grover, 1961~)</h3>
+        <p>
+          인도 출신의 컴퓨터 과학자로, 1996년 벨 연구소(Bell Labs) 재직 중 자신의 이름을 딴 검색 알고리즘을 고안했습니다.
+          그는 진폭 증폭이라는 직관적인 기하학적 아이디어로, 복잡한 양자역학을 "평균에 대한 반사"라는 단순한 그림으로 설명해
+          많은 사람이 양자 알고리즘을 이해하는 출발점이 되도록 했습니다.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        N: 8,             // 탐색 공간 크기 (8 | 16 | 32)
+        amps: [],         // 부호 있는 실수 진폭 배열
+        marked: 2,        // 정답 인덱스
+        k: 0,             // 반복 횟수
+        phase: 'init',    // 'init' | 'oracle' | 'diffusion'
+        animating: false, // 애니메이션 진행 중 잠금
+        prevProb: 0,      // 직전 성공 확률 (과회전 감지용)
+        peaked: false     // 최적 도달 표시 여부
+      };
+
+      // ----- 레이아웃 상수(px) -----
+      const W = 640, H = 380;
+      const PAD_L = 30, PAD_R = 20, PAD_T = 30, PAD_B = 30;
+      const BASE_Y = H / 2;                 // 중심 기준선 y
+      const HALF_H = (H - PAD_T - PAD_B) / 2; // 위/아래 최대 막대 높이
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nBtns = document.querySelectorAll('.btn.preset[data-n]');
+      const answerGrid = document.getElementById('answerGrid');
+      const stepBtn = document.getElementById('stepBtn');
+      const optBtn = document.getElementById('optBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rK = document.getElementById('r-k');
+      const rOpt = document.getElementById('r-opt');
+      const rMarked = document.getElementById('r-marked');
+      const rProb = document.getElementById('r-prob');
+      const rPhase = document.getElementById('r-phase');
+      const peakNote = document.getElementById('peakNote');
+      const warnNote = document.getElementById('warnNote');
+
+      // ----- (1) 탭 전환 (템플릿 코드 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 헬퍼 -----
+      function optimalK(N) {
+        return Math.round(Math.PI / 4 * Math.sqrt(N));
+      }
+
+      function successProb() {
+        const a = state.amps[state.marked];
+        return a * a;
+      }
+
+      // 진폭 초기화: 균등 중첩
+      function resetAmps() {
+        const N = state.N;
+        const v = 1 / Math.sqrt(N);
+        state.amps = new Array(N);
+        for (let i = 0; i < N; i++) state.amps[i] = v;
+        state.k = 0;
+        state.phase = 'init';
+        state.prevProb = successProb();
+        state.peaked = false;
+      }
+
+      // 오라클: 정답 진폭 부호 반전
+      function applyOracle() {
+        state.amps[state.marked] *= -1;
+      }
+
+      // 확산: 평균에 대한 반사
+      function applyDiffusion() {
+        const N = state.N;
+        let sum = 0;
+        for (let i = 0; i < N; i++) sum += state.amps[i];
+        const mean = sum / N;
+        for (let i = 0; i < N; i++) state.amps[i] = 2 * mean - state.amps[i];
+      }
+
+      // ----- 그리기 -----
+      function draw() {
+        if (!ctx) return;
+        const N = state.N;
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경
+        ctx.fillStyle = '#062a33';
+        ctx.fillRect(0, 0, W, H);
+
+        const plotW = W - PAD_L - PAD_R;
+        const slot = plotW / N;
+        const barW = Math.max(4, slot * 0.62);
+
+        // 진폭 스케일: 최대 |a|를 막대 높이에 맞춤 (최소 1/√N 보장)
+        let maxA = 1 / Math.sqrt(N);
+        for (let i = 0; i < N; i++) {
+          const m = Math.abs(state.amps[i]);
+          if (m > maxA) maxA = m;
+        }
+        const scale = HALF_H / maxA;
+
+        // 중심 기준선
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD_L - 6, BASE_Y);
+        ctx.lineTo(W - PAD_R + 6, BASE_Y);
+        ctx.stroke();
+
+        // 막대
+        for (let i = 0; i < N; i++) {
+          const a = state.amps[i];
+          const cx = PAD_L + slot * i + slot / 2;
+          const x = cx - barW / 2;
+          const barH = a * scale; // 양수면 위로, 음수면 아래로
+          const isMarked = (i === state.marked);
+
+          ctx.fillStyle = isMarked ? '#1597b8' : '#7d8a91';
+          if (barH >= 0) {
+            ctx.fillRect(x, BASE_Y - barH, barW, barH);
+          } else {
+            ctx.fillRect(x, BASE_Y, barW, -barH);
+          }
+
+          // 정답 막대 테두리 강조
+          if (isMarked) {
+            ctx.strokeStyle = '#bff0fb';
+            ctx.lineWidth = 2;
+            if (barH >= 0) ctx.strokeRect(x, BASE_Y - barH, barW, barH);
+            else ctx.strokeRect(x, BASE_Y, barW, -barH);
+          }
+
+          // 인덱스 라벨 (N이 작을 때만)
+          if (N <= 16) {
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '11px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(String(i), cx, H - 10);
+          }
+        }
+
+        // 평균선 (확산의 기준) — 옅게 표시
+        let sum = 0;
+        for (let i = 0; i < N; i++) sum += state.amps[i];
+        const mean = sum / N;
+        const meanY = BASE_Y - mean * scale;
+        ctx.strokeStyle = 'rgba(255,210,120,0.8)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(PAD_L - 6, meanY);
+        ctx.lineTo(W - PAD_R + 6, meanY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,210,120,0.95)';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('평균', W - PAD_R - 30, meanY - 4);
+
+        // 단계 라벨
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        let phaseTxt = 'k = ' + state.k;
+        if (state.phase === 'oracle') phaseTxt += '  (오라클: 정답 부호 반전)';
+        else if (state.phase === 'diffusion') phaseTxt += '  (확산: 평균에 대한 반사)';
+        ctx.fillText(phaseTxt, PAD_L, 18);
+      }
+
+      // ----- 정답 위치 버튼 생성 -----
+      function buildAnswerGrid() {
+        answerGrid.innerHTML = '';
+        for (let i = 0; i < state.N; i++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn preset' + (i === state.marked ? ' active' : '');
+          b.textContent = String(i);
+          b.setAttribute('aria-label', '정답 위치 ' + i);
+          b.dataset.idx = String(i);
+          b.addEventListener('click', () => {
+            if (state.animating) return;
+            setMarked(i);
+          });
+          answerGrid.appendChild(b);
+        }
+      }
+
+      function refreshAnswerGrid() {
+        const btns = answerGrid.querySelectorAll('button');
+        btns.forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.idx) === state.marked);
+        });
+      }
+
+      function setMarked(i) {
+        state.marked = i;
+        resetAmps();
+        refreshAnswerGrid();
+        updateReadout();
+        draw();
+      }
+
+      // ----- 리드아웃 -----
+      function updateReadout() {
+        const opt = optimalK(state.N);
+        rK.textContent = String(state.k);
+        rOpt.textContent = String(opt);
+        rMarked.textContent = '인덱스 ' + state.marked;
+        const p = successProb();
+        rProb.textContent = (p * 100).toFixed(1) + ' %';
+
+        if (state.phase === 'init') rPhase.textContent = '초기 균등 중첩';
+        else if (state.phase === 'oracle') rPhase.textContent = '오라클 적용 (정답 부호 반전)';
+        else rPhase.textContent = '확산 적용 (평균에 대한 반사)';
+
+        // 최적 도달 안내
+        if (state.k === opt && state.k > 0) {
+          peakNote.style.display = 'block';
+          peakNote.textContent = '✅ 이론적 최적 반복(k ≈ π/4·√N)에 도달했습니다. 성공 확률이 최대에 가깝습니다 — 지금 멈추면 됩니다.';
+        } else {
+          peakNote.style.display = 'none';
+        }
+
+        // 과회전 경고: 성공 확률이 직전보다 떨어지기 시작하면
+        if (state.k > 0 && p < state.prevProb - 1e-6) {
+          warnNote.style.display = 'block';
+          warnNote.textContent = '⚠️ 최적 횟수를 넘겨 성공 확률이 다시 줄고 있습니다 (과회전, over-rotation). 그로버는 멈출 시점이 중요합니다.';
+        } else {
+          warnNote.style.display = 'none';
+        }
+      }
+
+      // ----- 한 번의 반복(애니메이션): 오라클 → 잠깐 멈춤 → 확산 -----
+      function runIteration(onDone) {
+        if (state.animating) return;
+        state.animating = true;
+        setControlsDisabled(true);
+
+        const before = successProb();
+
+        // 1단계: 오라클
+        applyOracle();
+        state.phase = 'oracle';
+        rPhase.textContent = '오라클 적용 (정답 부호 반전)';
+        draw();
+
+        // 잠깐 멈춤 (rAF 기반 타이머)
+        rafDelay(420, () => {
+          // 2단계: 확산
+          applyDiffusion();
+          state.phase = 'diffusion';
+          state.k += 1;
+          draw();
+          rafDelay(160, () => {
+            // 확산 직후의 확률로 prevProb 갱신 판정
+            const after = successProb();
+            updateReadout();
+            state.prevProb = after;
+            state.animating = false;
+            setControlsDisabled(false);
+            if (typeof onDone === 'function') onDone(before, after);
+          });
+        });
+      }
+
+      // rAF 기반 지연 (setTimeout 대신 requestAnimationFrame 사용)
+      function rafDelay(ms, cb) {
+        const start = performance.now();
+        function tick(now) {
+          if (now - start >= ms) { cb(); return; }
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      function setControlsDisabled(d) {
+        stepBtn.disabled = d;
+        optBtn.disabled = d;
+        resetBtn.disabled = d;
+        nBtns.forEach((b) => { b.disabled = d; });
+        answerGrid.querySelectorAll('button').forEach((b) => { b.disabled = d; });
+      }
+
+      // ----- 최적까지 자동 실행 -----
+      function runToOptimal() {
+        if (state.animating) return;
+        const target = optimalK(state.N);
+        function next() {
+          if (state.k >= target) return;
+          runIteration(() => {
+            if (state.k < target) next();
+          });
+        }
+        next();
+      }
+
+      // ----- 캔버스 클릭으로 정답 선택 -----
+      if (canvas) {
+        canvas.addEventListener('click', (e) => {
+          if (state.animating) return;
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const x = (e.clientX - rect.left) * scaleX;
+          const plotW = W - PAD_L - PAD_R;
+          const slot = plotW / state.N;
+          const idx = Math.floor((x - PAD_L) / slot);
+          if (idx >= 0 && idx < state.N) setMarked(idx);
+        });
+      }
+
+      // ----- 컨트롤 바인딩 -----
+      nBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          if (state.animating) return;
+          const N = Number(b.dataset.n);
+          nBtns.forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          state.N = N;
+          // 기본 정답 = floor(N/3)
+          state.marked = Math.floor(N / 3);
+          resetAmps();
+          buildAnswerGrid();
+          updateReadout();
+          draw();
+        });
+      });
+
+      stepBtn.addEventListener('click', () => runIteration());
+      optBtn.addEventListener('click', () => runToOptimal());
+      resetBtn.addEventListener('click', () => {
+        if (state.animating) return;
+        resetAmps();
+        updateReadout();
+        draw();
+      });
+
+      // ----- 퀴즈 채점 -----
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quizFeedback');
+      if (quizBtn) {
+        quizBtn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#1d4ed8';
+            return;
+          }
+          if (sel.value === 'c') {
+            quizFeedback.textContent = '정답입니다! π/4·√16 = π ≈ 3.14 이므로 약 3회면 성공 확률이 최대에 가까워집니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 그로버의 최적 반복은 약 (π/4)·√N 회입니다. N=16이면 (π/4)·4 = π ≈ 3회입니다.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ----- 초기화 -----
+      state.N = 8;
+      state.marked = Math.floor(state.N / 3); // = 2
+      resetAmps();
+      buildAnswerGrid();
+      updateReadout();
+      draw();
+    })();
+  </script>
+</body>
+</html>

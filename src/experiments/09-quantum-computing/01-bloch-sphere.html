@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>블로흐 구와 큐비트 게이트 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto;
+      background: #0a1620; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .toggle-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+    .toggle-row label { margin: 0; font-weight: 600; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e3f1f5; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .mono { font-family: "Courier New", monospace; }
+    .gate-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .gate-grid .btn { min-width: 52px; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1a1a1a; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    svg { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>블로흐 구와 큐비트 게이트</h1>
+    <div class="en">Bloch Sphere &amp; Qubit Gates</div>
+    <div class="meta">1946 · 펠릭스 블로흐 (Felix Bloch) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="560" height="460" role="img"
+        aria-label="블로흐 구 위에 큐비트 상태를 화살표로 나타내는 3차원 시각화. 위쪽 극은 0 상태, 아래쪽 극은 1 상태이며, 게이트를 적용하면 화살표가 회전합니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>단일 큐비트 게이트 적용 (블로흐 벡터 회전)</label>
+          <div class="gate-grid" role="group" aria-label="큐비트 게이트 버튼">
+            <button type="button" class="btn" id="gate-X">X</button>
+            <button type="button" class="btn" id="gate-Y">Y</button>
+            <button type="button" class="btn" id="gate-Z">Z</button>
+            <button type="button" class="btn" id="gate-H">H</button>
+            <button type="button" class="btn" id="gate-S">S</button>
+            <button type="button" class="btn" id="gate-T">T</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>측정 &amp; 초기화</label>
+          <div class="btn-row">
+            <button type="button" class="btn preset" id="measureBtn">📏 측정 (Z기저)</button>
+            <button type="button" class="btn secondary" id="resetBtn">⟲ 초기화 |0⟩</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>θ (극각): <strong id="r-theta">0.0°</strong></div>
+          <div>φ (방위각): <strong id="r-phi">0.0°</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div class="mono">α = cos(θ/2) = <strong id="r-alpha">1.00</strong></div>
+          <div class="mono">β = e<sup>iφ</sup>sin(θ/2) = <strong id="r-beta">0.00</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>P(0) = cos²(θ/2): <strong id="r-p0">100.0%</strong></div>
+          <div>P(1) = sin²(θ/2): <strong id="r-p1">0.0%</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>측정 결과: <strong id="r-measure">—</strong></div>
+          <div>누적 집계: <strong id="r-tally">|0⟩ 0회 · |1⟩ 0회</strong></div>
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 큐비트의 상태는 |ψ⟩ = α|0⟩ + β|1⟩ 로 표현되며, 블로흐 구 위의 한 점에 대응합니다.
+        게이트 버튼을 누르면 화살표(블로흐 벡터)가 회전합니다. <strong>측정</strong> 버튼은 확률에 따라
+        |0⟩ 또는 |1⟩ 로 상태를 붕괴시킵니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>블로흐 구 — 큐비트의 기하학적 표현</h2>
+
+      <div class="concept-box">
+        <h3>큐비트란?</h3>
+        <p>고전 비트는 0 또는 1만 가질 수 있지만, <strong>큐비트</strong>는 두 상태의
+        <em>중첩(superposition)</em>을 가질 수 있습니다. 순수 상태는 다음과 같이 씁니다.</p>
+        <p class="mono">|ψ⟩ = cos(θ/2)|0⟩ + e<sup>iφ</sup>sin(θ/2)|1⟩</p>
+        <p>여기서 θ ∈ [0, π], φ ∈ [0, 2π) 입니다. 전체 위상은 관측에 영향을 주지 않으므로,
+        모든 순수 상태는 반지름 1짜리 구(블로흐 구)의 표면 위 한 점으로 나타낼 수 있습니다.</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>주요 기저 상태의 위치</h3>
+        <ul class="goals">
+          <li><strong>|0⟩</strong> : 북극 (+Z), <strong>|1⟩</strong> : 남극 (−Z)</li>
+          <li><strong>|+⟩</strong> = (|0⟩+|1⟩)/√2 : +X 방향</li>
+          <li><strong>|−⟩</strong> = (|0⟩−|1⟩)/√2 : −X 방향</li>
+          <li><strong>|i⟩</strong> = (|0⟩+i|1⟩)/√2 : +Y 방향, <strong>|−i⟩</strong> : −Y 방향</li>
+        </ul>
+        <p>게이트는 이 구 위에서의 <strong>회전</strong>입니다. 예: X 게이트는 X축 둘레 180° 회전,
+        H(아다마르) 게이트는 |0⟩↔|+⟩ 을 맞바꿉니다.</p>
+      </div>
+
+      <div class="formula-box">
+        |ψ⟩ = cos(θ/2)|0⟩ + e<sup>iφ</sup> sin(θ/2)|1⟩<br>
+        P(0) = cos²(θ/2) , &nbsp; P(1) = sin²(θ/2)<br>
+        벡터 P = ( sinθcosφ , sinθsinφ , cosθ )
+      </div>
+
+      <div class="misconception">
+        <h3>⚠️ 흔한 오해</h3>
+        <p>“큐비트는 0이면서 동시에 1이다”라는 말은 정확하지 않습니다. 측정 전에는 진폭 α, β로
+        기술되는 <em>중첩</em> 상태이며, 측정하면 |α|² 또는 |β|² 확률로 단 하나의 결과로 붕괴합니다.
+        또한 블로흐 구의 |0⟩과 |1⟩은 물리적으로 정반대(180°)이지만, 직교(내적 0)하는 상태입니다.</p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>🧠 퀴즈</h3>
+        <p id="quiz-q">|0⟩ 상태에 H(아다마르) 게이트를 적용하면 어떤 상태가 되나요?</p>
+        <form id="quiz-form">
+          <label><input type="radio" name="quiz" value="a"> |1⟩ (남극)</label>
+          <label><input type="radio" name="quiz" value="b"> |+⟩ = (|0⟩+|1⟩)/√2 (+X 방향)</label>
+          <label><input type="radio" name="quiz" value="c"> |i⟩ = (|0⟩+i|1⟩)/√2 (+Y 방향)</label>
+          <label><input type="radio" name="quiz" value="d"> 변화 없음, 그대로 |0⟩</label>
+        </form>
+        <button type="button" id="quiz-check">채점하기</button>
+        <div class="quiz-feedback" id="quiz-feedback" role="status" aria-live="polite"></div>
+      </div>
+
+      <div class="key-point">
+        <h3>핵심 정리</h3>
+        <ul class="goals">
+          <li>순수 큐비트 상태 ↔ 블로흐 구 표면의 점 (θ, φ).</li>
+          <li>단일 큐비트 게이트 = 블로흐 구 위의 회전(유니터리 변환).</li>
+          <li>측정은 비가역적이며 확률 |α|², |β|² 으로 결과가 정해진다.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>블로흐 구의 역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>타임라인</h3>
+        <ul>
+          <li><strong>1925–1927</strong> · 하이젠베르크·슈뢰딩거가 양자역학의 형식을 완성, 2준위 계의 수학적 기초 마련.</li>
+          <li><strong>1946</strong> · 펠릭스 블로흐가 핵자기공명(NMR) 이론을 발표하며,
+            2준위 스핀계를 단위 구 위 벡터로 표현 — 오늘날 “블로흐 구”의 기원.</li>
+          <li><strong>1950s–60s</strong> · NMR·광학에서 동일한 구 표현(푸앵카레 구)이 편광 기술에 널리 활용됨.</li>
+          <li><strong>1980s</strong> · 파인만, 도이치 등이 양자 컴퓨팅 개념을 제시, 큐비트가 정보 단위로 등장.</li>
+          <li><strong>1990s–현재</strong> · 블로흐 구가 단일 큐비트 게이트를 직관적으로 설명하는 표준 도구로 정착.</li>
+        </ul>
+      </div>
+
+      <div class="scientist">
+        <h3>펠릭스 블로흐 (Felix Bloch, 1905–1983)</h3>
+        <ul>
+          <li>스위스 태생의 미국 물리학자. 취리히 연방공대를 거쳐 라이프치히에서 하이젠베르크 지도로 박사 취득.</li>
+          <li>고체 속 전자의 파동을 기술하는 <strong>블로흐 정리·블로흐 파동</strong>으로 고체물리학의 토대를 세움.</li>
+          <li><strong>1946년</strong> 에드워드 퍼셀과 독립적으로 핵자기공명(NMR)을 발견·정식화.</li>
+          <li><strong>1952년</strong> 퍼셀과 함께 노벨 물리학상 수상.</li>
+          <li>CERN의 초대 사무총장(1954)을 역임.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <p>블로흐가 NMR을 위해 도입한 구 표현은, 수십 년 뒤 양자 정보 시대에 큐비트를 시각화하는
+        가장 직관적인 언어가 되었습니다. 같은 수학이 NMR, 광 편광, 양자 컴퓨팅을 하나로 잇습니다.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- (1) 탭 전환 -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- (2) 퀴즈 -----
+      const quizCheck = document.getElementById('quiz-check');
+      const quizFeedback = document.getElementById('quiz-feedback');
+      if (quizCheck && quizFeedback) {
+        quizCheck.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="quiz"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#92400e';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '✅ 정답! H 게이트는 |0⟩을 |+⟩(+X 방향)으로 보냅니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '❌ 다시 생각해 보세요. H 게이트는 블로흐 벡터 (0,0,1)을 (1,0,0)으로 옮깁니다.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ----- (3) 캔버스 / 시뮬레이션 -----
+      const canvas = document.getElementById('canvas');
+      if (!canvas || !canvas.getContext) { return; }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { return; }
+
+      const W = canvas.width;   // 560
+      const H = canvas.height;  // 460
+      const CX = W / 2;         // 화면 중심 x
+      const CY = H / 2 + 6;     // 화면 중심 y
+      const R = 165;            // 구 반지름(px)
+
+      // 등각(orthographic) 3D→2D 투영.
+      // z축은 화면 위로, x는 우하단, y는 좌하단(아이소메트릭 느낌).
+      // 화면좌표 = CX + sx*x + sy*y , CY - (스크린 위가 +) ...
+      // 각 축 단위벡터의 화면상 방향:
+      const AX = { sx:  0.866, sy:  0.5 };   // +x : 우하단
+      const AY = { sx: -0.866, sy:  0.5 };   // +y : 좌하단
+      const AZ = { sx:  0.0,   sy: -1.0 };   // +z : 위쪽
+      function project(x, y, z) {
+        const px = CX + R * (AX.sx * x + AY.sx * y + AZ.sx * z);
+        const py = CY + R * (AX.sy * x + AY.sy * y + AZ.sy * z);
+        return { x: px, y: py };
+      }
+
+      // ----- 상태 (블로흐 벡터로 보관) -----
+      const state = {
+        vec: { x: 0, y: 0, z: 1 }, // 시작 |0⟩
+        anim: null,                // 진행 중 애니메이션
+        tally0: 0,
+        tally1: 0
+      };
+
+      function normalize(v) {
+        const n = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        if (n < 1e-9) { return { x: 0, y: 0, z: 1 }; }
+        return { x: v.x / n, y: v.y / n, z: v.z / n };
+      }
+
+      // 벡터로부터 (theta, phi) 복원
+      function anglesOf(v) {
+        const n = normalize(v);
+        const theta = Math.acos(Math.max(-1, Math.min(1, n.z)));
+        let phi = Math.atan2(n.y, n.x);
+        if (phi < 0) { phi += 2 * Math.PI; }
+        return { theta, phi };
+      }
+
+      // ----- 게이트: 블로흐 벡터 변환 -----
+      const SQ = Math.SQRT1_2; // cos45 = sin45
+      const gates = {
+        X: (v) => ({ x:  v.x, y: -v.y, z: -v.z }),
+        Y: (v) => ({ x: -v.x, y:  v.y, z: -v.z }),
+        Z: (v) => ({ x: -v.x, y: -v.y, z:  v.z }),
+        H: (v) => ({ x:  v.z, y: -v.y, z:  v.x }),
+        S: (v) => ({ x: -v.y, y:  v.x, z:  v.z }),                       // +90° about z
+        T: (v) => ({ x: v.x * SQ - v.y * SQ, y: v.x * SQ + v.y * SQ, z: v.z }) // +45° about z
+      };
+
+      // ----- 텍스트로 readout 갱신 -----
+      const el = {
+        theta: document.getElementById('r-theta'),
+        phi: document.getElementById('r-phi'),
+        alpha: document.getElementById('r-alpha'),
+        beta: document.getElementById('r-beta'),
+        p0: document.getElementById('r-p0'),
+        p1: document.getElementById('r-p1'),
+        measure: document.getElementById('r-measure'),
+        tally: document.getElementById('r-tally')
+      };
+
+      function fmt(n) {
+        // -0.00 방지
+        if (Math.abs(n) < 0.005) { n = 0; }
+        return n.toFixed(2);
+      }
+      function complexStr(re, im) {
+        const r = (Math.abs(re) < 0.005) ? 0 : re;
+        const i = (Math.abs(im) < 0.005) ? 0 : im;
+        const sign = (i < 0) ? '−' : '+';
+        return fmt(r) + ' ' + sign + ' ' + fmt(Math.abs(i)) + 'i';
+      }
+
+      function updateReadout() {
+        const a = anglesOf(state.vec);
+        const thetaDeg = a.theta * 180 / Math.PI;
+        const phiDeg = a.phi * 180 / Math.PI;
+        const ct = Math.cos(a.theta / 2);
+        const st = Math.sin(a.theta / 2);
+        const p0 = ct * ct;
+        const p1 = st * st;
+        if (el.theta) el.theta.textContent = thetaDeg.toFixed(1) + '°';
+        if (el.phi) el.phi.textContent = phiDeg.toFixed(1) + '°';
+        // α = cos(θ/2) (실수, 전체위상 0으로 잡음)
+        if (el.alpha) el.alpha.textContent = complexStr(ct, 0);
+        // β = e^{iφ} sin(θ/2)
+        const bRe = st * Math.cos(a.phi);
+        const bIm = st * Math.sin(a.phi);
+        if (el.beta) el.beta.textContent = complexStr(bRe, bIm);
+        if (el.p0) el.p0.textContent = (p0 * 100).toFixed(1) + '%';
+        if (el.p1) el.p1.textContent = (p1 * 100).toFixed(1) + '%';
+      }
+
+      // ----- 구·축 그리기 -----
+      function drawEllipse(points, color, lw) {
+        ctx.beginPath();
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          if (i === 0) { ctx.moveTo(p.x, p.y); } else { ctx.lineTo(p.x, p.y); }
+        }
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lw;
+        ctx.stroke();
+      }
+
+      // 위도(z 고정) 원
+      function latitudePoints(zLevel) {
+        const r = Math.sqrt(Math.max(0, 1 - zLevel * zLevel));
+        const pts = [];
+        for (let a = 0; a <= 360; a += 12) {
+          const rad = a * Math.PI / 180;
+          pts.push(project(r * Math.cos(rad), r * Math.sin(rad), zLevel));
+        }
+        return pts;
+      }
+      // 경도(평면이 z축 포함) 타원: 매개변수 t -> (cos*cosA, cos*sinA, sin)
+      function longitudePoints(azDeg) {
+        const az = azDeg * Math.PI / 180;
+        const pts = [];
+        for (let a = 0; a <= 360; a += 12) {
+          const t = a * Math.PI / 180;
+          pts.push(project(Math.cos(t) * Math.cos(az), Math.cos(t) * Math.sin(az), Math.sin(t)));
+        }
+        return pts;
+      }
+
+      function drawAxis(x, y, z, label, labelOffset) {
+        const o = project(0, 0, 0);
+        const e = project(x, y, z);
+        ctx.beginPath();
+        ctx.moveTo(o.x, o.y);
+        ctx.lineTo(e.x, e.y);
+        ctx.strokeStyle = 'rgba(150,180,200,0.55)';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+        if (label) {
+          ctx.fillStyle = '#9fd6e8';
+          ctx.font = '13px "Courier New", monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, e.x + labelOffset.x, e.y + labelOffset.y);
+        }
+      }
+
+      function drawBasisLabel(x, y, z, text, dx, dy, color) {
+        const p = project(x, y, z);
+        ctx.fillStyle = color;
+        ctx.font = 'bold 14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, p.x + dx, p.y + dy);
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // 배경 구 채움(살짝)
+        const center = project(0, 0, 0);
+        const grad = ctx.createRadialGradient(center.x - 40, center.y - 50, 20, center.x, center.y, R);
+        grad.addColorStop(0, 'rgba(30,70,90,0.55)');
+        grad.addColorStop(1, 'rgba(12,30,40,0.15)');
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, R, 0, 2 * Math.PI);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // 위도/경도 (faint)
+        drawEllipse(latitudePoints(0), 'rgba(120,160,180,0.40)', 1.2);   // 적도
+        drawEllipse(latitudePoints(0.5), 'rgba(120,160,180,0.22)', 1);
+        drawEllipse(latitudePoints(-0.5), 'rgba(120,160,180,0.22)', 1);
+        drawEllipse(longitudePoints(0), 'rgba(120,160,180,0.30)', 1);
+        drawEllipse(longitudePoints(90), 'rgba(120,160,180,0.30)', 1);
+
+        // 구 외곽선
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, R, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(180,210,225,0.8)';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // 축 (구 밖으로 살짝 연장)
+        drawAxis(1.18, 0, 0, 'x', { x: 8, y: 8 });
+        drawAxis(0, 1.18, 0, 'y', { x: -8, y: 8 });
+        drawAxis(0, 0, 1.18, 'z', { x: 12, y: -2 });
+        // 음의 반축(점선 느낌은 생략, 옅게)
+        drawAxis(-1.18, 0, 0, '', { x: 0, y: 0 });
+        drawAxis(0, -1.18, 0, '', { x: 0, y: 0 });
+        drawAxis(0, 0, -1.18, '', { x: 0, y: 0 });
+
+        // 기저 라벨
+        drawBasisLabel(0, 0, 1.30, '|0⟩', 0, -2, '#e8f6fb');
+        drawBasisLabel(0, 0, -1.30, '|1⟩', 0, 4, '#e8f6fb');
+        drawBasisLabel(1.30, 0, 0, '|+⟩', 6, 6, '#c7e8f2');
+        drawBasisLabel(-1.30, 0, 0, '|−⟩', -6, -6, '#c7e8f2');
+        drawBasisLabel(0, 1.30, 0, '|i⟩', -6, 6, '#c7e8f2');
+        drawBasisLabel(0, -1.30, 0, '|−i⟩', 6, -6, '#c7e8f2');
+
+        // 상태 화살표
+        const v = state.vec;
+        const o = project(0, 0, 0);
+        const tip = project(v.x, v.y, v.z);
+        ctx.beginPath();
+        ctx.moveTo(o.x, o.y);
+        ctx.lineTo(tip.x, tip.y);
+        ctx.strokeStyle = '#0E7490';
+        ctx.lineWidth = 3.4;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // 화살촉
+        const ang = Math.atan2(tip.y - o.y, tip.x - o.x);
+        const ah = 12;
+        ctx.beginPath();
+        ctx.moveTo(tip.x, tip.y);
+        ctx.lineTo(tip.x - ah * Math.cos(ang - 0.4), tip.y - ah * Math.sin(ang - 0.4));
+        ctx.lineTo(tip.x - ah * Math.cos(ang + 0.4), tip.y - ah * Math.sin(ang + 0.4));
+        ctx.closePath();
+        ctx.fillStyle = '#0E7490';
+        ctx.fill();
+
+        // 팁 점
+        ctx.beginPath();
+        ctx.arc(tip.x, tip.y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = '#1597b8';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 중심점
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = '#cfe9f2';
+        ctx.fill();
+      }
+
+      // ----- 애니메이션: from -> to 벡터 보간(slerp) -----
+      function slerp(a, b, t) {
+        let dot = a.x * b.x + a.y * b.y + a.z * b.z;
+        dot = Math.max(-1, Math.min(1, dot));
+        const omega = Math.acos(dot);
+        if (omega < 1e-4) {
+          return normalize({ x: a.x, y: a.y, z: a.z });
+        }
+        // 거의 정반대인 경우: 임의 직교축으로 보간
+        if (omega > Math.PI - 1e-3) {
+          // a 에 직교하는 보조 벡터 생성
+          let ax = { x: 1, y: 0, z: 0 };
+          if (Math.abs(a.x) > 0.9) { ax = { x: 0, y: 1, z: 0 }; }
+          // perp = a × ax (정규화)
+          let perp = {
+            x: a.y * ax.z - a.z * ax.y,
+            y: a.z * ax.x - a.x * ax.z,
+            z: a.x * ax.y - a.y * ax.x
+          };
+          perp = normalize(perp);
+          const ang = Math.PI * t;
+          // a 를 perp 축 둘레로 ang 만큼 회전 → 반대편으로 이동
+          return rotateAround(a, perp, ang);
+        }
+        const s = Math.sin(omega);
+        const k0 = Math.sin((1 - t) * omega) / s;
+        const k1 = Math.sin(t * omega) / s;
+        return normalize({
+          x: k0 * a.x + k1 * b.x,
+          y: k0 * a.y + k1 * b.y,
+          z: k0 * a.z + k1 * b.z
+        });
+      }
+
+      // 로드리게스 회전 (단위축 k 둘레로 ang 회전)
+      function rotateAround(v, k, ang) {
+        const c = Math.cos(ang), s = Math.sin(ang);
+        const dot = k.x * v.x + k.y * v.y + k.z * v.z;
+        const cross = {
+          x: k.y * v.z - k.z * v.y,
+          y: k.z * v.x - k.x * v.z,
+          z: k.x * v.y - k.y * v.x
+        };
+        return {
+          x: v.x * c + cross.x * s + k.x * dot * (1 - c),
+          y: v.y * c + cross.y * s + k.y * dot * (1 - c),
+          z: v.z * c + cross.z * s + k.z * dot * (1 - c)
+        };
+      }
+
+      function animateTo(target, duration) {
+        const from = { x: state.vec.x, y: state.vec.y, z: state.vec.z };
+        const to = normalize(target);
+        const t0 = performance.now();
+        state.anim = { active: true };
+        const myAnim = state.anim;
+
+        function step(now) {
+          if (!myAnim.active) { return; }
+          let t = (now - t0) / duration;
+          if (t >= 1) { t = 1; }
+          state.vec = slerp(from, to, t);
+          draw();
+          if (t < 1) {
+            requestAnimationFrame(step);
+          } else {
+            state.vec = to;
+            state.anim = null;
+            updateReadout();
+            draw();
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      function applyGate(name) {
+        if (state.anim && state.anim.active) {
+          // 진행 중 애니메이션을 즉시 마무리하고 새 게이트 적용
+          state.anim.active = false;
+          state.anim = null;
+        }
+        const fn = gates[name];
+        if (!fn) { return; }
+        const target = normalize(fn(state.vec));
+        animateTo(target, 400);
+      }
+
+      // ----- 측정 -----
+      function measure() {
+        if (state.anim && state.anim.active) {
+          state.anim.active = false;
+          state.anim = null;
+        }
+        const a = anglesOf(state.vec);
+        const p0 = Math.cos(a.theta / 2) ** 2;
+        const outcome = (Math.random() < p0) ? 0 : 1;
+        const target = (outcome === 0) ? { x: 0, y: 0, z: 1 } : { x: 0, y: 0, z: -1 };
+        if (outcome === 0) { state.tally0++; } else { state.tally1++; }
+        if (el.measure) {
+          el.measure.textContent = (outcome === 0) ? '|0⟩ ↑' : '|1⟩ ↓';
+          el.measure.style.color = (outcome === 0) ? '#1d4ed8' : '#b91c1c';
+        }
+        if (el.tally) {
+          el.tally.textContent = '|0⟩ ' + state.tally0 + '회 · |1⟩ ' + state.tally1 + '회';
+        }
+        animateTo(target, 350);
+      }
+
+      function reset() {
+        if (state.anim && state.anim.active) {
+          state.anim.active = false;
+          state.anim = null;
+        }
+        state.vec = { x: 0, y: 0, z: 1 };
+        if (el.measure) { el.measure.textContent = '—'; el.measure.style.color = ''; }
+        updateReadout();
+        draw();
+      }
+
+      // ----- 버튼 바인딩 -----
+      ['X', 'Y', 'Z', 'H', 'S', 'T'].forEach((g) => {
+        const b = document.getElementById('gate-' + g);
+        if (b) { b.addEventListener('click', () => applyGate(g)); }
+      });
+      const measureBtn = document.getElementById('measureBtn');
+      if (measureBtn) { measureBtn.addEventListener('click', measure); }
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) { resetBtn.addEventListener('click', reset); }
+
+      // ----- 초기 렌더 -----
+      updateReadout();
+      draw();
+    })();
+  </script>
+</body>
+</html>

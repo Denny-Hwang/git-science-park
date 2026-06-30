@@ -66,6 +66,7 @@
     "05-atomic": { "name": "原子时代", "tagline": "物质的终极结构" },
     "06-quantum": { "name": "量子力学", "tagline": "量子理论的诞生" },
     "07-relativity": { "name": "相对论与宇宙学", "tagline": "相对论与宇宙" },
-    "08-modern": { "name": "现代物理", "tagline": "探索极端" }
+    "08-modern": { "name": "现代物理", "tagline": "探索极端" },
+    "09-quantum-computing": { "name": "量子信息与计算", "tagline": "用量子比特计算" }
   }
 }

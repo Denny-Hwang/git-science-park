@@ -65,6 +65,14 @@
       "icon": "🔬",
       "color": "#234E52",
       "description": "극한의 탐험"
+    },
+    {
+      "id": "09-quantum-computing",
+      "name": "양자정보·컴퓨팅",
+      "nameEn": "Quantum Information & Computing",
+      "icon": "🖥️",
+      "color": "#0E7490",
+      "description": "큐비트로 계산하다"
     }
   ],
   "experiments": [
@@ -2055,6 +2063,243 @@
           "type": "youtube",
           "label": "YouTube",
           "url": "https://www.youtube.com/results?search_query=Quantum+Computing+Qubit"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 54,
+      "slug": "08-single-photon-eraser",
+      "icon": "✨",
+      "category": "06-quantum",
+      "title": "단일 광자 이중 슬릿 · 양자 지우개",
+      "titleEn": "Single-Photon Double Slit & Quantum Eraser",
+      "year": "1978 / 1999",
+      "scientist": "존 휠러 · 스컬리–드륄 (Wheeler · Scully–Drühl)",
+      "difficulty": 3,
+      "description": "광자를 하나씩 보내 간섭무늬가 점으로 쌓이고, 경로 정보를 얻으면 무늬가 사라지며 지우개로 되살아난다.",
+      "keywords": [
+        "이중 슬릿",
+        "단일 광자",
+        "간섭",
+        "경로 정보",
+        "양자 지우개",
+        "파동-입자",
+        "측정"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_eraser_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%A7%80%EC%9A%B0%EA%B0%9C&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+eraser+double+slit+single+photon"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 55,
+      "slug": "09-hydrogen-orbitals",
+      "icon": "☁️",
+      "category": "06-quantum",
+      "title": "수소 원자 오비탈",
+      "titleEn": "Hydrogen Atom Orbitals",
+      "year": "1926",
+      "scientist": "에르빈 슈뢰딩거 (Erwin Schrödinger)",
+      "difficulty": 4,
+      "description": "주양자수 n·궤도 ℓ·자기 m 양자수에 따라 전자 확률 구름(오비탈)의 모양이 어떻게 변하는지 본다.",
+      "keywords": [
+        "수소 원자",
+        "오비탈",
+        "확률 구름",
+        "양자수",
+        "s p d",
+        "전자",
+        "파동함수"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Atomic_orbital"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%9B%90%EC%9E%90+%EC%98%A4%EB%B9%84%ED%83%88&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=hydrogen+atom+orbitals+s+p+d+visualization"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 56,
+      "slug": "01-bloch-sphere",
+      "icon": "🧭",
+      "category": "09-quantum-computing",
+      "title": "블로흐 구와 큐비트 게이트",
+      "titleEn": "Bloch Sphere & Qubit Gates",
+      "year": "1946",
+      "scientist": "펠릭스 블로흐 (Felix Bloch)",
+      "difficulty": 3,
+      "description": "큐비트 상태를 구(球) 위 한 점으로 보고 X·Y·Z·H·S·T 게이트로 회전시키며 중첩과 위상을 이해한다.",
+      "keywords": [
+        "큐비트",
+        "블로흐 구",
+        "중첩",
+        "위상",
+        "양자 게이트",
+        "아다마르",
+        "상태벡터"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Bloch_sphere"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B8%94%EB%A1%9C%ED%9D%90+%EA%B5%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=bloch+sphere+qubit+gates+visualization"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 57,
+      "slug": "02-quantum-circuit",
+      "icon": "🎛️",
+      "category": "09-quantum-computing",
+      "title": "양자 회로 시뮬레이터",
+      "titleEn": "Quantum Circuit Simulator",
+      "year": "1980년대~",
+      "scientist": "도이치 · 양자 회로 모형 (Deutsch et al.)",
+      "difficulty": 4,
+      "description": "게이트를 회로에 놓아 2~3큐비트 상태의 진폭·확률을 실시간으로 보고, 측정으로 붕괴시킨다.",
+      "keywords": [
+        "양자 회로",
+        "큐비트",
+        "게이트",
+        "진폭",
+        "측정",
+        "중첩",
+        "얽힘",
+        "아다마르",
+        "CNOT"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_circuit"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%ED%9A%8C%EB%A1%9C&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+circuit+simulator+gates+qubit"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 58,
+      "slug": "03-grover",
+      "icon": "🔎",
+      "category": "09-quantum-computing",
+      "title": "그로버 검색 알고리즘",
+      "titleEn": "Grover's Search Algorithm",
+      "year": "1996",
+      "scientist": "로브 그로버 (Lov Grover)",
+      "difficulty": 4,
+      "description": "표시된 정답의 진폭을 반복마다 증폭(진폭 증폭)해 정렬되지 않은 N개에서 √N 만에 찾아낸다.",
+      "keywords": [
+        "그로버",
+        "양자 검색",
+        "진폭 증폭",
+        "오라클",
+        "반복",
+        "양자 속도향상",
+        "√N"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Grover%27s_algorithm"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EA%B7%B8%EB%A1%9C%EB%B2%84+%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=grover+algorithm+amplitude+amplification+visualization"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 59,
+      "slug": "04-entanglement-bell",
+      "icon": "🪢",
+      "category": "09-quantum-computing",
+      "title": "얽힘과 벨 상태 (CNOT)",
+      "titleEn": "Entanglement & Bell States",
+      "year": "1935 / 1964",
+      "scientist": "EPR · 벨 상태 (Bell states)",
+      "difficulty": 3,
+      "description": "아다마르+CNOT로 두 큐비트를 얽어 벨 상태를 만들고, 한쪽 측정이 다른 쪽을 즉시 결정하는 상관을 본다.",
+      "keywords": [
+        "얽힘",
+        "벨 상태",
+        "CNOT",
+        "아다마르",
+        "상관",
+        "EPR",
+        "측정",
+        "큐비트"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Bell_state"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B2%A8+%EC%83%81%ED%83%9C&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=bell+state+cnot+entanglement+qubit"
         }
       ],
       "status": "ready"

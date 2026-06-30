@@ -66,6 +66,7 @@
     "05-atomic": { "name": "Era Atômica", "tagline": "A estrutura última da matéria" },
     "06-quantum": { "name": "Mecânica Quântica", "tagline": "A construção da teoria quântica" },
     "07-relativity": { "name": "Relatividade e Cosmologia", "tagline": "Relatividade e o cosmos" },
-    "08-modern": { "name": "Física Moderna", "tagline": "Explorando os extremos" }
+    "08-modern": { "name": "Física Moderna", "tagline": "Explorando os extremos" },
+    "09-quantum-computing": { "name": "Computação quântica", "tagline": "Computar com qubits" }
   }
 }
