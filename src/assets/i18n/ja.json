@@ -57,6 +57,7 @@
     "exit": "授業モードを終了",
     "guideIntro": "教師向けクイックリファレンス：各実験の時代、科学者、難易度、テーマ。"
   },
+  "links": { "title": "もっと詳しく" },
   "cat": {
     "01-ancient": { "name": "古代", "tagline": "測定と幾何学の誕生" },
     "02-scientific-revolution": { "name": "科学革命", "tagline": "実験と数学の融合" },

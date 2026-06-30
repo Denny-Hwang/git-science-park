@@ -57,6 +57,7 @@
     "exit": "Exit classroom",
     "guideIntro": "Quick reference for teachers: each experiment's era, scientist, difficulty, and theme."
   },
+  "links": { "title": "Learn more" },
   "cat": {
     "01-ancient": { "name": "Ancient", "tagline": "Birth of measurement and geometry" },
     "02-scientific-revolution": { "name": "Scientific Revolution", "tagline": "Experiment meets mathematics" },

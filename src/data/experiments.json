@@ -86,6 +86,23 @@
         "기하학",
         "측정"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Eratosthenes"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%97%90%EB%9D%BC%ED%86%A0%EC%8A%A4%ED%85%8C%EB%84%A4%EC%8A%A4%EC%9D%98+%EC%A7%80%EA%B5%AC+%EB%91%98%EB%A0%88+%EC%B8%A1%EC%A0%95&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Eratosthenes+Measures+the+Earth"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -105,6 +122,23 @@
         "유레카",
         "왕관",
         "아르키메데스 원리"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Archimedes%27_principle"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%95%84%EB%A5%B4%ED%82%A4%EB%A9%94%EB%8D%B0%EC%8A%A4%EC%9D%98+%EB%B6%80%EB%A0%A5+%EC%9B%90%EB%A6%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Archimedes%27+Principle+of+Buoyancy"
+        }
       ],
       "status": "ready"
     },
@@ -126,6 +160,23 @@
         "평형",
         "역학적 이득"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Lever"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%95%84%EB%A5%B4%ED%82%A4%EB%A9%94%EB%8D%B0%EC%8A%A4%EC%9D%98+%EC%A7%80%EB%A0%88+%EC%9B%90%EB%A6%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Archimedes%27+Law+of+the+Lever"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -145,6 +196,23 @@
         "주전원",
         "역행운동",
         "태양중심설"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Heliocentrism"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%B2%9C%EB%8F%99%EC%84%A4+vs+%EC%A7%80%EB%8F%99%EC%84%A4&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Ptolemy+vs+Copernicus"
+        }
       ],
       "status": "ready"
     },
@@ -166,6 +234,23 @@
         "행성운동",
         "공전주기"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Kepler%27s_laws_of_planetary_motion"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%BC%80%ED%94%8C%EB%9F%AC%EC%9D%98+%ED%96%89%EC%84%B1+%EC%9A%B4%EB%8F%99+%EB%B2%95%EC%B9%99&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Kepler%27s+Laws+of+Planetary+Motion"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -185,6 +270,23 @@
         "질량 무관",
         "피사의 탑",
         "등가속도"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Galileo%27s_Leaning_Tower_of_Pisa_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EA%B0%88%EB%A6%B4%EB%A0%88%EC%98%A4%EC%9D%98+%EC%9E%90%EC%9C%A0%EB%82%99%ED%95%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Galileo%27s+Free+Fall"
+        }
       ],
       "status": "ready"
     },
@@ -206,6 +308,23 @@
         "운동학",
         "갈릴레오"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Inclined_plane"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EA%B0%88%EB%A6%B4%EB%A0%88%EC%98%A4%EC%9D%98+%EA%B2%BD%EC%82%AC%EB%A9%B4+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Galileo%27s+Inclined+Plane"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -225,6 +344,23 @@
         "달 표면",
         "천문 관측",
         "갈릴레이 위성"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Galilean_moons"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EA%B0%88%EB%A6%B4%EB%A0%88%EC%98%A4%EC%9D%98+%EB%A7%9D%EC%9B%90%EA%B2%BD+%EA%B4%80%EC%B8%A1&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Galileo%27s+Telescope"
+        }
       ],
       "status": "ready"
     },
@@ -246,6 +382,23 @@
         "빛의 굴절",
         "색"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Dispersion_%28optics%29"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%89%B4%ED%84%B4%EC%9D%98+%ED%94%84%EB%A6%AC%EC%A6%98+%EB%B6%84%EA%B4%91&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Newton%27s+Prism+Experiment"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -265,6 +418,23 @@
         "탈출속도",
         "포물선",
         "만유인력"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Newton%27s_cannonball"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%89%B4%ED%84%B4%EC%9D%98+%EB%8C%80%ED%8F%AC+%EC%82%AC%EA%B3%A0%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Newton%27s+Cannonball"
+        }
       ],
       "status": "ready"
     },
@@ -286,6 +456,23 @@
         "질량",
         "행성 운동"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%89%B4%ED%84%B4%EC%9D%98+%EB%A7%8C%EC%9C%A0%EC%9D%B8%EB%A0%A5+%EB%B2%95%EC%B9%99&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Newton%27s+Law+of+Universal+Gravitation"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -305,6 +492,23 @@
         "부피",
         "기체",
         "반비례"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Boyle%27s_law"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B3%B4%EC%9D%BC%EC%9D%98+%EB%B2%95%EC%B9%99&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Boyle%27s+Law"
+        }
       ],
       "status": "ready"
     },
@@ -326,6 +530,23 @@
         "G",
         "미세 측정"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Cavendish_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%BA%90%EB%B2%88%EB%94%94%EC%8B%9C%EC%9D%98+%EC%A4%91%EB%A0%A5+%EC%83%81%EC%88%98+%EC%B8%A1%EC%A0%95&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Cavendish+Experiment"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -345,6 +566,23 @@
         "정전기력",
         "역제곱",
         "비틀림 저울"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Coulomb%27s_law"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%BF%A8%EB%A1%B1%EC%9D%98+%EB%B2%95%EC%B9%99&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Coulomb%27s+Law"
+        }
       ],
       "status": "ready"
     },
@@ -366,6 +604,23 @@
         "전기화학",
         "배터리"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Voltaic_pile"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B3%BC%ED%83%80%EC%9D%98+%EC%A0%84%EC%A7%80&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Volta%27s+Pile"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -385,6 +640,23 @@
         "파동성",
         "회절",
         "간섭무늬"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Young%27s_interference_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%98%81%EC%9D%98+%EC%9D%B4%EC%A4%91+%EC%8A%AC%EB%A6%BF+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Young%27s+Double-Slit+Experiment"
+        }
       ],
       "status": "ready"
     },
@@ -406,6 +678,23 @@
         "진동면",
         "위도"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Foucault_pendulum"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%91%B8%EC%BD%94%EC%9D%98+%EC%A7%84%EC%9E%90&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Foucault+Pendulum"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -425,6 +714,23 @@
         "열역학 제1법칙",
         "줄",
         "일"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Mechanical_equivalent_of_heat"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%A4%84%EC%9D%98+%EC%97%B4-%EC%9D%BC+%EB%93%B1%EA%B0%80+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Joule%27s+Mechanical+Equivalent+of+Heat"
+        }
       ],
       "status": "ready"
     },
@@ -446,6 +752,23 @@
         "엔트로피",
         "열기관"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Carnot_cycle"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%B9%B4%EB%A5%B4%EB%85%B8+%EA%B8%B0%EA%B4%80&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Carnot+Engine"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -465,6 +788,23 @@
         "자속",
         "기전력",
         "발전기"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Faraday%27s_law_of_induction"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%8C%A8%EB%9F%AC%EB%8D%B0%EC%9D%B4%EC%9D%98+%EC%A0%84%EC%9E%90%EA%B8%B0+%EC%9C%A0%EB%8F%84&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Faraday%27s+Electromagnetic+Induction"
+        }
       ],
       "status": "ready"
     },
@@ -486,6 +826,23 @@
         "빛의 속도",
         "장"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Maxwell%27s_equations"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%A7%A5%EC%8A%A4%EC%9B%B0+%EB%B0%A9%EC%A0%95%EC%8B%9D&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Maxwell%27s+Equations"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -505,6 +862,23 @@
         "공진",
         "무선",
         "빛의 속도"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Heinrich_Hertz"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%97%A4%EB%A5%B4%EC%B8%A0%EC%9D%98+%EC%A0%84%EC%9E%90%EA%B8%B0%ED%8C%8C+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Hertz%27s+Electromagnetic+Waves"
+        }
       ],
       "status": "ready"
     },
@@ -526,6 +900,23 @@
         "미시상태",
         "확률"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Boltzmann_distribution"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B3%BC%EC%B8%A0%EB%A7%8C%EC%9D%98+%ED%86%B5%EA%B3%84%EC%97%AD%ED%95%99&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Boltzmann%27s+Statistical+Mechanics"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -545,6 +936,23 @@
         "광속 불변",
         "미켈슨",
         "상대성"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Michelson%E2%80%93Morley_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%AF%B8%EC%BC%88%EC%8A%A8-%EB%AA%B0%EB%A6%AC+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Michelson-Morley+Experiment"
+        }
       ],
       "status": "ready"
     },
@@ -566,6 +974,28 @@
         "방사선",
         "음극선관"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Wilhelm_R%C3%B6ntgen"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%A2%B4%ED%8A%B8%EA%B2%90%EC%9D%98+X%EC%84%A0+%EB%B0%9C%EA%B2%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=R%C3%B6ntgen%27s+Discovery+of+X-rays"
+        },
+        {
+          "type": "source",
+          "label": "Nobel",
+          "url": "https://www.nobelprize.org/prizes/physics/1901/rontgen/facts/"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -585,6 +1015,23 @@
         "비전하",
         "e/m",
         "톰슨"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Cathode_ray"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%86%B0%EC%8A%A8%EC%9D%98+%EC%9D%8C%EA%B7%B9%EC%84%A0+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Thomson%27s+Cathode+Ray+Experiment"
+        }
       ],
       "status": "ready"
     },
@@ -606,6 +1053,23 @@
         "자외선 파탄",
         "양자"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Black-body_radiation"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%94%8C%EB%9E%91%ED%81%AC%EC%9D%98+%ED%9D%91%EC%B2%B4%EB%B3%B5%EC%82%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Planck%27s+Blackbody+Radiation"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -625,6 +1089,28 @@
         "일함수",
         "문턱 진동수",
         "빛의 입자성"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Photoelectric_effect"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EA%B4%91%EC%A0%84+%ED%9A%A8%EA%B3%BC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Photoelectric+Effect"
+        },
+        {
+          "type": "source",
+          "label": "Nobel",
+          "url": "https://www.nobelprize.org/prizes/physics/1921/einstein/facts/"
+        }
       ],
       "status": "ready"
     },
@@ -646,6 +1132,23 @@
         "밀리컨",
         "양자화"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Oil_drop_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B0%80%EB%A6%AC%EC%BB%A8%EC%9D%98+%EA%B8%B0%EB%A6%84%EB%B0%A9%EC%9A%B8+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Millikan%27s+Oil+Drop+Experiment"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -665,6 +1168,23 @@
         "금박 실험",
         "러더퍼드",
         "원자 모형"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Geiger%E2%80%93Marsden_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%9F%AC%EB%8D%94%ED%8D%BC%EB%93%9C+%EC%82%B0%EB%9E%80+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Rutherford+Scattering"
+        }
       ],
       "status": "ready"
     },
@@ -686,6 +1206,23 @@
         "양자 도약",
         "수소 원자"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Bohr_model"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B3%B4%EC%96%B4%EC%9D%98+%EC%9B%90%EC%9E%90+%EB%AA%A8%ED%98%95&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Bohr%27s+Atomic+Model"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -705,6 +1242,23 @@
         "원자 준위",
         "문턱 에너지",
         "수은"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Franck%E2%80%93Hertz_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%94%84%EB%9E%91%ED%81%AC-%ED%97%A4%EB%A5%B4%EC%B8%A0+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Franck-Hertz+Experiment"
+        }
       ],
       "status": "ready"
     },
@@ -726,6 +1280,23 @@
         "운동량",
         "양자"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Matter_wave"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%93%9C%EB%B8%8C%EB%A1%9C%EC%9D%B4+%EB%AC%BC%EC%A7%88%ED%8C%8C&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=de+Broglie+Matter+Waves"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -745,6 +1316,23 @@
         "결정 격자",
         "브래그 회절",
         "파동성"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Davisson%E2%80%93Germer_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%8D%B0%EC%9D%B4%EB%B9%84%EC%8A%A8-%EA%B1%B0%EB%A8%B8+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Davisson-Germer+Experiment"
+        }
       ],
       "status": "ready"
     },
@@ -766,6 +1354,23 @@
         "퍼텐셜 우물",
         "양자역학"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Schr%C3%B6dinger_equation"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%8A%88%EB%A2%B0%EB%94%A9%EA%B1%B0+%EB%B0%A9%EC%A0%95%EC%8B%9D&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Schr%C3%B6dinger+Equation"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -785,6 +1390,23 @@
         "하이젠베르크",
         "파속",
         "양자 한계"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Uncertainty_principle"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%95%98%EC%9D%B4%EC%A0%A0%EB%B2%A0%EB%A5%B4%ED%81%AC+%EB%B6%88%ED%99%95%EC%A0%95%EC%84%B1+%EC%9B%90%EB%A6%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Heisenberg+Uncertainty+Principle"
+        }
       ],
       "status": "ready"
     },
@@ -806,6 +1428,23 @@
         "은 원자",
         "측정"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Stern%E2%80%93Gerlach_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%8A%88%ED%85%8C%EB%A5%B8-%EA%B2%8C%EB%A5%BC%EB%9D%BC%ED%9D%90+%EC%8B%A4%ED%97%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Stern-Gerlach+Experiment"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -825,6 +1464,23 @@
         "투과 확률",
         "파동함수",
         "알파 붕괴"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_tunnelling"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%ED%84%B0%EB%84%90%EB%A7%81&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Quantum+Tunneling"
+        }
       ],
       "status": "ready"
     },
@@ -846,6 +1502,23 @@
         "숨은 변수",
         "EPR"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Bell%27s_theorem"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B2%A8+%EB%B6%80%EB%93%B1%EC%8B%9D%EA%B3%BC+%EC%96%BD%ED%9E%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Bell%27s+Inequality"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -865,6 +1538,23 @@
         "빛 시계",
         "로런츠 인자",
         "쌍둥이 역설"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Time_dilation"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%8B%9C%EA%B0%84+%EC%A7%80%EC%97%B0&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Time+Dilation"
+        }
       ],
       "status": "ready"
     },
@@ -886,6 +1576,23 @@
         "고유 길이",
         "상대속도"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Length_contraction"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EA%B8%B8%EC%9D%B4+%EC%88%98%EC%B6%95&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Length+Contraction"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -905,6 +1612,23 @@
         "일반상대성",
         "측지선",
         "중력"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/General_relativity"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%8B%9C%EA%B3%B5%EA%B0%84+%EA%B3%A1%EB%A5%A0&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Spacetime+Curvature"
+        }
       ],
       "status": "ready"
     },
@@ -926,6 +1650,23 @@
         "에딩턴",
         "중력"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Eddington_experiment"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%97%90%EB%94%A9%ED%84%B4%EC%9D%98+%EC%9D%BC%EC%8B%9D+%EA%B4%80%EC%B8%A1&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Eddington%27s+Eclipse+Expedition"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -945,6 +1686,23 @@
         "빛의 휘어짐",
         "은하단",
         "천체"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Gravitational_lens"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%A4%91%EB%A0%A5+%EB%A0%8C%EC%A6%88&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Gravitational+Lensing"
+        }
       ],
       "status": "ready"
     },
@@ -966,6 +1724,23 @@
         "후퇴 속도",
         "빅뱅"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Hubble%27s_law"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%97%88%EB%B8%94%EC%9D%98+%EC%9A%B0%EC%A3%BC+%ED%8C%BD%EC%B0%BD&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Hubble%27s+Expanding+Universe"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -985,6 +1760,28 @@
         "빅뱅",
         "마이크로파",
         "펜지어스-윌슨"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Cosmic_microwave_background"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%9A%B0%EC%A3%BC%EB%B0%B0%EA%B2%BD%EB%B3%B5%EC%82%AC+%EB%B0%9C%EA%B2%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Discovery+of+the+CMB"
+        },
+        {
+          "type": "source",
+          "label": "NASA",
+          "url": "https://science.nasa.gov/mission/wmap/"
+        }
       ],
       "status": "ready"
     },
@@ -1006,6 +1803,23 @@
         "결맞음",
         "반전 분포"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Laser"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%A0%88%EC%9D%B4%EC%A0%80%EC%9D%98+%EC%9B%90%EB%A6%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=How+a+Laser+Works"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -1025,6 +1839,23 @@
         "임계온도",
         "저항 제로",
         "자기부상"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Superconductivity"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%B4%88%EC%A0%84%EB%8F%84+%ED%98%84%EC%83%81&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Superconductivity"
+        }
       ],
       "status": "ready"
     },
@@ -1046,6 +1877,23 @@
         "중성자",
         "핵에너지"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Nuclear_fission"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%95%B5%EB%B6%84%EC%97%B4+%EC%97%B0%EC%87%84%EB%B0%98%EC%9D%91&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Nuclear+Fission"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -1065,6 +1913,28 @@
         "간섭계",
         "블랙홀 병합",
         "시공간"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/First_observation_of_gravitational_waves"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%A4%91%EB%A0%A5%ED%8C%8C+%EA%B2%80%EC%B6%9C+%28LIGO%29&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Gravitational+Waves+%28LIGO%29"
+        },
+        {
+          "type": "source",
+          "label": "LIGO",
+          "url": "https://www.ligo.caltech.edu/page/what-are-gw"
+        }
       ],
       "status": "ready"
     },
@@ -1086,6 +1956,28 @@
         "전파간섭계",
         "M87"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Event_Horizon_Telescope"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%B8%94%EB%9E%99%ED%99%80+%EC%98%81%EC%83%81%ED%99%94+%28EHT%29&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Black+Hole+Imaging+%28EHT%29"
+        },
+        {
+          "type": "source",
+          "label": "EHT",
+          "url": "https://eventhorizontelescope.org/"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -1106,6 +1998,28 @@
         "LHC",
         "표준모형"
       ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Higgs_boson"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%ED%9E%89%EC%8A%A4+%EB%B3%B4%EC%86%90+%EB%B0%9C%EA%B2%AC&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Discovery+of+the+Higgs+Boson"
+        },
+        {
+          "type": "source",
+          "label": "CERN",
+          "url": "https://home.cern/science/physics/higgs-boson"
+        }
+      ],
       "status": "ready"
     },
     {
@@ -1125,6 +2039,23 @@
         "양자 게이트",
         "블로흐 구",
         "양자컴퓨팅"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Qubit"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90%EC%BB%B4%ED%93%A8%ED%8C%85+%ED%81%90%EB%B9%84%ED%8A%B8&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=Quantum+Computing+Qubit"
+        }
       ],
       "status": "ready"
     }

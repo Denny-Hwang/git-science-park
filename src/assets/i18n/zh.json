@@ -57,6 +57,7 @@
     "exit": "退出课堂",
     "guideIntro": "教师快速参考：每个实验的时代、科学家、难度和主题。"
   },
+  "links": { "title": "了解更多" },
   "cat": {
     "01-ancient": { "name": "古代", "tagline": "测量与几何的诞生" },
     "02-scientific-revolution": { "name": "科学革命", "tagline": "实验与数学的结合" },

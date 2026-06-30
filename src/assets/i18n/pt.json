@@ -57,6 +57,7 @@
     "exit": "Sair da sala de aula",
     "guideIntro": "Referência rápida para professores: era, cientista, dificuldade e tema de cada experimento."
   },
+  "links": { "title": "Saiba mais" },
   "cat": {
     "01-ancient": { "name": "Antiguidade", "tagline": "O nascimento da medição e da geometria" },
     "02-scientific-revolution": { "name": "Revolução Científica", "tagline": "O experimento encontra a matemática" },
