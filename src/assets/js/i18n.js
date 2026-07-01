@@ -17,6 +17,7 @@ window.I18n = (function () {
   ];
   var CODES = SUPPORTED.map(function (s) { return s[0]; });
   var dict = {}, lang = 'en', dir = 'ltr';
+  var descDict = {}; // 실험 설명(slug → 번역문) — assets/i18n/exp/<lang>.json
 
   function base() { return window.I18N_BASE || './assets/i18n/'; }
 
@@ -73,9 +74,20 @@ window.I18n = (function () {
         document.documentElement.setAttribute('lang', lang);
         document.documentElement.setAttribute('dir', dir);
         apply(document);
-        return dict;
+        return loadDesc().then(function () { return dict; });
       })
       .catch(function () { /* 정적 서버 아님: 원문 유지 */ return {}; });
+  }
+
+  // 실험 설명 로케일(slug → 번역) 로드. 실패해도 원문(데이터의 description) 유지.
+  function loadDesc() {
+    return fetch(base() + 'exp/' + lang + '.json', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error('desc'); return r.json(); })
+      .then(function (j) { descDict = j || {}; })
+      .catch(function () { descDict = {}; });
+  }
+  function desc(slug) {
+    return (descDict && descDict[slug] != null) ? descDict[slug] : null;
   }
 
   function set(code) {
@@ -99,7 +111,7 @@ window.I18n = (function () {
   }
 
   return {
-    load: load, t: t, set: set, apply: apply, mountSwitcher: mountSwitcher,
+    load: load, t: t, set: set, apply: apply, mountSwitcher: mountSwitcher, desc: desc,
     lang: function () { return lang; }, dir: function () { return dir; }, supported: SUPPORTED
   };
 })();

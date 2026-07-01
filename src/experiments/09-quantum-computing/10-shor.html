@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쇼어 알고리즘 (주기 찾기) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #062a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .answer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .answer-grid .btn.preset { min-width: 42px; padding: 6px 10px; font-size: 0.9rem; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .warn-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #fffbeb; border-left: 4px solid #92400e; color: #92400e;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .peak-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #f0fdf4; border-left: 4px solid #166534; color: #166534;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .seq-box {
+      margin-top: 10px; padding: 10px 12px; border-radius: 6px;
+      background: #041f26; color: #d4f3fb; border: 1px solid #0d3a44;
+      font-family: "Courier New", monospace; font-size: 0.95rem;
+      overflow-x: auto; white-space: nowrap;
+    }
+    .seq-box .repeat { color: #ffd278; font-weight: 700; }
+    .seq-box .one { color: #7ef0a4; font-weight: 700; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>쇼어 알고리즘 (주기 찾기)</h1>
+    <div class="en">Shor's Algorithm</div>
+    <div class="meta">1994 · 피터 쇼어 (Peter Shor) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="쇼어 알고리즘의 주기 찾기를 보여주는 막대그래프. 단계에 따라 a^x mod N 의 반복되는 주기 패턴 또는 양자 푸리에 변환 측정 확률 분포가 표시되며, 확률은 주기 r로 나눈 위치에서 뾰족한 봉우리를 이룹니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>인수분해할 합성수 N 선택</label>
+          <div class="btn-row" role="group" aria-label="N 선택">
+            <button type="button" class="btn preset active" data-n="15">N = 15</button>
+            <button type="button" class="btn preset" data-n="21">N = 21</button>
+            <button type="button" class="btn preset" data-n="33">N = 33</button>
+            <button type="button" class="btn preset" data-n="35">N = 35</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>밑(base) a 선택 &nbsp;(1 &lt; a &lt; N)</label>
+          <div class="answer-grid" id="baseGrid" role="group" aria-label="밑 a 선택"></div>
+        </div>
+
+        <div class="control-row">
+          <label>단계별 진행</label>
+          <div class="btn-row">
+            <button type="button" class="btn" id="stepBtn">▶ 다음 단계</button>
+            <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>현재 단계: <strong id="r-phase">단계 0 · 준비</strong></div>
+          <div>gcd(a, N): <strong id="r-gcd">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>주기 r: <strong id="r-period">—</strong></div>
+          <div>Q = 2ᵗ (Q ≥ N²): <strong id="r-q">—</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>측정된 봉우리 k/Q: <strong id="r-peak">—</strong></div>
+          <div>인수분해 결과: <strong id="r-factors">—</strong></div>
+        </div>
+        <div class="seq-box" id="seqBox" style="display:none;"></div>
+        <div class="peak-note" id="peakNote" style="display:none;"></div>
+        <div class="warn-note" id="warnNote" style="display:none;"></div>
+      </div>
+
+      <div class="hint-box">
+        💡 쇼어 알고리즘의 핵심은 <strong>주기 찾기</strong>입니다. f(x) = a<sup>x</sup> mod N 은 주기 r 로 반복되며,
+        양자 푸리에 변환(QFT)은 이 주기 정보를 <strong>확률 봉우리</strong>로 바꾸어 한 번의 측정으로 r 을 알아내게 해줍니다.
+        r 을 알면 gcd(a<sup>r/2</sup> ± 1, N) 로 N 의 인수를 <strong>고전적으로</strong> 계산할 수 있습니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>쇼어 알고리즘의 원리</h2>
+
+      <div class="concept-box">
+        <h3>문제: 큰 수의 소인수분해</h3>
+        <p>
+          두 소수의 곱 N = p × q 가 주어졌을 때 p 와 q 를 찾는 문제는, N 이 커질수록 고전 컴퓨터로는
+          현실적인 시간 안에 풀 수 없다고 여겨집니다. 이 <strong>어려움</strong>이 바로 RSA 공개키 암호의 안전성 근거입니다.
+          쇼어 알고리즘은 양자 컴퓨터로 이 문제를 <strong>다항 시간</strong>에 풀어, RSA를 위협합니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>핵심 통찰: 인수분해 → 주기 찾기</h3>
+        <p>
+          N 과 서로소인 밑 a 를 하나 고르면, 함수 f(x) = a<sup>x</sup> mod N 은 어떤 <strong>주기 r</strong> 로 반복됩니다.
+          즉 a<sup>r</sup> ≡ 1 (mod N) 이 되는 가장 작은 r 이 존재합니다.
+        </p>
+        <ul class="goals">
+          <li><strong>1) 함수 만들기:</strong> x = 0, 1, 2, … 에 대해 a<sup>x</sup> mod N 을 나열하면 값이 주기적으로 반복됩니다.</li>
+          <li><strong>2) 양자 주기 찾기:</strong> 이 주기적 함수에 QFT를 적용해 측정하면, 측정값 k 는 <strong>Q/r 의 배수</strong> 근처에서 뾰족한 확률 봉우리를 만듭니다 (Q = 2<sup>t</sup> ≥ N²).</li>
+          <li><strong>3) 주기 추출:</strong> 측정한 k/Q 를 <strong>연분수(continued fraction)</strong>로 전개해 분모에서 r 을 복원합니다.</li>
+          <li><strong>4) 인수 계산:</strong> r 이 짝수이고 a<sup>r/2</sup> ≢ −1 (mod N) 이면, gcd(a<sup>r/2</sup> − 1, N) 과 gcd(a<sup>r/2</sup> + 1, N) 가 N 의 진짜 인수입니다.</li>
+        </ul>
+        <p>
+          고전 컴퓨터로 주기 r 을 찾는 것은 인수분해만큼이나 어렵지만, <strong>QFT</strong>는 중첩된 모든 x 를 한꺼번에
+          변환해 주기를 확률 봉우리로 드러냅니다. 이것이 양자 가속의 원천입니다.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        f(x) = a<sup>x</sup> mod N,  주기 r: a<sup>r</sup> ≡ 1 (mod N)<br>
+        QFT 측정 봉우리: k ≈ round(m·Q/r),  m = 0 … r−1<br>
+        연분수: k/Q ≈ m/r  →  분모 r 복원<br>
+        r 짝수 & a<sup>r/2</sup> ≢ −1 →  factor = gcd(a<sup>r/2</sup> ± 1, N)<br>
+        예: N=15, a=7 → r=4 → gcd(48, 15)=3, gcd(50, 15)=5
+      </div>
+
+      <div class="misconception">
+        <h3>흔한 오해</h3>
+        <p>
+          "양자 컴퓨터가 모든 경우를 동시에 시도해 답을 즉시 찾는다"는 <strong>틀린</strong> 그림입니다.
+          측정하면 하나의 값만 나옵니다. 쇼어의 힘은 <strong>간섭</strong>에 있습니다. QFT가 주기와 맞는
+          측정값의 확률만 <strong>보강 간섭</strong>으로 키우고 나머지는 상쇄시켜, 유용한 정보(주기)만 뽑아냅니다.
+          또한 r 이 홀수이거나 a<sup>r/2</sup> ≡ −1 이면 실패하므로, 다른 a 로 <strong>재시도</strong>가 필요합니다.
+        </p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈: 확인해 봅시다</h3>
+        <p><strong>N = 15, a = 7 일 때 f(x) = 7<sup>x</sup> mod 15 의 주기 r 은 얼마이며, 얻는 인수는?</strong></p>
+        <form id="quizForm">
+          <label><input type="radio" name="q1" value="a"> r = 2, 인수 3과 5</label>
+          <label><input type="radio" name="q1" value="b"> r = 4, 인수 3과 5</label>
+          <label><input type="radio" name="q1" value="c"> r = 7, 인수 1과 15</label>
+          <label><input type="radio" name="q1" value="d"> 주기가 없어 실패</label>
+          <button type="button" id="quizBtn">채점하기</button>
+        </form>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1977년</strong> — 리베스트·샤미르·아델만이 소인수분해의 어려움에 기반한 <strong>RSA</strong> 공개키 암호를 발표.</li>
+          <li><strong>1994년</strong> — 피터 쇼어(Peter Shor)가 AT&amp;T 벨 연구소에서 소인수분해와 이산로그를 다항 시간에 푸는 양자 알고리즘을 발표. 양자 컴퓨팅 연구가 폭발적으로 시작됨.</li>
+          <li><strong>1996년</strong> — 로브 그로버가 양자 검색 알고리즘을 발표하며 쇼어와 함께 양자 알고리즘의 두 기둥을 이룸.</li>
+          <li><strong>2001년</strong> — IBM과 스탠퍼드 연구진이 7큐비트 NMR 양자 컴퓨터로 <strong>15 = 3 × 5</strong> 를 쇼어 알고리즘으로 최초 시연.</li>
+          <li><strong>2012년 이후</strong> — 초전도·이온트랩 큐비트로 더 큰 수의 시연이 이어지지만, 오류 정정 없이 실용적 크기의 RSA를 깨기에는 아직 큐비트 수와 품질이 부족함.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>왜 중요한가</h3>
+        <p>
+          쇼어 알고리즘은 "충분히 큰 양자 컴퓨터가 있다면 오늘날의 RSA·타원곡선 암호가 무너진다"는 것을 보여주었습니다.
+          이 위협 때문에 전 세계가 양자 컴퓨터로도 안전한 <strong>양자내성암호(Post-Quantum Cryptography)</strong>로의
+          전환을 서두르고 있습니다. 하나의 알고리즘이 학문·산업·국가 안보의 방향을 바꾼 대표 사례입니다.
+        </p>
+      </div>
+
+      <div class="scientist">
+        <h3>피터 쇼어 (Peter Williston Shor, 1959~)</h3>
+        <p>
+          미국의 응용수학자로, 1994년 벨 연구소 재직 중 소인수분해를 위한 양자 알고리즘을 고안했습니다.
+          그는 주기 찾기라는 정수론 문제를 양자 푸리에 변환으로 연결해, 지수적으로 느린 고전 계산을 다항 시간으로
+          바꿀 수 있음을 보였습니다. 이후 쇼어는 양자 오류 정정 부호도 처음 제안해, 실제 양자 컴퓨터를 만들 수 있다는
+          희망의 이론적 토대를 놓았습니다. 이 공로로 괴델상, 네반린나상 등을 수상했습니다.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ===== 순수 정수 정수론 헬퍼 (BigInt 없이, N이 작아 Number로 안전) =====
+      function gcd(a, b) {
+        a = Math.abs(a); b = Math.abs(b);
+        while (b) { const t = a % b; a = b; b = t; }
+        return a;
+      }
+      // a^x mod N — 곱마다 mod 를 취해 오버플로 방지 (N ≤ 35 이므로 안전)
+      function modpow(a, x, N) {
+        let r = 1;
+        a = ((a % N) + N) % N;
+        for (let i = 0; i < x; i++) r = (r * a) % N;
+        return r;
+      }
+      // 고전적 참 주기: a^r ≡ 1 (mod N) 인 가장 작은 r>0
+      function truePeriod(a, N) {
+        for (let r = 1; r <= N; r++) {
+          if (modpow(a, r, N) === 1) return r;
+        }
+        return -1;
+      }
+      // 2^t ≥ N^2 인 가장 작은 Q = 2^t (교재용, 시각화 규모를 위해 상한)
+      function chooseQ(N) {
+        const target = N * N;
+        let q = 1;
+        while (q < target) q *= 2;
+        if (q > 2048) q = 2048; // 시각화 밀도를 위한 상한 (모든 N에서 Q ≥ N² 유지)
+        return q;
+      }
+      // 연분수로 k/Q ≈ m/r 에서 분모 후보를 복원 (분모 ≤ N)
+      function recoverPeriod(k, Q, N) {
+        if (k === 0) return -1;
+        let num = k, den = Q;
+        let h0 = 0, h1 = 1, k0 = 1, k1 = 0; // 수렴분수 분모: k0, k1
+        for (let it = 0; it < 40; it++) {
+          const aq = Math.floor(num / den);
+          const h2 = aq * h1 + h0;
+          const kq = aq * k1 + k0;
+          h0 = h1; h1 = h2; k0 = k1; k1 = kq;
+          // k1 은 현재 수렴분수의 분모(=주기 후보)
+          if (k1 > 0 && k1 <= N && modpow(state.a, k1, state.N) === 1) return k1;
+          const rem = num - aq * den;
+          if (rem === 0) break;
+          num = den; den = rem;
+        }
+        return -1;
+      }
+
+      // ===== 상태 =====
+      const state = {
+        N: 15,
+        a: 7,
+        r: -1,
+        Q: 16,
+        seq: [],        // f(x) = a^x mod N, x=0..
+        peakK: -1,      // 측정된 봉우리 k
+        recovered: -1,  // 연분수로 복원한 r
+        factors: null,  // [p, q] 또는 null
+        step: 0,        // 0 준비 · 1 함수 · 2 QFT · 3 주기추출 · 4 인수
+        gcdVal: 1,
+        gcdShortcut: false, // gcd(a,N)≠1 이면 바로 인수 발견
+        retry: false        // r 홀수 또는 a^(r/2)≡-1
+      };
+
+      // ===== 레이아웃 상수 =====
+      const W = 640, H = 380;
+      const PAD_L = 34, PAD_R = 20, PAD_T = 40, PAD_B = 34;
+
+      // ===== DOM =====
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nBtns = document.querySelectorAll('.btn.preset[data-n]');
+      const baseGrid = document.getElementById('baseGrid');
+      const stepBtn = document.getElementById('stepBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rPhase = document.getElementById('r-phase');
+      const rGcd = document.getElementById('r-gcd');
+      const rPeriod = document.getElementById('r-period');
+      const rQ = document.getElementById('r-q');
+      const rPeak = document.getElementById('r-peak');
+      const rFactors = document.getElementById('r-factors');
+      const seqBox = document.getElementById('seqBox');
+      const peakNote = document.getElementById('peakNote');
+      const warnNote = document.getElementById('warnNote');
+
+      // ===== 탭 전환 (템플릿 코드 그대로) =====
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ===== 밑 a 후보 (1<a<N, gcd(a,N)=1 인 것 + 대표 nontrivial 몇 개) =====
+      function coprimeBases(N) {
+        const out = [];
+        for (let a = 2; a < N; a++) {
+          if (gcd(a, N) === 1) out.push(a);
+          if (out.length >= 8) break;
+        }
+        // 인수 관계를 보여주는 non-coprime 예시 하나 추가 (있으면)
+        for (let a = 2; a < N; a++) {
+          if (gcd(a, N) !== 1) { out.push(a); break; }
+        }
+        return out;
+      }
+
+      // ===== 파생값 계산 =====
+      function computeAll() {
+        state.gcdVal = gcd(state.a, state.N);
+        state.seq = [];
+        for (let x = 0; x <= Math.min(state.N + 2, 18); x++) {
+          state.seq.push(modpow(state.a, x, state.N));
+        }
+        state.Q = chooseQ(state.N);
+
+        if (state.gcdVal !== 1) {
+          // 이미 인수 발견 — 주기 찾기 불필요
+          state.gcdShortcut = true;
+          state.r = -1;
+          state.retry = false;
+          state.factors = [state.gcdVal, state.N / state.gcdVal];
+          state.peakK = -1;
+          state.recovered = -1;
+          return;
+        }
+        state.gcdShortcut = false;
+        state.r = truePeriod(state.a, state.N);
+
+        // 대표 봉우리 하나 선택: m=1 → k ≈ round(Q/r)
+        state.peakK = state.r > 0 ? Math.round(state.Q / state.r) : -1;
+        state.recovered = state.peakK > 0 ? recoverPeriod(state.peakK, state.Q, state.N) : -1;
+
+        // 인수 판정
+        const r = state.r;
+        state.retry = false;
+        state.factors = null;
+        if (r > 0 && r % 2 === 0) {
+          const half = modpow(state.a, r / 2, state.N);
+          if (half === state.N - 1) {
+            state.retry = true; // a^(r/2) ≡ -1
+          } else {
+            const p = gcd(half - 1, state.N);
+            const q = gcd(half + 1, state.N);
+            if (p > 1 && p < state.N) state.factors = [p, state.N / p];
+            else if (q > 1 && q < state.N) state.factors = [q, state.N / q];
+            else state.retry = true;
+          }
+        } else {
+          state.retry = true; // r 홀수
+        }
+      }
+
+      // ===== 그리기 =====
+      function draw() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#062a33';
+        ctx.fillRect(0, 0, W, H);
+
+        // 제목/단계 라벨
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+
+        if (state.gcdShortcut) {
+          drawShortcut();
+          return;
+        }
+
+        if (state.step <= 1) {
+          drawModExp();
+        } else {
+          drawQFT();
+        }
+      }
+
+      function drawShortcut() {
+        ctx.fillStyle = '#ffd278';
+        ctx.font = 'bold 15px system-ui, sans-serif';
+        ctx.fillText('행운! a 와 N 이 서로소가 아닙니다.', PAD_L, 40);
+        ctx.fillStyle = '#d4f3fb';
+        ctx.font = '13px system-ui, sans-serif';
+        ctx.fillText('gcd(' + state.a + ', ' + state.N + ') = ' + state.gcdVal +
+          ' 이므로 주기 찾기 없이 인수를 바로 얻습니다.', PAD_L, 70);
+        ctx.fillStyle = '#7ef0a4';
+        ctx.font = 'bold 24px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(state.N + ' = ' + state.factors[0] + ' × ' + state.factors[1], W / 2, H / 2 + 8);
+      }
+
+      function drawModExp() {
+        const seq = state.seq;
+        const n = seq.length;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('단계 1 · f(x) = ' + state.a + '^x mod ' + state.N + '  (주기 r 을 찾는 중)', PAD_L, 22);
+
+        const plotW = W - PAD_L - PAD_R;
+        const plotH = H - PAD_T - PAD_B;
+        const baseY = H - PAD_B;
+        const slot = plotW / n;
+        const barW = Math.max(6, slot * 0.6);
+        const maxV = Math.max(1, state.N - 1);
+        const scale = plotH / maxV;
+        const r = state.r;
+
+        for (let x = 0; x < n; x++) {
+          const cx = PAD_L + slot * x + slot / 2;
+          const bx = cx - barW / 2;
+          const v = seq[x];
+          const barH = v * scale;
+          // 주기의 한 구간(x < r)을 강조
+          const inFirstPeriod = (r > 0 && x < r);
+          ctx.fillStyle = (v === 1 && x > 0) ? '#7ef0a4'
+            : inFirstPeriod ? '#1597b8' : '#7d8a91';
+          ctx.fillRect(bx, baseY - barH, barW, barH);
+
+          // 값 라벨
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.font = '10px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(String(v), cx, baseY - barH - 4);
+          // x 라벨
+          ctx.fillStyle = 'rgba(255,255,255,0.6)';
+          ctx.fillText(String(x), cx, H - 10);
+        }
+
+        // 주기 표시 화살표: x=0 값과 x=r 값이 같음 (되풀이 시작)
+        if (r > 0 && r < n) {
+          const y = PAD_T - 8;
+          const x0 = PAD_L + slot * 0 + slot / 2;
+          const xr = PAD_L + slot * r + slot / 2;
+          ctx.strokeStyle = '#ffd278';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 3]);
+          ctx.beginPath();
+          ctx.moveTo(x0, y); ctx.lineTo(xr, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#ffd278';
+          ctx.font = 'bold 12px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('주기 r = ' + r, (x0 + xr) / 2, y - 5);
+        }
+      }
+
+      function drawQFT() {
+        const Q = state.Q;
+        const r = state.r;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        const label = state.step === 2 ? '단계 2 · QFT 측정 확률 분포  (Q = ' + Q + ')'
+          : state.step === 3 ? '단계 3 · 봉우리 k 에서 주기 추출 (연분수)'
+          : '단계 4 · 인수 계산';
+        ctx.fillText(label, PAD_L, 22);
+
+        const plotW = W - PAD_L - PAD_R;
+        const plotH = H - PAD_T - PAD_B;
+        const baseY = H - PAD_B;
+        // k = 0..Q-1 를 그린다. 이상적 봉우리는 k = round(m*Q/r).
+        // 각 k 의 이상적 확률: r 로 나눈 위치에 뾰족한 봉우리 (교재용 근사)
+        const probs = new Array(Q).fill(0);
+        if (r > 0) {
+          for (let m = 0; m < r; m++) {
+            const peak = Math.round(m * Q / r) % Q;
+            probs[peak] = 1; // 봉우리
+            // 주변으로 살짝 새는 부분 (sinc 근사, 시각적 사실성)
+            for (let d = 1; d <= 2; d++) {
+              const val = 0.18 / (d * d);
+              probs[(peak + d) % Q] = Math.max(probs[(peak + d) % Q], val);
+              probs[(peak - d + Q) % Q] = Math.max(probs[(peak - d + Q) % Q], val);
+            }
+          }
+        }
+        const slot = plotW / Q;
+        const barW = Math.max(1.5, slot * 0.7);
+        for (let k = 0; k < Q; k++) {
+          const cx = PAD_L + slot * k + slot / 2;
+          const bx = cx - barW / 2;
+          const barH = probs[k] * plotH;
+          const isPeak = probs[k] >= 0.99;
+          const isSelected = (state.step >= 3 && k === state.peakK);
+          ctx.fillStyle = isSelected ? '#ffd278' : isPeak ? '#1597b8' : '#42707d';
+          if (barH > 0.5) ctx.fillRect(bx, baseY - barH, barW, barH);
+        }
+
+        // 봉우리 간격 라벨
+        if (r > 0) {
+          ctx.fillStyle = 'rgba(255,255,255,0.6)';
+          ctx.font = '11px system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('봉우리 간격 ≈ Q/r = ' + (Q / r).toFixed(1), PAD_L, H - 8);
+        }
+
+        // 선택된 봉우리 화살표
+        if (state.step >= 3 && state.peakK >= 0) {
+          const cx = PAD_L + slot * state.peakK + slot / 2;
+          ctx.strokeStyle = '#ffd278';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, PAD_T - 6);
+          ctx.lineTo(cx, PAD_T + 6);
+          ctx.stroke();
+          ctx.fillStyle = '#ffd278';
+          ctx.font = 'bold 11px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('측정 k = ' + state.peakK, Math.min(W - 40, Math.max(40, cx)), PAD_T - 12);
+        }
+
+        // 단계 4: 최종 인수 표시
+        if (state.step >= 4) {
+          ctx.textAlign = 'center';
+          if (state.factors) {
+            ctx.fillStyle = '#7ef0a4';
+            ctx.font = 'bold 22px system-ui, sans-serif';
+            ctx.fillText(state.N + ' = ' + state.factors[0] + ' × ' + state.factors[1], W / 2, baseY - plotH / 2);
+          } else {
+            ctx.fillStyle = '#ffb3b3';
+            ctx.font = 'bold 16px system-ui, sans-serif';
+            ctx.fillText('실패 — 다른 밑 a 로 재시도하세요', W / 2, baseY - plotH / 2);
+          }
+        }
+      }
+
+      // ===== 시퀀스 텍스트 (주기 반복 강조) =====
+      function seqHtml() {
+        const seq = state.seq;
+        const r = state.r;
+        const parts = [];
+        for (let x = 0; x < seq.length; x++) {
+          const v = seq[x];
+          let cls = '';
+          if (v === 1 && x > 0) cls = 'one';
+          else if (r > 0 && x % r === 0 && x > 0) cls = 'repeat';
+          parts.push(cls ? '<span class="' + cls + '">' + v + '</span>' : String(v));
+        }
+        return 'f(x) = ' + parts.join(', ') + ' …';
+      }
+
+      // ===== 리드아웃 =====
+      function updateReadout() {
+        rGcd.textContent = String(state.gcdVal);
+        rQ.textContent = state.gcdShortcut ? '—' : String(state.Q);
+
+        const phases = ['단계 0 · 준비', '단계 1 · 함수 만들기', '단계 2 · 양자 주기 찾기(QFT)',
+          '단계 3 · 주기 추출', '단계 4 · 인수 계산'];
+        rPhase.textContent = state.gcdShortcut ? '지름길 · gcd로 즉시 인수' : phases[state.step];
+
+        // 주기 표시
+        if (state.gcdShortcut) rPeriod.textContent = '불필요';
+        else if (state.step >= 1 && state.r > 0) rPeriod.textContent = String(state.r);
+        else rPeriod.textContent = '—';
+
+        // 봉우리
+        if (state.gcdShortcut) rPeak.textContent = '—';
+        else if (state.step >= 2 && state.peakK >= 0)
+          rPeak.textContent = state.peakK + ' / ' + state.Q + ' ≈ ' + (state.peakK / state.Q).toFixed(3);
+        else rPeak.textContent = '—';
+
+        // 인수
+        if ((state.step >= 4 || state.gcdShortcut) && state.factors)
+          rFactors.textContent = state.N + ' = ' + state.factors[0] + ' × ' + state.factors[1];
+        else if (state.step >= 4 && !state.factors)
+          rFactors.textContent = '실패 (재시도 필요)';
+        else rFactors.textContent = '—';
+
+        // 시퀀스 박스
+        if (!state.gcdShortcut && state.step >= 1) {
+          seqBox.style.display = 'block';
+          seqBox.innerHTML = seqHtml();
+        } else {
+          seqBox.style.display = 'none';
+        }
+
+        // 노트
+        peakNote.style.display = 'none';
+        warnNote.style.display = 'none';
+        if (state.gcdShortcut) {
+          peakNote.style.display = 'block';
+          peakNote.textContent = '✅ 우연히 gcd(a, N) = ' + state.gcdVal +
+            ' 로 이미 인수를 찾았습니다. 주기 찾기가 필요 없는 행운의 경우입니다.';
+        } else if (state.step >= 3 && state.recovered > 0) {
+          peakNote.style.display = 'block';
+          peakNote.textContent = '✅ 연분수로 k/Q = ' + state.peakK + '/' + state.Q +
+            ' 를 전개해 주기 r = ' + state.recovered + ' 을 복원했습니다.';
+        }
+        if (state.step >= 4 && state.retry) {
+          warnNote.style.display = 'block';
+          if (state.r > 0 && state.r % 2 === 1)
+            warnNote.textContent = '⚠️ 주기 r = ' + state.r + ' 이 홀수라 인수 공식을 쓸 수 없습니다. 다른 밑 a 로 재시도하세요.';
+          else
+            warnNote.textContent = '⚠️ a^(r/2) ≡ −1 (mod N) 이라 자명한 인수만 나옵니다. 다른 밑 a 로 재시도하세요.';
+        }
+      }
+
+      // ===== 밑 a 버튼 =====
+      function buildBaseGrid() {
+        baseGrid.innerHTML = '';
+        const bases = coprimeBases(state.N);
+        bases.forEach((a) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn preset' + (a === state.a ? ' active' : '');
+          b.textContent = 'a = ' + a;
+          b.setAttribute('aria-label', '밑 a 를 ' + a + ' 로 선택');
+          b.dataset.a = String(a);
+          b.addEventListener('click', () => setBase(a));
+          baseGrid.appendChild(b);
+        });
+      }
+
+      function refreshBaseGrid() {
+        baseGrid.querySelectorAll('button').forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.a) === state.a);
+        });
+      }
+
+      function setBase(a) {
+        state.a = a;
+        state.step = 0;
+        computeAll();
+        refreshBaseGrid();
+        updateReadout();
+        draw();
+      }
+
+      // ===== 단계 진행 =====
+      function nextStep() {
+        if (state.gcdShortcut) return; // 지름길이면 단계 진행 불필요
+        const maxStep = 4;
+        if (state.step < maxStep) state.step += 1;
+        updateReadout();
+        draw();
+      }
+
+      function reset() {
+        state.step = 0;
+        updateReadout();
+        draw();
+      }
+
+      // ===== N 선택 =====
+      nBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          const N = Number(b.dataset.n);
+          nBtns.forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          state.N = N;
+          // 기본 밑: 서로소인 가장 작은 a
+          const bases = coprimeBases(N);
+          state.a = bases.length ? bases[0] : 2;
+          state.step = 0;
+          computeAll();
+          buildBaseGrid();
+          updateReadout();
+          draw();
+        });
+      });
+
+      stepBtn.addEventListener('click', nextStep);
+      resetBtn.addEventListener('click', reset);
+
+      // ===== 퀴즈 채점 =====
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quizFeedback');
+      if (quizBtn) {
+        quizBtn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#1d4ed8';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '정답입니다! 7^x mod 15 = 1, 7, 4, 13, 1, … 이므로 r = 4. r/2 = 2, 7^2 = 49 ≡ 4 (mod 15) 이고 gcd(48,15)=3, gcd(50,15)=5 → 15 = 3 × 5.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 7^x mod 15 은 1, 7, 4, 13 을 반복하므로 주기 r = 4 이고, gcd(7^2 ∓ 1, 15) 로 인수 3과 5 를 얻습니다.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ===== 초기화 =====
+      state.N = 15;
+      state.a = 7;
+      state.step = 0;
+      computeAll();
+      buildBaseGrid();
+      updateReadout();
+      draw();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./09-qft.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 양자 푸리에 변환 (QFT)</a>
+      <a href="./11-quantum-walk.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 양자 무작위 걷기</a>
+      <a href="../09-quantum-computing/07-error-correction.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 오류정정 (3-큐비트)</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Shor%27s_algorithm" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%87%BC%EC%96%B4+%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=shor+algorithm+period+finding+factoring" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 68, "slug": "10-shor", "category": "09-quantum-computing", "icon": "🗝️", "title": "쇼어 알고리즘 (주기 찾기)", "titleEn": "Shor's Algorithm", "year": "1994", "scientist": "피터 쇼어 (Peter Shor)", "difficulty": 5, "description": "모듈러 거듭제곱의 주기를 QFT로 찾아 큰 수를 다항 시간에 소인수분해한다.", "keywords": ["쇼어", "소인수분해", "주기 찾기", "모듈러 지수", "QFT", "RSA"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

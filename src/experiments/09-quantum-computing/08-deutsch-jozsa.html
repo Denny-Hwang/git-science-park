@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도이치–조자 알고리즘 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #062a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .answer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .answer-grid .btn.preset { min-width: 42px; padding: 6px 10px; font-size: 0.9rem; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .warn-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #fffbeb; border-left: 4px solid #92400e; color: #92400e;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .peak-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #f0fdf4; border-left: 4px solid #166534; color: #166534;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>도이치–조자 알고리즘</h1>
+    <div class="en">Deutsch–Jozsa Algorithm</div>
+    <div class="meta">1992 · 도이치 · 조자 (Deutsch · Jozsa) · 난이도 ⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="도이치-조자 알고리즘의 상태벡터 시뮬레이션. 오라클과 하다마드 게이트를 적용한 뒤, 입력 레지스터를 측정한 확률을 막대그래프로 보여줍니다. 상수 함수는 00 결과가 100 퍼센트, 균형 함수는 00 결과가 0 퍼센트입니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>오라클 함수 f(x₀, x₁) 선택</label>
+          <div class="btn-row" id="oracleGrid" role="group" aria-label="오라클 함수 선택">
+            <button type="button" class="btn preset active" data-oracle="c0">상수 f=0</button>
+            <button type="button" class="btn preset" data-oracle="c1">상수 f=1</button>
+            <button type="button" class="btn preset" data-oracle="x0">균형 f=x₀</button>
+            <button type="button" class="btn preset" data-oracle="x1">균형 f=x₁</button>
+            <button type="button" class="btn preset" data-oracle="xor">균형 f=x₀⊕x₁</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>알고리즘 단계 진행 (한 단계씩 실행하며 상태벡터가 어떻게 바뀌는지 확인)</label>
+          <div class="btn-row">
+            <button type="button" class="btn" id="stepBtn">▶ 다음 단계</button>
+            <button type="button" class="btn" id="runBtn">⏭ 끝까지 (측정)</button>
+            <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>선택한 오라클: <strong id="r-oracle">상수 f=0</strong></div>
+          <div>실제 유형: <strong id="r-type">상수 (Constant)</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>현재 단계: <strong id="r-phase">① 초기화 |00⟩|1⟩</strong></div>
+          <div>오라클 질의 횟수: <strong id="r-queries">1</strong> 회</div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>P(입력 = |00⟩): <strong id="r-p00">—</strong></div>
+          <div>측정 판정: <strong id="r-verdict">아직 측정 전</strong></div>
+        </div>
+        <div class="peak-note" id="peakNote" style="display:none;"></div>
+        <div class="warn-note" id="warnNote" style="display:none;"></div>
+      </div>
+
+      <div class="hint-box">
+        💡 오라클이 <strong>상수</strong>이면 마지막에 입력 레지스터를 측정했을 때 반드시 <strong>|00⟩</strong>이 나오고,
+        <strong>균형</strong>이면 <strong>절대 |00⟩이 나오지 않습니다</strong>. 이 판정을 위해 양자 컴퓨터는 오라클을 <strong>단 한 번</strong>만 부르면 됩니다.
+        (고전적으로는 최악의 경우 2ⁿ⁻¹+1 = 3번 확인해야 합니다.)
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>도이치–조자 알고리즘의 원리</h2>
+
+      <div class="concept-box">
+        <h3>문제: 상수인가, 균형인가?</h3>
+        <p>
+          함수 <strong>f : {0,1}ⁿ → {0,1}</strong> 이 다음 둘 중 하나임을 <em>보장(약속)</em>받았다고 합시다.
+        </p>
+        <ul class="goals">
+          <li><strong>상수(Constant):</strong> 모든 입력에 대해 같은 값(전부 0 또는 전부 1)을 출력.</li>
+          <li><strong>균형(Balanced):</strong> 입력의 정확히 절반에 0을, 나머지 절반에 1을 출력.</li>
+        </ul>
+        <p>
+          목표는 f가 상수인지 균형인지 판별하는 것입니다. 고전 컴퓨터는 최악의 경우
+          입력 2ⁿ개 중 절반보다 한 개 더 많은 <strong>2ⁿ⁻¹ + 1</strong>번을 확인해야 확신할 수 있습니다.
+          (n=2이면 3번.) 그러나 양자 알고리즘은 오라클을 <strong>단 한 번</strong> 불러 답을 냅니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>위상 킥백 (Phase Kickback)</h3>
+        <p>
+          핵심은 보조 큐비트(ancilla)를 |−⟩ = (|0⟩ − |1⟩)/√2 상태로 준비하는 것입니다.
+          오라클 U_f: |x⟩|y⟩ → |x⟩|y⊕f(x)⟩ 을 |−⟩에 적용하면,
+          f(x)=1일 때 |0⟩과 |1⟩이 뒤바뀌어 전체 부호가 반전됩니다. 즉
+          U_f|x⟩|−⟩ = (−1)^{f(x)} |x⟩|−⟩ 이 되어, 함수 값이 입력 레지스터의 <strong>위상</strong>으로 "튕겨" 들어옵니다.
+        </p>
+        <p>
+          입력에 하다마드(H)를 걸어 만든 균등 중첩에 이 위상을 실은 뒤 다시 H를 걸면, 간섭에 의해
+          상수일 때는 모든 위상이 같아 |00…0⟩에 완전히 보강 간섭되고, 균형일 때는 |00…0⟩에서 정확히 상쇄됩니다.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        초기: |0⟩⊗ⁿ |1⟩<br>
+        H⊗ⁿ⁺¹ 후: (1/√2ⁿ) Σₓ |x⟩ ⊗ |−⟩<br>
+        오라클(위상 킥백): (1/√2ⁿ) Σₓ (−1)^{f(x)} |x⟩ ⊗ |−⟩<br>
+        H⊗ⁿ 후 |0…0⟩의 진폭 = (1/2ⁿ) Σₓ (−1)^{f(x)}<br>
+        상수 → |진폭| = 1 → P(|0…0⟩) = 100%<br>
+        균형 → 진폭 = 0 → P(|0…0⟩) = 0%
+      </div>
+
+      <div class="misconception">
+        <h3>흔한 오해</h3>
+        <p>
+          "양자 컴퓨터가 모든 입력을 동시에 계산해서 하나하나 읽어낸다"는 것은 <strong>틀린</strong> 그림입니다.
+          중첩 상태를 측정하면 값 하나만 무작위로 얻을 뿐이라, 2ⁿ개의 f(x)를 전부 읽을 수는 없습니다.
+          도이치–조자의 힘은 개별 값이 아니라 f 전체의 <strong>전역적 성질(상수/균형)</strong>을
+          간섭으로 한 번에 뽑아낸다는 데 있습니다.
+        </p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈: 확인해 봅시다</h3>
+        <p><strong>n=2 (입력 4가지)일 때, 고전 컴퓨터가 상수/균형을 <em>확실히</em> 판별하려면 최악의 경우 몇 번 f를 계산해야 할까요?</strong></p>
+        <form id="quizForm">
+          <label><input type="radio" name="q1" value="a"> 1번 (양자와 똑같음)</label>
+          <label><input type="radio" name="q1" value="b"> 2번</label>
+          <label><input type="radio" name="q1" value="c"> 3번 (2ⁿ⁻¹ + 1 = 3)</label>
+          <label><input type="radio" name="q1" value="d"> 4번 (모든 입력)</label>
+          <button type="button" id="quizBtn">채점하기</button>
+        </form>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1985년</strong> — 데이비드 도이치(David Deutsch)가 보편 양자 튜링 기계를 정식화하고, 단일 비트 함수에 대한 "도이치 문제"를 제시(1큐비트 판별).</li>
+          <li><strong>1992년</strong> — 도이치와 리처드 조자(Richard Jozsa)가 이를 n비트로 확장한 <strong>도이치–조자 알고리즘</strong>을 발표. 양자가 고전보다 확정적으로 지수적으로 빠른 최초의 명확한 사례.</li>
+          <li><strong>1994년</strong> — 피터 쇼어의 소인수분해 알고리즘 발표로 양자 알고리즘 연구가 폭발적으로 확대됨.</li>
+          <li><strong>1998년</strong> — 핵자기공명(NMR) 기반 소규모 양자 시스템에서 도이치–조자 알고리즘이 실험적으로 시연됨.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>왜 중요한가</h3>
+        <p>
+          도이치–조자 알고리즘은 실용적 응용은 크지 않지만, <strong>양자 병렬성</strong>과 <strong>간섭·위상 킥백</strong>이라는
+          양자 알고리즘의 핵심 도구를 가장 깔끔하게 보여주는 "교과서 예제"입니다. 이후의 번스타인–바지라니,
+          사이먼, 쇼어 알고리즘이 모두 여기서 발전한 아이디어를 공유하며, "양자가 고전을 확실히 앞선다"는
+          개념적 출발점이 되었습니다.
+        </p>
+      </div>
+
+      <div class="scientist">
+        <h3>데이비드 도이치 (David Deutsch, 1953~) · 리처드 조자 (Richard Jozsa, 1953~)</h3>
+        <p>
+          도이치는 이스라엘 태생의 영국 물리학자로 옥스퍼드에서 활동하며 "양자 컴퓨팅의 아버지"로 불립니다.
+          그는 보편 양자 컴퓨터의 개념을 정립했습니다. 조자는 오스트레일리아 출신의 수학자·물리학자로
+          양자 정보 이론, 특히 얽힘과 양자 알고리즘 분야에 크게 기여했습니다. 두 사람의 1992년 공동 연구는
+          양자 알고리즘 이론의 초석이 되었습니다.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ===== 상수: 큐비트 배치 =====
+      // n = 2 입력 큐비트 + 1 보조 큐비트 = 3 큐비트, 8개의 복소 진폭.
+      // 기저 인덱스 b = 4*q0 + 2*q1 + q2  (q0,q1 = 입력, q2 = ancilla)
+      const NQ = 3;          // 총 큐비트 수
+      const DIM = 1 << NQ;   // = 8
+      const N_IN = 2;        // 입력 큐비트 수
+      const IN_DIM = 1 << N_IN; // = 4 (입력 레지스터 결과 수)
+
+      // 오라클 정의: f(x0, x1) → {0,1}. 반환값이 f의 진리표.
+      const ORACLES = {
+        c0:  { label: '상수 f=0',   type: 'constant', f: function (x0, x1) { return 0; } },
+        c1:  { label: '상수 f=1',   type: 'constant', f: function (x0, x1) { return 1; } },
+        x0:  { label: '균형 f=x₀',  type: 'balanced', f: function (x0, x1) { return x0; } },
+        x1:  { label: '균형 f=x₁',  type: 'balanced', f: function (x0, x1) { return x1; } },
+        xor: { label: '균형 f=x₀⊕x₁', type: 'balanced', f: function (x0, x1) { return x0 ^ x1; } }
+      };
+
+      // ===== 상태 =====
+      const state = {
+        oracleKey: 'c0',
+        // psi[b] = {re, im} 복소 진폭
+        psi: [],
+        stepIdx: 0,     // 0=초기화, 1=H전체, 2=오라클, 3=H(입력), 4=측정 완료
+        measured: false
+      };
+
+      // 단계 라벨
+      const PHASE_LABELS = [
+        '① 초기화 |00⟩|1⟩',
+        '② 전체 큐비트에 H (균등 중첩 + |−⟩)',
+        '③ 오라클 U_f 적용 (위상 킥백)',
+        '④ 입력 큐비트에 H',
+        '⑤ 입력 레지스터 측정'
+      ];
+
+      // ===== 레이아웃 상수(px) =====
+      const W = 640, H = 380;
+      const PAD_L = 40, PAD_R = 20, PAD_T = 44, PAD_B = 34;
+
+      // ===== DOM =====
+      const canvas = document.getElementById('canvas');
+      const ctx = (canvas && canvas.getContext) ? canvas.getContext('2d') : null;
+
+      const oracleBtns = document.querySelectorAll('.btn.preset[data-oracle]');
+      const stepBtn = document.getElementById('stepBtn');
+      const runBtn = document.getElementById('runBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rOracle = document.getElementById('r-oracle');
+      const rType = document.getElementById('r-type');
+      const rPhase = document.getElementById('r-phase');
+      const rQueries = document.getElementById('r-queries');
+      const rP00 = document.getElementById('r-p00');
+      const rVerdict = document.getElementById('r-verdict');
+      const peakNote = document.getElementById('peakNote');
+      const warnNote = document.getElementById('warnNote');
+
+      // ===== (1) 탭 전환 (템플릿 코드 그대로) =====
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ===== 복소수 헬퍼 =====
+      function cplx(re, im) { return { re: re, im: im }; }
+      function zeroPsi() {
+        const p = new Array(DIM);
+        for (let i = 0; i < DIM; i++) p[i] = cplx(0, 0);
+        return p;
+      }
+
+      // 큐비트 인덱스 규약: bit q (0=q0 최상위 ... NQ-1=q2 최하위)
+      // b = q0*4 + q1*2 + q2  →  큐비트 q의 자리값 = 1 << (NQ-1-q)
+      function bitValue(q) { return 1 << (NQ - 1 - q); }
+
+      // ===== 단일 큐비트 Hadamard 게이트 (상태벡터에 정확히 적용) =====
+      function applyH(q) {
+        const psi = state.psi;
+        const bit = bitValue(q);
+        const inv = 1 / Math.SQRT2;
+        const next = zeroPsi();
+        for (let b = 0; b < DIM; b++) {
+          if (b & bit) continue; // bit=0 인 짝만 순회 (b0), 그 파트너 b1 = b|bit
+          const b0 = b;
+          const b1 = b | bit;
+          const a0 = psi[b0], a1 = psi[b1];
+          // H: |0> -> (|0>+|1>)/√2 , |1> -> (|0>-|1>)/√2
+          next[b0].re = (a0.re + a1.re) * inv;
+          next[b0].im = (a0.im + a1.im) * inv;
+          next[b1].re = (a0.re - a1.re) * inv;
+          next[b1].im = (a0.im - a1.im) * inv;
+        }
+        state.psi = next;
+      }
+
+      // ===== 오라클 U_f: |x⟩|y⟩ → |x⟩|y⊕f(x)⟩ (진정한 순열, 위상 킥백은 |−⟩에서 자연 발생) =====
+      function applyOracle() {
+        const psi = state.psi;
+        const f = ORACLES[state.oracleKey].f;
+        const ancBit = bitValue(2); // ancilla = q2 (최하위 비트)
+        const next = zeroPsi();
+        for (let b = 0; b < DIM; b++) {
+          const x0 = (b >> 2) & 1; // q0
+          const x1 = (b >> 1) & 1; // q1
+          const fx = f(x0, x1) & 1;
+          // y ⊕ f(x): f(x)=1 이면 ancilla 비트 토글, 아니면 그대로
+          const target = fx ? (b ^ ancBit) : b;
+          next[target].re += psi[b].re;
+          next[target].im += psi[b].im;
+        }
+        state.psi = next;
+      }
+
+      // ===== 초기화: |q0 q1⟩ = |00⟩, ancilla |1⟩ =====
+      function initPsi() {
+        const p = zeroPsi();
+        // q0=0,q1=0,q2=1 → b = 0*4+0*2+1 = 1
+        p[1] = cplx(1, 0);
+        state.psi = p;
+        state.stepIdx = 0;
+        state.measured = false;
+      }
+
+      // ===== 입력 레지스터 주변확률: P(입력 = xin), xin ∈ {0..3} =====
+      // 입력값 xin = q0*2 + q1 (2비트). ancilla(q2) 를 marginalize.
+      function inputProbs() {
+        const psi = state.psi;
+        const out = new Array(IN_DIM).fill(0);
+        for (let b = 0; b < DIM; b++) {
+          const xin = b >> 1; // 상위 2비트 = q0 q1
+          const a = psi[b];
+          out[xin] += a.re * a.re + a.im * a.im;
+        }
+        return out;
+      }
+
+      // ===== 단계 실행: 다음 단계로 진행 =====
+      function nextStep() {
+        if (state.stepIdx === 0) {
+          // → H 전체
+          for (let q = 0; q < NQ; q++) applyH(q);
+          state.stepIdx = 1;
+        } else if (state.stepIdx === 1) {
+          // → 오라클
+          applyOracle();
+          state.stepIdx = 2;
+        } else if (state.stepIdx === 2) {
+          // → H 입력 큐비트만
+          applyH(0);
+          applyH(1);
+          state.stepIdx = 3;
+        } else if (state.stepIdx === 3) {
+          // → 측정
+          state.measured = true;
+          state.stepIdx = 4;
+        }
+        // stepIdx === 4 이면 더 진행 없음
+        render();
+      }
+
+      function runToEnd() {
+        // 남은 단계 모두 실행
+        let guard = 0;
+        while (state.stepIdx < 4 && guard < 10) {
+          nextStep();
+          guard++;
+        }
+      }
+
+      function reset() {
+        initPsi();
+        render();
+      }
+
+      // ===== 그리기 =====
+      function draw() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#062a33';
+        ctx.fillRect(0, 0, W, H);
+
+        // 상단 단계 라벨
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(PHASE_LABELS[state.stepIdx], PAD_L, 20);
+
+        const oracle = ORACLES[state.oracleKey];
+        ctx.fillStyle = 'rgba(255,210,120,0.95)';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText('오라클: ' + oracle.label + '  (' +
+          (oracle.type === 'constant' ? '상수' : '균형') + ')', PAD_L, 38);
+
+        // 표시 대상: 측정 단계면 입력 레지스터 확률, 그 외엔 8개 기저 진폭(부호)
+        const plotW = W - PAD_L - PAD_R;
+
+        if (state.stepIdx >= 3) {
+          // ---- 입력 레지스터 확률 막대 (4개) ----
+          const probs = inputProbs();
+          const baseY = H - PAD_B;
+          const maxH = H - PAD_T - PAD_B;
+          const slot = plotW / IN_DIM;
+          const barW = Math.max(6, slot * 0.5);
+
+          // 기준선
+          ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(PAD_L - 6, baseY);
+          ctx.lineTo(W - PAD_R + 6, baseY);
+          ctx.stroke();
+
+          for (let x = 0; x < IN_DIM; x++) {
+            const p = probs[x];
+            const cx = PAD_L + slot * x + slot / 2;
+            const barH = p * maxH;
+            const isZero = (x === 0);
+            ctx.fillStyle = isZero ? '#1597b8' : '#7d8a91';
+            ctx.fillRect(cx - barW / 2, baseY - barH, barW, barH);
+            if (isZero) {
+              ctx.strokeStyle = '#bff0fb';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(cx - barW / 2, baseY - barH, barW, barH);
+            }
+            // 라벨 |q0q1>
+            const bits = ('00' + x.toString(2)).slice(-2);
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = '12px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('|' + bits + '⟩', cx, baseY + 18);
+            // 확률 값
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px system-ui, sans-serif';
+            ctx.fillText((p * 100).toFixed(0) + '%', cx, baseY - barH - 6);
+          }
+
+          ctx.fillStyle = 'rgba(255,255,255,0.7)';
+          ctx.font = '11px system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('입력 레지스터 |q₀q₁⟩ 측정 확률', PAD_L, H - 8);
+        } else {
+          // ---- 8개 기저의 부호 있는 진폭 막대 ----
+          const psi = state.psi;
+          const baseY = H / 2 + 8;
+          const halfH = (H - PAD_T - PAD_B) / 2;
+          const slot = plotW / DIM;
+          const barW = Math.max(6, slot * 0.5);
+
+          // 최대 진폭 스케일
+          let maxA = 1e-6;
+          for (let b = 0; b < DIM; b++) {
+            const m = Math.sqrt(psi[b].re * psi[b].re + psi[b].im * psi[b].im);
+            if (m > maxA) maxA = m;
+          }
+          const scale = halfH / maxA;
+
+          // 중심선
+          ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(PAD_L - 6, baseY);
+          ctx.lineTo(W - PAD_R + 6, baseY);
+          ctx.stroke();
+
+          for (let b = 0; b < DIM; b++) {
+            const a = psi[b];
+            // 실수 진폭 근사(부호): 이 알고리즘에선 진폭이 항상 실수이므로 re 사용
+            const val = a.re;
+            const cx = PAD_L + slot * b + slot / 2;
+            const barH = val * scale;
+            ctx.fillStyle = '#5fb3c9';
+            if (barH >= 0) ctx.fillRect(cx - barW / 2, baseY - barH, barW, barH);
+            else ctx.fillRect(cx - barW / 2, baseY, barW, -barH);
+
+            // 기저 라벨 |q0q1;anc>
+            const bits = ('000' + b.toString(2)).slice(-3);
+            ctx.fillStyle = 'rgba(255,255,255,0.75)';
+            ctx.font = '10px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(bits, cx, H - 8);
+          }
+
+          ctx.fillStyle = 'rgba(255,255,255,0.7)';
+          ctx.font = '11px system-ui, sans-serif';
+          ctx.textAlign = 'left';
+          ctx.fillText('상태벡터 진폭 (기저 |q₀q₁a⟩, 위=+ / 아래=−)', PAD_L, H - 22);
+        }
+      }
+
+      // ===== 리드아웃 =====
+      function updateReadout() {
+        const oracle = ORACLES[state.oracleKey];
+        rOracle.textContent = oracle.label;
+        rType.textContent = (oracle.type === 'constant')
+          ? '상수 (Constant)' : '균형 (Balanced)';
+        rPhase.textContent = PHASE_LABELS[state.stepIdx];
+        rQueries.textContent = (state.stepIdx >= 2) ? '1' : '0';
+
+        if (state.stepIdx >= 3) {
+          const probs = inputProbs();
+          const p00 = probs[0];
+          rP00.textContent = (p00 * 100).toFixed(1) + ' %';
+
+          if (state.measured) {
+            // 판정: P(|00>) ~ 1 → 상수, ~0 → 균형
+            const isConstant = p00 > 0.5;
+            rVerdict.textContent = isConstant ? '상수 (|00⟩ 관측)' : '균형 (|00⟩ 아님)';
+
+            // 판정 정확성 안내
+            const correct = (isConstant && oracle.type === 'constant') ||
+                            (!isConstant && oracle.type === 'balanced');
+            peakNote.style.display = 'block';
+            if (correct && isConstant) {
+              peakNote.textContent = '✅ 측정 결과 |00⟩ 확률 100% → 상수 함수로 확정. 오라클을 단 한 번만 호출했습니다.';
+            } else if (correct && !isConstant) {
+              peakNote.textContent = '✅ |00⟩ 확률 0% → 균형 함수로 확정. 고전이면 최악 3번 필요하지만 양자는 1번으로 판정했습니다.';
+            } else {
+              peakNote.textContent = '✅ 측정 완료.';
+            }
+            warnNote.style.display = 'none';
+          } else {
+            rVerdict.textContent = '측정 버튼을 눌러 판정';
+            peakNote.style.display = 'none';
+            warnNote.style.display = 'none';
+          }
+        } else {
+          rP00.textContent = '—';
+          rVerdict.textContent = '아직 측정 전';
+          peakNote.style.display = 'none';
+          // 단계 안내
+          warnNote.style.display = 'block';
+          warnNote.style.background = '#eff6ff';
+          warnNote.style.borderLeftColor = '#1d4ed8';
+          warnNote.style.color = '#1d4ed8';
+          if (state.stepIdx === 0) {
+            warnNote.textContent = 'ℹ️ 입력은 |00⟩, 보조 큐비트는 |1⟩로 초기화되어 있습니다. "다음 단계"로 진행하세요.';
+          } else if (state.stepIdx === 1) {
+            warnNote.textContent = 'ℹ️ 모든 큐비트에 H를 걸었습니다. 입력은 4가지 상태의 균등 중첩, 보조는 |−⟩ 상태입니다.';
+          } else if (state.stepIdx === 2) {
+            warnNote.textContent = 'ℹ️ 오라클 적용 완료. 위상 킥백으로 f(x)=1인 입력의 진폭 부호가 뒤집혔습니다.';
+          }
+        }
+      }
+
+      // ===== 렌더 (draw + readout) =====
+      function render() {
+        draw();
+        updateReadout();
+      }
+
+      // ===== 컨트롤 바인딩 =====
+      oracleBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          oracleBtns.forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          state.oracleKey = b.dataset.oracle;
+          initPsi();      // 오라클을 바꾸면 처음부터 다시
+          render();
+        });
+      });
+
+      if (stepBtn) stepBtn.addEventListener('click', () => nextStep());
+      if (runBtn) runBtn.addEventListener('click', () => runToEnd());
+      if (resetBtn) resetBtn.addEventListener('click', () => reset());
+
+      // ===== 퀴즈 채점 =====
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quizFeedback');
+      if (quizBtn && quizFeedback) {
+        quizBtn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#1d4ed8';
+            return;
+          }
+          if (sel.value === 'c') {
+            quizFeedback.textContent = '정답입니다! 최악의 경우 입력 절반(2)까지 같은 값이 나올 수 있어, 한 개 더 확인한 2ⁿ⁻¹+1 = 3번이 필요합니다. 양자는 단 1번입니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 절반(2개)이 모두 같은 값이어도 아직 상수/균형을 알 수 없어 한 개를 더 봐야 합니다. 즉 2ⁿ⁻¹+1 = 3번입니다.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ===== 초기화 =====
+      initPsi();
+      render();
+
+      // ----- 자가 검증 (콘솔 로깅 없음, 개발 확인용) -----
+      // 상수 → P(|00>)=1, 균형 → P(|00>)=0 임을 보장하는지 내부적으로 계산만.
+      (function verify() {
+        const savedKey = state.oracleKey;
+        const savedPsi = state.psi;
+        const savedStep = state.stepIdx;
+        const savedMeasured = state.measured;
+        Object.keys(ORACLES).forEach(function (key) {
+          state.oracleKey = key;
+          initPsi();
+          for (let q = 0; q < NQ; q++) applyH(q);
+          applyOracle();
+          applyH(0); applyH(1);
+          const p00 = inputProbs()[0];
+          const expected = (ORACLES[key].type === 'constant') ? 1 : 0;
+          // 오차 허용 1e-9; 실패해도 페이지는 정상 동작(조용히 무시)
+          if (Math.abs(p00 - expected) > 1e-9 && window && window.console) {
+            // 검증 실패 시에만 경고 (정상 케이스는 로그 없음)
+            window.console.warn('[DJ verify] ' + key + ' P(|00>)=' + p00 + ' expected ' + expected);
+          }
+        });
+        // 상태 복원
+        state.oracleKey = savedKey;
+        state.psi = savedPsi;
+        state.stepIdx = savedStep;
+        state.measured = savedMeasured;
+      })();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./07-error-correction.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 양자 오류정정 (3-큐비트)</a>
+      <a href="./09-qft.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 양자 푸리에 변환 (QFT)</a>
+      <a href="../09-quantum-computing/01-bloch-sphere.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 블로흐 구와 큐비트 게이트</a>
+      <a href="../09-quantum-computing/02-quantum-circuit.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 회로 시뮬레이터</a>
+      <a href="../09-quantum-computing/03-grover.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 그로버 검색 알고리즘</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Deutsch%E2%80%93Jozsa_algorithm" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EB%8F%84%EC%9D%B4%EC%B9%98-%EC%A1%B0%EC%9E%90+%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=deutsch+jozsa+algorithm+explained" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 66, "slug": "08-deutsch-jozsa", "category": "09-quantum-computing", "icon": "🃏", "title": "도이치–조자 알고리즘", "titleEn": "Deutsch–Jozsa Algorithm", "year": "1992", "scientist": "도이치 · 조자 (Deutsch · Jozsa)", "difficulty": 3, "description": "함수가 상수인지 균형인지를 단 한 번의 질의로 판별하는 최초의 양자 속도향상.", "keywords": ["도이치-조자", "오라클", "상수/균형", "한 번의 질의", "양자 병렬성", "아다마르"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

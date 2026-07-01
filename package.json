@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "node tests/qa.mjs",
-    "test:a11y": "node tests/a11y.mjs"
+    "test:a11y": "node tests/a11y.mjs",
+    "test:physics": "node tests/physics.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",

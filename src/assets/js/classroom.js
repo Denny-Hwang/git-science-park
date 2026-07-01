@@ -317,7 +317,7 @@ window.Classroom = (function () {
       meta,
       h('div', { 'class': 'gsp-section' }, [
         h('h4', { 'class': 'gsp-section__title', text: T('classroom.objectives', '학습 목표') }),
-        h('p', { text: exp.description || '' })
+        h('p', { text: ((window.I18n && window.I18n.desc && window.I18n.desc(exp.slug)) || exp.description || '') })
       ])
     ];
     if (kw.length) {

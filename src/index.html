@@ -635,6 +635,11 @@
       }
       function catName(cat) { return L("cat." + cat.id + ".name", cat.name || ""); }
       function catTagline(cat) { return L("cat." + cat.id + ".tagline", cat.description || ""); }
+      // 실험 설명: 현재 언어 번역(assets/i18n/exp/<lang>.json)이 있으면 사용, 없으면 원문
+      function expDesc(exp) {
+        var v = (window.I18n && window.I18n.desc) ? window.I18n.desc(exp.slug) : null;
+        return v || exp.description || "";
+      }
 
       function statusLabel(s) {
         if (s === "ready") return L("status.ready", "학습 가능");
@@ -656,6 +661,7 @@
           exp.titleEn,
           exp.scientist,
           exp.description,
+          expDesc(exp),
           (exp.keywords || []).join(" ")
         ].join(" ").toLowerCase();
 
@@ -711,7 +717,7 @@
               "</div>" +
               '<div class="card-meta">' + metaBits.join("") + "</div>" +
               '<div class="card-stars">' + stars(exp.difficulty) + "</div>" +
-              '<p class="card-desc">' + esc(exp.description || "") + "</p>" +
+              '<p class="card-desc">' + esc(expDesc(exp)) + "</p>" +
               '<div class="card-foot">' + foot + "</div>" +
             "</div>" +
           "</article>"

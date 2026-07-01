@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 무작위 걷기 · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #062a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .answer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .answer-grid .btn.preset { min-width: 42px; padding: 6px 10px; font-size: 0.9rem; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .warn-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #fffbeb; border-left: 4px solid #92400e; color: #92400e;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .peak-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #f0fdf4; border-left: 4px solid #166534; color: #166534;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .legend-row { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 0.9rem; }
+    .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 16px; height: 12px; border-radius: 2px; display: inline-block; }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>양자 무작위 걷기</h1>
+    <div class="en">Quantum Walk</div>
+    <div class="meta">1993~ · 아하로노프 외 (Aharonov et al.) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="이산 시간 양자 걷기의 확률 분포를 보여주는 막대그래프. 양자 걷기는 가장자리에 두 개의 뿔(피크)이 생기며 t에 비례해 탄도적으로 퍼지고, 고전 무작위 걷기는 중앙에 하나의 봉우리를 이루며 √t에 비례해 퍼집니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label for="stepSlider">스텝 수 t: <strong id="stepVal">20</strong> 걸음</label>
+          <input type="range" id="stepSlider" min="0" max="60" value="20" step="1"
+            aria-label="스텝 수 선택 슬라이더">
+        </div>
+
+        <div class="control-row">
+          <div class="toggle-row">
+            <input type="checkbox" id="classicalToggle" checked>
+            <label for="classicalToggle" style="margin-bottom:0;">고전 무작위 걷기 비교 표시</label>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="stepBtn">▶ 한 걸음</button>
+          <button type="button" class="btn" id="playBtn">▶▶ 자동 재생</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+
+        <div class="legend-row" aria-hidden="true">
+          <span><span class="swatch" style="background:#1597b8;"></span> 양자 걷기 P(x)</span>
+          <span><span class="swatch" style="background:#9aa5ab;"></span> 고전 무작위 걷기</span>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>현재 스텝 t: <strong id="r-step">0</strong></div>
+          <div>동전 상태: <strong>(|↑⟩ + i|↓⟩)/√2</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>양자 걷기 퍼짐(표준편차): <strong id="r-qstd">0.00</strong></div>
+          <div>고전 걷기 퍼짐(표준편차): <strong id="r-cstd">0.00</strong></div>
+        </div>
+        <div class="peak-note" id="peakNote" style="display:none;"></div>
+        <div class="warn-note" id="warnNote" style="display:none;"></div>
+      </div>
+
+      <div class="hint-box">
+        💡 슬라이더나 <strong>한 걸음</strong> 버튼으로 스텝 수를 늘려 보세요. 양자 걷기(청록)는
+        가장자리에 <strong>두 개의 뿔</strong>이 생기며 <strong>t에 비례해(탄도적으로)</strong> 빠르게 퍼지고,
+        고전 무작위 걷기(회색)는 중앙에 하나의 봉우리를 이루며 <strong>√t에 비례해</strong> 느리게 퍼집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>양자 무작위 걷기의 원리</h2>
+
+      <div class="concept-box">
+        <h3>고전 무작위 걷기 vs. 양자 걷기</h3>
+        <p>
+          동전을 던져 앞면이면 오른쪽, 뒷면이면 왼쪽으로 한 칸씩 움직이는 것이 <strong>고전 무작위 걷기</strong>입니다.
+          매 걸음마다 확률이 더해지므로 위치 분포는 중앙에 봉우리를 가지는 종 모양(이항/가우스)이 되고,
+          t걸음 뒤 퍼짐(표준편차)은 <strong>√t</strong>에 비례합니다.
+        </p>
+        <p>
+          양자 걷기에서는 "동전"이 큐비트가 되어 <strong>중첩</strong> 상태를 가질 수 있습니다.
+          걷는 사람은 오른쪽과 왼쪽으로 <em>동시에</em> 나아가고, 서로 다른 경로의 진폭이 <strong>간섭</strong>합니다.
+          그 결과 분포는 가장자리에 <strong>두 개의 뿔(peaks)</strong>을 가지며, 퍼짐은 <strong>t</strong>에 비례해
+          훨씬 빠르게(탄도적으로) 커집니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>한 걸음의 구성: 동전 던지기 + 조건부 이동</h3>
+        <p>상태는 위치 레지스터 x와 동전 큐비트(|↑⟩, |↓⟩)로 이루어지며, 각 위치·동전값마다 복소 진폭 ψ(x, c)를 가집니다.</p>
+        <ul class="goals">
+          <li><strong>동전 던지기(하다마드):</strong> 모든 위치에서 동전에 하다마드 게이트를 적용합니다.
+            (a↑, a↓) → ((a↑ + a↓)/√2, (a↑ − a↓)/√2). 이 연산이 중첩과 간섭을 만듭니다.</li>
+          <li><strong>조건부 이동(shift):</strong> |↑⟩ 성분은 x+1로, |↓⟩ 성분은 x−1로 진폭을 옮깁니다.
+            걷는 사람의 위치가 동전 상태에 얽혀(entangled) 함께 움직입니다.</li>
+        </ul>
+        <p>
+          t걸음 뒤의 확률 분포는 P(x) = |ψ(x, ↑)|² + |ψ(x, ↓)|² 입니다.
+          시작 동전을 대칭적으로 (|↑⟩ + i|↓⟩)/√2 로 두면, 좌우 대칭인 두 뿔 분포가 나옵니다.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        동전(하다마드): (a↑, a↓) → ((a↑+a↓)/√2, (a↑−a↓)/√2)<br>
+        이동: |↑⟩ → x+1,&nbsp;&nbsp;|↓⟩ → x−1<br>
+        확률: P(x) = |ψ(x,↑)|² + |ψ(x,↓)|²<br>
+        양자 퍼짐 σ ∝ t&nbsp;&nbsp;(탄도적)<br>
+        고전 퍼짐 σ ∝ √t&nbsp;&nbsp;(확산적)
+      </div>
+
+      <div class="misconception">
+        <h3>흔한 오해</h3>
+        <p>
+          "양자 걷기도 결국 무작위라서 중앙에 몰릴 것이다"라는 생각은 <strong>틀렸습니다</strong>.
+          측정 전까지는 모든 경로가 진폭으로 존재하며 서로 <strong>간섭</strong>합니다.
+          중앙 부근에서는 경로들이 상쇄 간섭으로 오히려 확률이 낮아지고, 가장자리에서 보강되어
+          <strong>두 개의 뿔</strong>이 생깁니다. 단 한 번 측정하면 그 확률 분포에서 하나의 위치가 뽑힐 뿐입니다.
+        </p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈: 확인해 봅시다</h3>
+        <p><strong>t걸음 뒤, 양자 걷기와 고전 무작위 걷기의 퍼짐(표준편차)은 각각 무엇에 비례하나요?</strong></p>
+        <form id="quizForm">
+          <label><input type="radio" name="q1" value="a"> 둘 다 √t 에 비례한다</label>
+          <label><input type="radio" name="q1" value="b"> 양자는 t, 고전은 √t 에 비례한다</label>
+          <label><input type="radio" name="q1" value="c"> 양자는 √t, 고전은 t 에 비례한다</label>
+          <label><input type="radio" name="q1" value="d"> 둘 다 t² 에 비례한다</label>
+          <button type="button" id="quizBtn">채점하기</button>
+        </form>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1993년</strong> — 야키르 아하로노프(Yakir Aharonov), 루이지 다비도비치(Luiz Davidovich), 니콜림 자구리(Nicim Zagury)가 논문 "Quantum random walks"에서 양자 걷기 개념을 처음 도입.</li>
+          <li><strong>2001년</strong> — 암바이니스(Ambainis), 바하(Bach), 나야크(Nayak), 비슈와나스(Vishwanath), 왓러스(Watrous)가 1차원 이산 시간 양자 걷기의 두 뿔 분포와 탄도적 퍼짐(∝ t)을 정밀하게 분석.</li>
+          <li><strong>2003년</strong> — 차일즈(Childs) 등이 연속 시간 양자 걷기가 특정 그래프 탐색에서 고전보다 지수적으로 빠를 수 있음을 보임.</li>
+          <li><strong>2009년</strong> — 차일즈가 양자 걷기가 <strong>보편 양자 계산(universal quantum computation)</strong> 모델임을 증명, 알고리즘 설계 도구로 자리매김.</li>
+          <li><strong>2010년대</strong> — 이온 덫, 광자, 초전도 큐비트 등 다양한 플랫폼에서 양자 걷기가 실험적으로 구현됨.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>왜 중요한가</h3>
+        <p>
+          양자 걷기는 고전 무작위 걷기의 양자 버전으로, 탄도적 퍼짐과 간섭이라는 특성 덕분에
+          많은 양자 알고리즘의 뼈대가 됩니다. 그로버 검색을 일반화하고, 원소 구별(element distinctness),
+          그래프 탐색, 특정 문제의 지수적 가속 등에 쓰입니다. 또한 광합성의 에너지 전달 같은
+          자연 현상의 양자 수송을 모델링하는 데도 활용됩니다.
+        </p>
+      </div>
+
+      <div class="scientist">
+        <h3>야키르 아하로노프 (Yakir Aharonov, 1932~)</h3>
+        <p>
+          이스라엘의 이론물리학자로, 데이비드 봄과 함께 발견한 <strong>아하로노프–봄 효과</strong>로 유명합니다.
+          1993년 동료들과 함께 양자 걷기 개념을 제안하여, 고전 확률 과정을 진폭과 간섭으로 대체하면
+          동역학이 근본적으로 달라진다는 것을 보였습니다. 이 아이디어는 이후 양자 정보와 양자 알고리즘의
+          핵심 도구로 발전했습니다.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        T: 60,            // 위치 반경 (x ∈ [-T .. T])
+        t: 0,             // 현재 스텝 수
+        maxT: 60,         // 슬라이더 최대 스텝
+        // 양자 상태: 복소 진폭 psi[c][x] (c=0:up, c=1:down), 실/허수부 분리
+        reUp: null, imUp: null, reDn: null, imDn: null,
+        pQuantum: null,   // 양자 확률 분포 P(x)
+        pClassical: null, // 고전 확률 분포
+        showClassical: true,
+        playing: false,
+        rafId: 0,
+        lastStepTime: 0
+      };
+
+      // ----- 레이아웃 상수(px) -----
+      const W = 640, H = 380;
+      const PAD_L = 34, PAD_R = 16, PAD_T = 28, PAD_B = 34;
+      const PLOT_W = W - PAD_L - PAD_R;
+      const PLOT_H = H - PAD_T - PAD_B;
+      const BASE_Y = H - PAD_B; // 확률 0 기준선
+
+      const SQRT2 = Math.sqrt(2);
+      const INV_SQRT2 = 1 / SQRT2;
+
+      // ----- DOM (사용 전에 모두 정의) -----
+      const canvas = document.getElementById('canvas');
+      const ctx = (canvas && canvas.getContext) ? canvas.getContext('2d') : null;
+
+      const stepSlider = document.getElementById('stepSlider');
+      const stepVal = document.getElementById('stepVal');
+      const classicalToggle = document.getElementById('classicalToggle');
+      const stepBtn = document.getElementById('stepBtn');
+      const playBtn = document.getElementById('playBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rStep = document.getElementById('r-step');
+      const rQStd = document.getElementById('r-qstd');
+      const rCStd = document.getElementById('r-cstd');
+      const peakNote = document.getElementById('peakNote');
+      const warnNote = document.getElementById('warnNote');
+
+      // ----- (1) 탭 전환 (템플릿 코드 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // 배열 인덱스: x ∈ [-T..T] → i = x + T, 길이 2T+1
+      const SIZE = 2 * state.T + 1;
+      const CENTER = state.T; // x=0 위치의 인덱스
+
+      // ----- 양자 상태 초기화 -----
+      // 시작: x=0, 대칭 동전 (|↑⟩ + i|↓⟩)/√2  → up: 1/√2 (실수), down: i/√2 (허수)
+      function resetQuantum() {
+        state.reUp = new Float64Array(SIZE);
+        state.imUp = new Float64Array(SIZE);
+        state.reDn = new Float64Array(SIZE);
+        state.imDn = new Float64Array(SIZE);
+        state.reUp[CENTER] = INV_SQRT2; // up = 1/√2
+        state.imUp[CENTER] = 0;
+        state.reDn[CENTER] = 0;
+        state.imDn[CENTER] = INV_SQRT2; // down = i/√2
+      }
+
+      // 한 걸음: 하다마드(동전) → 조건부 이동
+      // 하다마드는 실수 행렬이므로 실수부·허수부에 동일하게 적용됨.
+      function quantumStep() {
+        const reUp = state.reUp, imUp = state.imUp;
+        const reDn = state.reDn, imDn = state.imDn;
+
+        // 1) 동전 하다마드: (up, dn) → ((up+dn)/√2, (up-dn)/√2)
+        const nReUp = new Float64Array(SIZE);
+        const nImUp = new Float64Array(SIZE);
+        const nReDn = new Float64Array(SIZE);
+        const nImDn = new Float64Array(SIZE);
+        for (let i = 0; i < SIZE; i++) {
+          const ru = reUp[i], iu = imUp[i], rd = reDn[i], id = imDn[i];
+          const hReUp = (ru + rd) * INV_SQRT2;
+          const hImUp = (iu + id) * INV_SQRT2;
+          const hReDn = (ru - rd) * INV_SQRT2;
+          const hImDn = (iu - id) * INV_SQRT2;
+
+          // 2) 조건부 이동: up → x+1 (i+1), down → x-1 (i-1)
+          if (i + 1 < SIZE) {
+            nReUp[i + 1] += hReUp;
+            nImUp[i + 1] += hImUp;
+          }
+          if (i - 1 >= 0) {
+            nReDn[i - 1] += hReDn;
+            nImDn[i - 1] += hImDn;
+          }
+        }
+        state.reUp = nReUp; state.imUp = nImUp;
+        state.reDn = nReDn; state.imDn = nImDn;
+      }
+
+      // 양자 확률 분포 P(x) = |up|² + |dn|²
+      function computeQuantumDist() {
+        const p = new Float64Array(SIZE);
+        const reUp = state.reUp, imUp = state.imUp;
+        const reDn = state.reDn, imDn = state.imDn;
+        for (let i = 0; i < SIZE; i++) {
+          p[i] = reUp[i] * reUp[i] + imUp[i] * imUp[i]
+               + reDn[i] * reDn[i] + imDn[i] * imDn[i];
+        }
+        state.pQuantum = p;
+      }
+
+      // 고전 무작위 걷기 분포 (같은 스텝 수 t): 위치 x = (#R - #L), t걸음.
+      // x와 t의 홀짝이 같은 위치에서만 0이 아님. P(x) = C(t,(t+x)/2)/2^t.
+      function computeClassicalDist() {
+        const p = new Float64Array(SIZE);
+        const t = state.t;
+        if (t === 0) {
+          p[CENTER] = 1;
+          state.pClassical = p;
+          return;
+        }
+        // 로그-이항으로 오버플로 방지
+        function logFact(n) {
+          let s = 0;
+          for (let k = 2; k <= n; k++) s += Math.log(k);
+          return s;
+        }
+        const logDenom = t * Math.log(2);
+        const lft = logFact(t);
+        for (let x = -t; x <= t; x++) {
+          if (((t + x) & 1) !== 0) continue; // 홀짝 불일치 위치는 0
+          const idx = x + CENTER;
+          if (idx < 0 || idx >= SIZE) continue;
+          const nR = (t + x) / 2; // 오른쪽 걸음 수
+          if (nR < 0 || nR > t) continue;
+          const logC = lft - logFact(nR) - logFact(t - nR);
+          p[idx] = Math.exp(logC - logDenom);
+        }
+        state.pClassical = p;
+      }
+
+      // 표준편차(퍼짐) 계산: <x²> - <x>², 평균 <x>=0 대칭
+      function stdOf(dist) {
+        if (!dist) return 0;
+        let sum = 0, m1 = 0, m2 = 0;
+        for (let i = 0; i < SIZE; i++) {
+          const x = i - CENTER;
+          const w = dist[i];
+          sum += w; m1 += w * x; m2 += w * x * x;
+        }
+        if (sum <= 0) return 0;
+        const mean = m1 / sum;
+        const varr = m2 / sum - mean * mean;
+        return varr > 0 ? Math.sqrt(varr) : 0;
+      }
+
+      // ----- 목표 스텝 t 까지 재계산 (0부터 다시 걸어 정확성 보장) -----
+      function computeToStep(targetT) {
+        resetQuantum();
+        for (let s = 0; s < targetT; s++) quantumStep();
+        state.t = targetT;
+        computeQuantumDist();
+        computeClassicalDist();
+      }
+
+      // ----- 그리기 -----
+      function draw() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#062a33';
+        ctx.fillRect(0, 0, W, H);
+
+        // 표시 범위: x ∈ [-t-2 .. t+2] (최소 ±6)
+        const half = Math.max(6, state.t + 2);
+        const xMin = -half, xMax = half;
+        const span = xMax - xMin;
+        const dx = PLOT_W / (span + 1);
+
+        // y 스케일: 두 분포 중 최댓값
+        let maxP = 1e-9;
+        for (let i = 0; i < SIZE; i++) {
+          const x = i - CENTER;
+          if (x < xMin || x > xMax) continue;
+          if (state.pQuantum[i] > maxP) maxP = state.pQuantum[i];
+          if (state.showClassical && state.pClassical[i] > maxP) maxP = state.pClassical[i];
+        }
+        const yScale = PLOT_H / maxP;
+
+        // 기준선 (P=0)
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD_L - 6, BASE_Y);
+        ctx.lineTo(W - PAD_R + 6, BASE_Y);
+        ctx.stroke();
+
+        // x=0 세로 기준선
+        const zeroX = PAD_L + ((0 - xMin) + 0.5) * dx;
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(zeroX, PAD_T);
+        ctx.lineTo(zeroX, BASE_Y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 고전 분포 (막대, 회색) — 뒤에 먼저 그림
+        if (state.showClassical) {
+          ctx.fillStyle = 'rgba(154,165,171,0.85)';
+          for (let x = xMin; x <= xMax; x++) {
+            const i = x + CENTER;
+            if (i < 0 || i >= SIZE) continue;
+            const v = state.pClassical[i];
+            if (v <= 0) continue;
+            const barH = v * yScale;
+            const cx = PAD_L + ((x - xMin) + 0.5) * dx;
+            const bw = Math.max(2, dx * 0.7);
+            ctx.fillRect(cx - bw / 2, BASE_Y - barH, bw, barH);
+          }
+        }
+
+        // 양자 분포 (막대, 청록) — 앞에 그림
+        ctx.fillStyle = '#1597b8';
+        for (let x = xMin; x <= xMax; x++) {
+          const i = x + CENTER;
+          if (i < 0 || i >= SIZE) continue;
+          const v = state.pQuantum[i];
+          if (v <= 0) continue;
+          const barH = v * yScale;
+          const cx = PAD_L + ((x - xMin) + 0.5) * dx;
+          const bw = Math.max(2, dx * 0.44);
+          ctx.fillRect(cx - bw / 2, BASE_Y - barH, bw, barH);
+        }
+
+        // 축 라벨 (x)
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        const tickStep = span <= 16 ? 4 : (span <= 40 ? 10 : 20);
+        for (let x = xMin; x <= xMax; x++) {
+          if (x % tickStep !== 0) continue;
+          const cx = PAD_L + ((x - xMin) + 0.5) * dx;
+          ctx.fillText(String(x), cx, H - 12);
+        }
+        ctx.fillText('위치 x', W - PAD_R - 20, H - 12);
+
+        // 상단 라벨
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('t = ' + state.t + ' 걸음   |   확률 분포 P(x)', PAD_L, 18);
+
+        // y축 안내
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.save();
+        ctx.translate(12, PAD_T + PLOT_H / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.fillText('확률', 0, 0);
+        ctx.restore();
+      }
+
+      // ----- 두 뿔 감지 (교육적 안내) -----
+      function detectTwoHorns() {
+        // 표시 범위에서 국소 최대의 개수를 대략적으로 센다.
+        const p = state.pQuantum;
+        const half = Math.max(6, state.t + 2);
+        let peaks = 0;
+        for (let x = -half + 1; x <= half - 1; x++) {
+          const i = x + CENTER;
+          const v = p[i], l = p[i - 1], r = p[i + 1];
+          if (v > 1e-5 && v >= l && v >= r && v > l + 1e-7) peaks++;
+        }
+        return peaks;
+      }
+
+      // ----- 리드아웃 갱신 -----
+      function updateReadout() {
+        rStep.textContent = String(state.t);
+        const qStd = stdOf(state.pQuantum);
+        const cStd = stdOf(state.pClassical);
+        rQStd.textContent = qStd.toFixed(2);
+        rCStd.textContent = cStd.toFixed(2);
+
+        // 두 뿔 안내: 스텝이 충분히 진행되고 양자 퍼짐이 고전보다 확연히 클 때
+        if (state.t >= 6 && qStd > cStd * 1.2) {
+          peakNote.style.display = 'block';
+          peakNote.textContent = '✅ 양자 걷기가 가장자리 두 뿔로 탄도적(∝ t)으로 퍼지고 있습니다. '
+            + '퍼짐 ' + qStd.toFixed(1) + ' 이 고전 ' + cStd.toFixed(1) + '(∝ √t)보다 큽니다.';
+        } else {
+          peakNote.style.display = 'none';
+        }
+
+        // 안내: 아직 초기(대칭 뿔이 형성되기 전)
+        if (state.t > 0 && state.t < 6) {
+          warnNote.style.display = 'block';
+          warnNote.textContent = 'ℹ️ 스텝을 더 늘리면 양자 걷기의 두 뿔 구조가 뚜렷하게 나타납니다.';
+        } else {
+          warnNote.style.display = 'none';
+        }
+      }
+
+      // ----- 슬라이더/버튼 상태 반영 -----
+      function syncSlider() {
+        stepSlider.value = String(state.t);
+        stepVal.textContent = String(state.t);
+      }
+
+      function refresh() {
+        computeQuantumDist();
+        computeClassicalDist();
+        updateReadout();
+        draw();
+      }
+
+      function goToStep(targetT) {
+        const clamped = Math.max(0, Math.min(state.maxT, targetT));
+        computeToStep(clamped);
+        syncSlider();
+        updateReadout();
+        draw();
+      }
+
+      // ----- 자동 재생 (rAF, setInterval/ setTimeout 미사용) -----
+      function stopPlay() {
+        state.playing = false;
+        playBtn.textContent = '▶▶ 자동 재생';
+        if (state.rafId) {
+          cancelAnimationFrame(state.rafId);
+          state.rafId = 0;
+        }
+      }
+
+      function playLoop(now) {
+        if (!state.playing) return;
+        if (now - state.lastStepTime >= 260) {
+          state.lastStepTime = now;
+          if (state.t >= state.maxT) {
+            stopPlay();
+            return;
+          }
+          quantumStep();
+          state.t += 1;
+          syncSlider();
+          refresh();
+        }
+        state.rafId = requestAnimationFrame(playLoop);
+      }
+
+      function startPlay() {
+        if (state.t >= state.maxT) {
+          // 처음부터 다시 재생
+          goToStep(0);
+        }
+        state.playing = true;
+        playBtn.textContent = '⏸ 일시정지';
+        state.lastStepTime = 0;
+        state.rafId = requestAnimationFrame(playLoop);
+      }
+
+      // ----- 컨트롤 바인딩 -----
+      stepBtn.addEventListener('click', () => {
+        stopPlay();
+        if (state.t >= state.maxT) return;
+        quantumStep();
+        state.t += 1;
+        syncSlider();
+        refresh();
+      });
+
+      playBtn.addEventListener('click', () => {
+        if (state.playing) stopPlay();
+        else startPlay();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        stopPlay();
+        goToStep(0);
+      });
+
+      stepSlider.addEventListener('input', () => {
+        stopPlay();
+        const v = Number(stepSlider.value);
+        stepVal.textContent = String(v);
+        goToStep(v);
+      });
+
+      classicalToggle.addEventListener('change', () => {
+        state.showClassical = classicalToggle.checked;
+        updateReadout();
+        draw();
+      });
+
+      // ----- 퀴즈 채점 -----
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quizFeedback');
+      if (quizBtn) {
+        quizBtn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#1d4ed8';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '정답입니다! 간섭 덕분에 양자 걷기의 퍼짐은 t에 비례(탄도적)하고, '
+              + '고전 무작위 걷기는 √t에 비례(확산적)합니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 양자 걷기는 t에, 고전 무작위 걷기는 √t에 비례합니다. '
+              + '슬라이더로 스텝을 늘려 두 퍼짐 값을 비교해 보세요.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ----- 재생/보이기 정지: 탭이 숨겨질 때 자동 재생 중단 -----
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stopPlay();
+      });
+
+      // ----- 초기화 -----
+      state.showClassical = classicalToggle.checked;
+      goToStep(20);
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./10-shor.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 쇼어 알고리즘 (주기 찾기)</a>
+      <a href="./12-quantum-supremacy.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 양자 우월성 (랜덤 회로 샘플링)</a>
+      <a href="../03-precision-era/05-young-double-slit.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 영의 이중 슬릿 실험</a>
+      <a href="../06-quantum/08-single-photon-eraser.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 단일 광자 이중 슬릿 · 양자 지우개</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_walk" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EA%B1%B7%EA%B8%B0&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+walk+vs+classical+random+walk" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 69, "slug": "11-quantum-walk", "category": "09-quantum-computing", "icon": "🚶", "title": "양자 무작위 걷기", "titleEn": "Quantum Walk", "year": "1993~", "scientist": "아하로노프 외 (Aharonov et al.)", "difficulty": 4, "description": "동전과 위치의 중첩·간섭으로 고전 무작위 걷기와 전혀 다른 분포가 나타난다.", "keywords": ["양자 걷기", "간섭", "동전 연산자", "확산", "고전 대비", "분포"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

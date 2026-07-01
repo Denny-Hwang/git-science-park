@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 우월성 (랜덤 회로 샘플링) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #062a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .answer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .answer-grid .btn.preset { min-width: 42px; padding: 6px 10px; font-size: 0.9rem; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .warn-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #fffbeb; border-left: 4px solid #92400e; color: #92400e;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .peak-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #f0fdf4; border-left: 4px solid #166534; color: #166534;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>양자 우월성 (랜덤 회로 샘플링)</h1>
+    <div class="en">Quantum Supremacy (Random Circuit Sampling)</div>
+    <div class="meta">2019 · 구글 시커모어 (Google Sycamore) · 난이도 ⭐⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="380" role="img"
+        aria-label="랜덤 양자 회로의 출력 분포를 보여주는 그래프. 위쪽 막대그래프는 2의 n제곱개 비트열 각각의 출력 확률로, 균일하지 않고 간섭 때문에 얼룩덜룩하게 튀어 있습니다. 아래쪽 히스토그램은 확률 값의 분포로, 포터-톰슨 법칙 N 곱하기 e의 마이너스 N p 곡선을 따릅니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>큐비트 수 n 선택 (상태 벡터 크기 N = 2ⁿ)</label>
+          <div class="btn-row" role="group" aria-label="큐비트 수 선택">
+            <button type="button" class="btn preset active" data-n="4">n = 4 (N = 16)</button>
+            <button type="button" class="btn preset" data-n="5">n = 5 (N = 32)</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="depthRange">회로 깊이 d: <strong id="depthVal">10</strong> 층</label>
+          <input type="range" id="depthRange" min="1" max="24" step="1" value="10"
+            aria-label="회로 깊이 d 조절">
+        </div>
+
+        <div class="control-row">
+          <label>표시 모드</label>
+          <div class="btn-row" role="group" aria-label="표시 모드 선택">
+            <button type="button" class="btn preset active" data-mode="quantum">양자(간섭) 분포</button>
+            <button type="button" class="btn preset" data-mode="uniform">균등(고전 추측) 분포</button>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="newCircuitBtn">🎲 새 랜덤 회로</button>
+          <button type="button" class="btn" id="sampleBtn">표본 추출 ×256</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>큐비트 수 n: <strong id="r-n">4</strong></div>
+          <div>상태 벡터 크기 N: <strong id="r-N">16</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>회로 깊이 d: <strong id="r-depth">10</strong> 층</div>
+          <div>누적 표본 수: <strong id="r-samples">0</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>최대 확률 비트열: <strong id="r-peak">—</strong></div>
+          <div>정규화 확인 (Σ|amp|²): <strong id="r-norm">1.000</strong></div>
+        </div>
+        <div class="peak-note" id="peakNote">
+          ✅ 분포가 균일하지 않고 얼룩덜룩합니다 — 어떤 비트열은 다른 것보다 훨씬 자주 나옵니다. 이것이 간섭의 지문입니다.
+        </div>
+        <div class="warn-note" id="warnNote">
+          ⚠️ 고전 컴퓨터는 이 분포를 재현하려면 2ⁿ개의 간섭하는 진폭을 모두 추적해야 합니다 — 큐비트가 늘면 지수적으로 비싸집니다.
+        </div>
+      </div>
+
+      <div class="hint-box">
+        💡 <strong>양자(간섭) 분포</strong>와 <strong>균등(고전 추측) 분포</strong> 버튼을 눌러 두 히스토그램을 비교해 보세요.
+        균등 분포에서는 모든 비트열이 정확히 1/N 확률로 뾰족한 선 하나가 되지만,
+        양자 분포에서는 확률 값이 <strong>포터-톰슨 법칙</strong> P(p) ≈ N·e<sup>−Np</sup> 을 따라 넓게 퍼집니다.
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>랜덤 회로 샘플링과 양자 우월성</h2>
+
+      <div class="concept-box">
+        <h3>문제: 왜 "샘플링"이 어려운가</h3>
+        <p>
+          n개의 큐비트에 <strong>무작위로 뽑은 게이트</strong>들을 여러 층 쌓아 만든 회로를 돌린 뒤,
+          측정으로 나오는 비트열을 여러 번 <strong>표본 추출</strong>합니다.
+          각 비트열 b가 나올 확률은 상태 벡터의 진폭 제곱 |amp<sub>b</sub>|² 입니다.
+          이 확률 분포 자체는 특별할 것 없어 보이지만, 이를 흉내 내려면 고전 컴퓨터는
+          2ⁿ개의 복소 진폭이 서로 <strong>간섭</strong>하는 과정을 모두 계산해야 합니다.
+          n이 조금만 커져도(예: 53) 2⁵³ ≈ 9×10¹⁵ 개의 진폭이 필요해 사실상 불가능해집니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>얼룩덜룩한 분포와 포터-톰슨 법칙</h3>
+        <p>
+          충분히 깊은 랜덤 회로를 지나면 출력 확률은 균일하지 않습니다.
+          간섭 때문에 어떤 비트열은 크게 <strong>보강</strong>되고 어떤 것은 거의 <strong>상쇄</strong>됩니다(스페클, speckle).
+          그 결과 확률 값 p의 분포는 <strong>포터-톰슨(Porter–Thomas) 분포</strong>를 따릅니다.
+        </p>
+        <ul class="goals">
+          <li>대부분의 비트열은 아주 작은 확률을 가집니다.</li>
+          <li>소수의 비트열이 유난히 큰 확률(1/N보다 몇 배 큰)을 가집니다.</li>
+          <li>확률 값의 분포 밀도는 P(p) ≈ N·e<sup>−Np</sup> 형태(지수 분포)입니다.</li>
+        </ul>
+        <p>
+          반대로 <strong>고전적 추측</strong>은 모든 비트열을 똑같이 1/N로 두는 균등 분포입니다.
+          이 균등함과 양자의 얼룩덜룩함을 구별하는 것이 양자 우월성 실험의 핵심입니다.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        상태 벡터: |ψ⟩ = Σ<sub>b</sub> amp<sub>b</sub> |b⟩,  N = 2ⁿ<br>
+        출력 확률: P(b) = |amp<sub>b</sub>|²<br>
+        정규화: Σ<sub>b</sub> |amp<sub>b</sub>|² = 1<br>
+        CZ(a,b): amp → −amp  (a비트=1 그리고 b비트=1)<br>
+        포터-톰슨: P(p) ≈ N·e<sup>−N·p</sup>
+      </div>
+
+      <div class="misconception">
+        <h3>흔한 오해</h3>
+        <p>
+          "양자 우월성 = 양자 컴퓨터가 모든 문제를 빠르게 푼다"는 <strong>틀린</strong> 생각입니다.
+          랜덤 회로 샘플링은 <strong>실용적 쓸모가 거의 없는</strong> 인공적 과제로,
+          단지 "고전 컴퓨터로 흉내 내기가 극도로 어렵다"는 점만을 보여줍니다.
+          또한 "출력이 무작위라 아무 의미 없다"도 틀립니다 — 분포는 균등이 아니라
+          간섭이 새겨진 <strong>구조화된(포터-톰슨) 무작위</strong>입니다.
+        </p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈: 확인해 봅시다</h3>
+        <p><strong>깊은 랜덤 회로의 출력 확률 값 p의 분포는 어떤 모양인가요?</strong></p>
+        <form id="quizForm">
+          <label><input type="radio" name="q1" value="a"> 모든 비트열이 정확히 1/N인 균등 분포</label>
+          <label><input type="radio" name="q1" value="b"> 대부분 작은 확률, 소수만 큰 확률 — 지수형 포터-톰슨 분포 P(p)≈N·e⁻ᴺᵖ</label>
+          <label><input type="radio" name="q1" value="c"> 정답 하나만 확률 1, 나머지는 0</label>
+          <label><input type="radio" name="q1" value="d"> 종 모양(가우시안) 분포</label>
+          <button type="button" id="quizBtn">채점하기</button>
+        </form>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>2012년</strong> — 존 프레스킬(John Preskill)이 고전 컴퓨터가 도저히 흉내 낼 수 없는 계산을 양자 장치가 해내는 순간을 가리키는 용어 "양자 우월성(quantum supremacy)"을 제안.</li>
+          <li><strong>2016~2018년</strong> — 랜덤 회로 샘플링이 양자 우월성을 보이기 위한 후보 과제로 제안되고, 출력이 포터-톰슨 분포를 따른다는 점과 고전 시뮬레이션 비용이 분석됨.</li>
+          <li><strong>2019년 10월</strong> — 구글이 53큐비트 초전도 프로세서 <strong>시커모어(Sycamore)</strong>로 약 200초 만에 표본을 얻었고, 당시 최고 슈퍼컴퓨터로는 수천 년이 걸릴 것이라 주장(Nature 게재).</li>
+          <li><strong>2020~2021년</strong> — 중국 연구팀이 광자 기반 지우장(Jiuzhang, 보손 샘플링)과 초전도 주총즈(Zuchongzhi)로 유사한 우월성 실험을 발표. 한편 IBM 등은 고전 알고리즘 개선으로 격차가 과장되었다고 반박.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>왜 중요한가</h3>
+        <p>
+          랜덤 회로 샘플링은 실용적 알고리즘이 아니지만,
+          "제어된 다수의 큐비트가 만드는 간섭 분포를 고전 컴퓨터가 재현할 수 없다"는 것을
+          처음으로 실험적으로 시연했다는 점에서 이정표가 되었습니다.
+          이는 잡음 있는 중간 규모 양자(NISQ) 시대의 개막을 알렸고,
+          고전과 양자의 경계가 정확히 어디인지에 대한 활발한 검증·반박 연구를 촉발했습니다.
+        </p>
+      </div>
+
+      <div class="scientist">
+        <h3>구글 시커모어 팀 &amp; 존 프레스킬 (John Preskill, 1953~)</h3>
+        <p>
+          존 프레스킬은 칼텍의 이론물리학자로 2012년 "양자 우월성"이라는 개념과 용어를 제시했습니다.
+          구글의 존 마르티니스(John Martinis)가 이끈 시커모어 팀은 초전도 큐비트를 격자 형태로 배치하고
+          단일 큐비트 게이트와 인접 큐비트 사이의 얽힘 게이트를 무작위로 쌓아 회로를 만든 뒤,
+          수백만 번의 표본으로 출력 분포가 포터-톰슨 이론과 일치함을 확인했습니다.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ===================== 상태 =====================
+      const state = {
+        n: 4,               // 큐비트 수 (4 | 5)
+        N: 16,              // 상태 벡터 크기 = 2^n
+        depth: 10,          // 회로 깊이 (층 수)
+        re: null,           // 진폭 실수부 Float64Array(N)
+        im: null,           // 진폭 허수부 Float64Array(N)
+        probs: null,        // |amp|^2 Float64Array(N)
+        seed: 12345,        // 재현용 난수 시드
+        mode: 'quantum',    // 'quantum' | 'uniform'
+        sampleCounts: null,  // 표본 집계 Int32Array(N)
+        totalSamples: 0
+      };
+
+      // ===================== 레이아웃 상수(px) =====================
+      const W = 640, H = 380;
+      const PAD_L = 40, PAD_R = 16;
+      // 위쪽: 확률 막대그래프 영역 / 아래쪽: 포터-톰슨 히스토그램 영역
+      const TOP_Y0 = 26, TOP_Y1 = 196;      // 막대그래프 세로 범위
+      const BOT_Y0 = 236, BOT_Y1 = H - 30;  // 히스토그램 세로 범위
+
+      // ===================== DOM =====================
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nBtns = document.querySelectorAll('.btn.preset[data-n]');
+      const modeBtns = document.querySelectorAll('.btn.preset[data-mode]');
+      const depthRange = document.getElementById('depthRange');
+      const depthVal = document.getElementById('depthVal');
+      const newCircuitBtn = document.getElementById('newCircuitBtn');
+      const sampleBtn = document.getElementById('sampleBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rN = document.getElementById('r-n');
+      const rNN = document.getElementById('r-N');
+      const rDepth = document.getElementById('r-depth');
+      const rSamples = document.getElementById('r-samples');
+      const rPeak = document.getElementById('r-peak');
+      const rNorm = document.getElementById('r-norm');
+
+      // ===================== (1) 탭 전환 (템플릿 코드 그대로) =====================
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ===================== 결정론적 난수 (mulberry32) =====================
+      function makeRng(seed) {
+        let a = seed >>> 0;
+        return function () {
+          a |= 0; a = (a + 0x6D2B79F5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      // ===================== 상태 벡터 게이트 헬퍼 =====================
+      // |0...0> 초기화
+      function initState() {
+        const N = state.N;
+        state.re = new Float64Array(N);
+        state.im = new Float64Array(N);
+        state.re[0] = 1; state.im[0] = 0;
+      }
+
+      // 단일 큐비트 2x2 유니타리 u = [[u00,u01],[u10,u11]] (복소)를 큐비트 q에 적용.
+      // 각 원소는 {r, i} 형태. 비트 q가 다른 진폭 쌍(a0, a1)을 섞는다.
+      function applySingle(q, u) {
+        const N = state.N;
+        const re = state.re, im = state.im;
+        const bit = 1 << q;
+        for (let i = 0; i < N; i++) {
+          if ((i & bit) !== 0) continue; // i가 q비트=0인 인덱스만 처리, 짝은 i|bit
+          const j = i | bit;
+          const a0r = re[i], a0i = im[i];
+          const a1r = re[j], a1i = im[j];
+          // new0 = u00*a0 + u01*a1
+          re[i] = u[0].r * a0r - u[0].i * a0i + u[1].r * a1r - u[1].i * a1i;
+          im[i] = u[0].r * a0i + u[0].i * a0r + u[1].r * a1i + u[1].i * a1r;
+          // new1 = u10*a0 + u11*a1
+          re[j] = u[2].r * a0r - u[2].i * a0i + u[3].r * a1r - u[3].i * a1i;
+          im[j] = u[2].r * a0i + u[2].i * a0r + u[3].r * a1i + u[3].i * a1r;
+        }
+      }
+
+      // CZ(a,b): 두 비트가 모두 1인 진폭에 -1
+      function applyCZ(a, b) {
+        const N = state.N;
+        const re = state.re, im = state.im;
+        const ba = 1 << a, bb = 1 << b;
+        for (let i = 0; i < N; i++) {
+          if ((i & ba) !== 0 && (i & bb) !== 0) {
+            re[i] = -re[i];
+            im[i] = -im[i];
+          }
+        }
+      }
+
+      // ---- 단일 큐비트 게이트 상수 (유니타리) ----
+      const S2 = 1 / Math.sqrt(2);
+      const GATES = {
+        // 하다마드 H
+        H: [ {r:S2,i:0}, {r:S2,i:0}, {r:S2,i:0}, {r:-S2,i:0} ],
+        // T = 위상 게이트 diag(1, e^{iπ/4})
+        T: [ {r:1,i:0}, {r:0,i:0}, {r:0,i:0}, {r:Math.cos(Math.PI/4), i:Math.sin(Math.PI/4)} ],
+        // √X = (1/2)[[1+i, 1-i],[1-i, 1+i]]
+        SX: [ {r:0.5,i:0.5}, {r:0.5,i:-0.5}, {r:0.5,i:-0.5}, {r:0.5,i:0.5} ],
+        // √Y = (1/2)[[1+i, -1-i],[1+i, 1+i]]
+        SY: [ {r:0.5,i:0.5}, {r:-0.5,i:-0.5}, {r:0.5,i:0.5}, {r:0.5,i:0.5} ]
+      };
+      const GATE_KEYS = ['H', 'T', 'SX', 'SY'];
+
+      // ===================== 랜덤 회로 생성 & 적용 =====================
+      function buildAndRunCircuit() {
+        initState();
+        const rng = makeRng(state.seed);
+        const n = state.n;
+        for (let layer = 0; layer < state.depth; layer++) {
+          // 각 큐비트에 무작위 단일 큐비트 게이트
+          for (let q = 0; q < n; q++) {
+            const key = GATE_KEYS[(rng() * GATE_KEYS.length) | 0];
+            applySingle(q, GATES[key]);
+          }
+          // 인접 쌍에 CZ (짝수/홀수 층에 따라 어긋나게 배치)
+          const start = (layer % 2 === 0) ? 0 : 1;
+          for (let q = start; q + 1 < n; q += 2) {
+            // 무작위로 일부 쌍만 얽히게 (대부분 적용)
+            if (rng() < 0.85) applyCZ(q, q + 1);
+          }
+        }
+        computeProbs();
+      }
+
+      function computeProbs() {
+        const N = state.N;
+        state.probs = new Float64Array(N);
+        for (let i = 0; i < N; i++) {
+          const r = state.re[i], im = state.im[i];
+          state.probs[i] = r * r + im * im;
+        }
+      }
+
+      // 정규화 합 (검증용)
+      function probSum() {
+        let s = 0;
+        const p = state.probs;
+        for (let i = 0; i < p.length; i++) s += p[i];
+        return s;
+      }
+
+      // 표시용 분포: 양자(간섭) 또는 균등
+      function displayProbs() {
+        if (state.mode === 'uniform') {
+          const N = state.N;
+          const u = new Float64Array(N);
+          const v = 1 / N;
+          for (let i = 0; i < N; i++) u[i] = v;
+          return u;
+        }
+        return state.probs;
+      }
+
+      // ===================== 표본 추출 =====================
+      function drawSamples(count) {
+        const p = displayProbs();
+        const N = state.N;
+        // 누적 분포
+        const cdf = new Float64Array(N);
+        let acc = 0;
+        for (let i = 0; i < N; i++) { acc += p[i]; cdf[i] = acc; }
+        const total = acc || 1;
+        for (let s = 0; s < count; s++) {
+          const x = Math.random() * total;
+          // 선형 탐색 (N이 작으므로 충분)
+          let idx = N - 1;
+          for (let i = 0; i < N; i++) { if (x <= cdf[i]) { idx = i; break; } }
+          state.sampleCounts[idx]++;
+          state.totalSamples++;
+        }
+      }
+
+      // ===================== 리드아웃 =====================
+      function bitstr(idx) {
+        let s = '';
+        for (let q = state.n - 1; q >= 0; q--) s += ((idx >> q) & 1);
+        return s;
+      }
+
+      function updateReadout() {
+        rN.textContent = String(state.n);
+        rNN.textContent = String(state.N);
+        rDepth.textContent = String(state.depth);
+        rSamples.textContent = String(state.totalSamples);
+
+        // 최대 확률 비트열
+        const p = state.probs;
+        let mi = 0, mv = -1;
+        for (let i = 0; i < p.length; i++) { if (p[i] > mv) { mv = p[i]; mi = i; } }
+        rPeak.textContent = '|' + bitstr(mi) + '⟩ (' + (mv * 100).toFixed(1) + '%)';
+
+        rNorm.textContent = probSum().toFixed(3);
+      }
+
+      // ===================== 그리기 =====================
+      function draw() {
+        if (!ctx) return;
+        const N = state.N;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#062a33';
+        ctx.fillRect(0, 0, W, H);
+
+        const disp = displayProbs();
+
+        // ---------- 위: 출력 확률 막대그래프 ----------
+        ctx.fillStyle = '#cfe9f2';
+        ctx.font = 'bold 12px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        const topLabel = (state.mode === 'uniform')
+          ? '출력 확률 |amp|²  (균등: 고전 추측 — 모두 1/N)'
+          : '출력 확률 |amp|²  (양자: 간섭으로 얼룩덜룩)';
+        ctx.fillText(topLabel, PAD_L, TOP_Y0 - 10);
+
+        const plotW = W - PAD_L - PAD_R;
+        const slot = plotW / N;
+        const barW = Math.max(2, slot * 0.72);
+        const topH = TOP_Y1 - TOP_Y0;
+
+        // 스케일: 최대 확률 (최소 2/N 보장으로 균등도 보이게)
+        let maxP = 2 / N;
+        for (let i = 0; i < N; i++) if (disp[i] > maxP) maxP = disp[i];
+
+        // 기준선 (1/N)
+        const unifY = TOP_Y1 - (1 / N / maxP) * topH;
+        ctx.strokeStyle = 'rgba(255,210,120,0.7)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(PAD_L, unifY);
+        ctx.lineTo(W - PAD_R, unifY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,210,120,0.95)';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('1/N', W - PAD_R - 2, unifY - 3);
+
+        // 막대
+        for (let i = 0; i < N; i++) {
+          const cx = PAD_L + slot * i + slot / 2;
+          const x = cx - barW / 2;
+          const h = (disp[i] / maxP) * topH;
+          ctx.fillStyle = '#1597b8';
+          ctx.fillRect(x, TOP_Y1 - h, barW, h);
+        }
+        // 기준 축
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD_L, TOP_Y1);
+        ctx.lineTo(W - PAD_R, TOP_Y1);
+        ctx.stroke();
+
+        // ---------- 아래: 포터-톰슨 히스토그램 (확률 값의 분포) ----------
+        ctx.fillStyle = '#cfe9f2';
+        ctx.font = 'bold 12px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('확률 값 p의 분포  (포터-톰슨: P(p) ≈ N·e^(−Np))', PAD_L, BOT_Y0 - 8);
+
+        // 히스토그램: p를 [0, pMax] 구간으로 나눔. 스케일은 x = N*p (무차원)
+        const BINS = (N >= 32) ? 20 : 14;
+        const xMax = 6; // N*p 축 최대 (지수분포 꼬리 대부분 포함)
+        const hist = new Int32Array(BINS);
+        for (let i = 0; i < N; i++) {
+          let xv = disp[i] * N; // N*p
+          if (xv >= xMax) xv = xMax - 1e-9;
+          const b = Math.min(BINS - 1, Math.max(0, (xv / xMax * BINS) | 0));
+          hist[b]++;
+        }
+        let maxCount = 1;
+        for (let b = 0; b < BINS; b++) if (hist[b] > maxCount) maxCount = hist[b];
+
+        const botH = BOT_Y1 - BOT_Y0;
+        const bw = plotW / BINS;
+        for (let b = 0; b < BINS; b++) {
+          const h = (hist[b] / maxCount) * botH;
+          const x = PAD_L + b * bw;
+          ctx.fillStyle = 'rgba(140, 200, 160, 0.85)';
+          ctx.fillRect(x + 1, BOT_Y1 - h, bw - 2, h);
+        }
+
+        // 이론 곡선 오버레이: 밀도 e^{-x} (x = N*p), 각 bin 기대 개수 ∝ N*(e^{-x}) 정규화
+        // 각 bin 기대 카운트 = N * (e^{-x_lo} - e^{-x_hi}); maxCount에 맞춰 스케일
+        ctx.strokeStyle = '#ffd27a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        let first = true;
+        for (let s = 0; s <= 100; s++) {
+          const x = (s / 100) * xMax;               // x = N*p
+          const binWidthX = xMax / BINS;
+          // 이 x 위치에서의 기대 bin 카운트 ≈ N * e^{-x} * (binWidthX)
+          const expCount = N * Math.exp(-x) * binWidthX;
+          const y = BOT_Y1 - Math.min(1, expCount / maxCount) * botH;
+          const px = PAD_L + (x / xMax) * plotW;
+          if (first) { ctx.moveTo(px, y); first = false; }
+          else ctx.lineTo(px, y);
+        }
+        ctx.stroke();
+
+        // 축
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD_L, BOT_Y1);
+        ctx.lineTo(W - PAD_R, BOT_Y1);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('N·p (0 → ' + xMax + ')', (PAD_L + W - PAD_R) / 2, H - 4);
+
+        // 표본이 있으면 위 막대에 표본 빈도 점 표시 (양자 모드에서만 의미 강조)
+        if (state.totalSamples > 0) {
+          ctx.fillStyle = '#ffffff';
+          for (let i = 0; i < N; i++) {
+            const frac = state.sampleCounts[i] / state.totalSamples;
+            const cx = PAD_L + slot * i + slot / 2;
+            const y = TOP_Y1 - (frac / maxP) * topH;
+            ctx.beginPath();
+            ctx.arc(cx, y, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '10px system-ui, sans-serif';
+          ctx.textAlign = 'right';
+          ctx.fillText('● 표본 빈도 (' + state.totalSamples + '개)', W - PAD_R, TOP_Y0 - 10);
+        }
+      }
+
+      // ===================== 컨트롤 로직 =====================
+      function resetSamples() {
+        state.sampleCounts = new Int32Array(state.N);
+        state.totalSamples = 0;
+      }
+
+      function regenerate(newSeed) {
+        if (typeof newSeed === 'number') state.seed = newSeed;
+        buildAndRunCircuit();
+        resetSamples();
+        updateReadout();
+        draw();
+      }
+
+      // n 선택
+      nBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          const n = Number(b.dataset.n);
+          nBtns.forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          state.n = n;
+          state.N = 1 << n;
+          regenerate();
+        });
+      });
+
+      // 모드 선택
+      modeBtns.forEach((b) => {
+        b.addEventListener('click', () => {
+          modeBtns.forEach((x) => x.classList.remove('active'));
+          b.classList.add('active');
+          state.mode = b.dataset.mode;
+          resetSamples();
+          draw();
+        });
+      });
+
+      // 깊이 슬라이더
+      depthRange.addEventListener('input', () => {
+        state.depth = Number(depthRange.value);
+        depthVal.textContent = String(state.depth);
+        buildAndRunCircuit();
+        resetSamples();
+        updateReadout();
+        draw();
+      });
+
+      // 새 랜덤 회로
+      newCircuitBtn.addEventListener('click', () => {
+        regenerate((Math.random() * 0x7fffffff) | 0);
+      });
+
+      // 표본 추출
+      sampleBtn.addEventListener('click', () => {
+        drawSamples(256);
+        updateReadout();
+        draw();
+      });
+
+      // 리셋
+      resetBtn.addEventListener('click', () => {
+        state.n = 4;
+        state.N = 16;
+        state.depth = 10;
+        state.mode = 'quantum';
+        state.seed = 12345;
+        depthRange.value = '10';
+        depthVal.textContent = '10';
+        nBtns.forEach((x) => x.classList.toggle('active', Number(x.dataset.n) === 4));
+        modeBtns.forEach((x) => x.classList.toggle('active', x.dataset.mode === 'quantum'));
+        regenerate();
+      });
+
+      // ===================== 퀴즈 채점 =====================
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quizFeedback');
+      if (quizBtn) {
+        quizBtn.addEventListener('click', () => {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#1d4ed8';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '정답입니다! 깊은 랜덤 회로의 출력 확률 값은 지수형 포터-톰슨 분포 P(p) ≈ N·e⁻ᴺᵖ 를 따릅니다. 대부분은 작은 확률이고 소수만 크게 튑니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽습니다. 정답은 "지수형 포터-톰슨 분포"입니다. 균등도, 단일 정답도, 가우시안도 아닙니다 — 간섭이 새겨진 구조화된 무작위입니다.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ===================== 초기화 =====================
+      state.n = 4;
+      state.N = 1 << state.n;
+      state.depth = Number(depthRange.value) || 10;
+      depthVal.textContent = String(state.depth);
+      resetSamples();
+      buildAndRunCircuit();
+      updateReadout();
+      draw();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./11-quantum-walk.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 양자 무작위 걷기</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_supremacy" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%9A%B0%EC%9B%94%EC%84%B1&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+supremacy+random+circuit+sampling" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+      <a href="https://www.nature.com/articles/s41586-019-1666-5" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 Nature</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 70, "slug": "12-quantum-supremacy", "category": "09-quantum-computing", "icon": "🏆", "title": "양자 우월성 (랜덤 회로 샘플링)", "titleEn": "Quantum Supremacy (Random Circuit Sampling)", "year": "2019", "scientist": "구글 시커모어 (Google Sycamore)", "difficulty": 5, "description": "무작위 양자 회로의 출력 분포를 표본화 — 고전 컴퓨터로는 사실상 재현 불가한 작업.", "keywords": ["양자 우월성", "랜덤 회로", "샘플링", "포터-토머스", "시커모어", "양자 이점"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>

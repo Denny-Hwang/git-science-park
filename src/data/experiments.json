@@ -2531,6 +2531,201 @@
         }
       ],
       "status": "ready"
+    },
+    {
+      "id": 66,
+      "slug": "08-deutsch-jozsa",
+      "icon": "🃏",
+      "category": "09-quantum-computing",
+      "title": "도이치–조자 알고리즘",
+      "titleEn": "Deutsch–Jozsa Algorithm",
+      "year": "1992",
+      "scientist": "도이치 · 조자 (Deutsch · Jozsa)",
+      "difficulty": 3,
+      "description": "함수가 상수인지 균형인지를 단 한 번의 질의로 판별하는 최초의 양자 속도향상.",
+      "keywords": [
+        "도이치-조자",
+        "오라클",
+        "상수/균형",
+        "한 번의 질의",
+        "양자 병렬성",
+        "아다마르"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Deutsch%E2%80%93Jozsa_algorithm"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EB%8F%84%EC%9D%B4%EC%B9%98-%EC%A1%B0%EC%9E%90+%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=deutsch+jozsa+algorithm+explained"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 67,
+      "slug": "09-qft",
+      "icon": "🎼",
+      "category": "09-quantum-computing",
+      "title": "양자 푸리에 변환 (QFT)",
+      "titleEn": "Quantum Fourier Transform",
+      "year": "1994",
+      "scientist": "코퍼스미스 (Coppersmith)",
+      "difficulty": 4,
+      "description": "기저 상태의 위상에 주기 정보를 심는 변환 — 쇼어 알고리즘의 핵심 엔진.",
+      "keywords": [
+        "QFT",
+        "푸리에 변환",
+        "위상",
+        "주기",
+        "쇼어",
+        "진폭"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_Fourier_transform"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%ED%91%B8%EB%A6%AC%EC%97%90+%EB%B3%80%ED%99%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+fourier+transform+visualization"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 68,
+      "slug": "10-shor",
+      "icon": "🗝️",
+      "category": "09-quantum-computing",
+      "title": "쇼어 알고리즘 (주기 찾기)",
+      "titleEn": "Shor's Algorithm",
+      "year": "1994",
+      "scientist": "피터 쇼어 (Peter Shor)",
+      "difficulty": 5,
+      "description": "모듈러 거듭제곱의 주기를 QFT로 찾아 큰 수를 다항 시간에 소인수분해한다.",
+      "keywords": [
+        "쇼어",
+        "소인수분해",
+        "주기 찾기",
+        "모듈러 지수",
+        "QFT",
+        "RSA"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Shor%27s_algorithm"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%87%BC%EC%96%B4+%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=shor+algorithm+period+finding+factoring"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 69,
+      "slug": "11-quantum-walk",
+      "icon": "🚶",
+      "category": "09-quantum-computing",
+      "title": "양자 무작위 걷기",
+      "titleEn": "Quantum Walk",
+      "year": "1993~",
+      "scientist": "아하로노프 외 (Aharonov et al.)",
+      "difficulty": 4,
+      "description": "동전과 위치의 중첩·간섭으로 고전 무작위 걷기와 전혀 다른 분포가 나타난다.",
+      "keywords": [
+        "양자 걷기",
+        "간섭",
+        "동전 연산자",
+        "확산",
+        "고전 대비",
+        "분포"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_walk"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EA%B1%B7%EA%B8%B0&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+walk+vs+classical+random+walk"
+        }
+      ],
+      "status": "ready"
+    },
+    {
+      "id": 70,
+      "slug": "12-quantum-supremacy",
+      "icon": "🏆",
+      "category": "09-quantum-computing",
+      "title": "양자 우월성 (랜덤 회로 샘플링)",
+      "titleEn": "Quantum Supremacy (Random Circuit Sampling)",
+      "year": "2019",
+      "scientist": "구글 시커모어 (Google Sycamore)",
+      "difficulty": 5,
+      "description": "무작위 양자 회로의 출력 분포를 표본화 — 고전 컴퓨터로는 사실상 재현 불가한 작업.",
+      "keywords": [
+        "양자 우월성",
+        "랜덤 회로",
+        "샘플링",
+        "포터-토머스",
+        "시커모어",
+        "양자 이점"
+      ],
+      "links": [
+        {
+          "type": "wikipedia",
+          "label": "Wikipedia (EN)",
+          "url": "https://en.wikipedia.org/wiki/Quantum_supremacy"
+        },
+        {
+          "type": "wikipedia-ko",
+          "label": "위키백과 (KO)",
+          "url": "https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%EC%9A%B0%EC%9B%94%EC%84%B1&title=Special%3ASearch"
+        },
+        {
+          "type": "youtube",
+          "label": "YouTube",
+          "url": "https://www.youtube.com/results?search_query=quantum+supremacy+random+circuit+sampling"
+        },
+        {
+          "type": "source",
+          "label": "Nature",
+          "url": "https://www.nature.com/articles/s41586-019-1666-5"
+        }
+      ],
+      "status": "ready"
     }
   ]
 }

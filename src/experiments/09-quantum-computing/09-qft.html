@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- gsp-perf:start -->
+<script>(function(){if(window.__gspPerf)return;window.__gspPerf=1;var raf=window.requestAnimationFrame;if(!raf)return;var held=[];window.requestAnimationFrame=function(cb){if(document.hidden){held.push(cb);return -1;}return raf.call(window,cb);};document.addEventListener("visibilitychange",function(){if(!document.hidden&&held.length){var h=held;held=[];for(var i=0;i<h.length;i++){raf.call(window,h[i]);}}});})();</script>
+<!-- gsp-perf:end -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>양자 푸리에 변환 (QFT) · Git Science Park</title>
+  <style>
+    :root {
+      --primary: #0E7490;
+      --primary-light: #1597b8;
+      --bg: #eef6f9;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #5f6671;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; background: var(--card-bg);
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    nav a:hover { color: var(--primary-light); }
+    nav a:focus-visible, .tab-btn:focus-visible, button:focus-visible,
+    input:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .cat-badge {
+      margin-left: auto; padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff; font-size: 0.85rem;
+    }
+    header {
+      max-width: 880px; margin: 0 auto; padding: 28px 20px 12px;
+    }
+    header h1 { font-size: 1.8rem; color: var(--primary); }
+    header .en { color: var(--text-muted); font-style: italic; }
+    header .meta { margin-top: 6px; font-size: 0.9rem; color: var(--text-muted); }
+    .tabs {
+      max-width: 880px; margin: 16px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 16px; border: none; background: none; cursor: pointer;
+      font-size: 1rem; color: var(--text-muted); border-bottom: 3px solid transparent;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    main { max-width: 880px; margin: 0 auto; padding: 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    h2 { font-size: 1.3rem; color: var(--primary); margin: 8px 0 12px; }
+    h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    canvas {
+      width: 100%; max-width: 640px; height: auto; display: block; margin: 0 auto;
+      background: #062a33; border: 1px solid #e5e7eb; border-radius: 8px;
+    }
+    .controls {
+      margin: 16px 0; padding: 16px; background: var(--card-bg);
+      border-radius: 8px; border: 1px solid #e5e7eb;
+    }
+    .controls label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .controls input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .control-row { margin-bottom: 14px; }
+    .control-row:last-child { margin-bottom: 0; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .btn:hover { background: var(--primary-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary { background: #e5e7eb; color: var(--text); }
+    .btn.secondary:hover { background: #d1d5db; }
+    .btn.preset { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+    .btn.preset.active { background: var(--primary); color: #fff; }
+    .btn.preset:hover { background: var(--primary-light); color: #fff; }
+    .answer-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .answer-grid .btn.preset { min-width: 42px; padding: 6px 10px; font-size: 0.9rem; }
+    .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .result-box, .hint-box, .concept-box, .formula-box,
+    .misconception, .quiz-box, .timeline, .key-point, .scientist {
+      padding: 14px 16px; border-radius: 8px; margin: 12px 0;
+    }
+    .result-box { background: #e6f3f7; border-left: 4px solid var(--primary); font-size: 1.05rem; }
+    .result-box strong { color: var(--primary); }
+    .result-grid { display: flex; flex-wrap: wrap; gap: 18px; }
+    .result-grid div { min-width: 150px; }
+    .warn-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #fffbeb; border-left: 4px solid #92400e; color: #92400e;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .peak-note {
+      margin-top: 10px; padding: 8px 12px; border-radius: 6px;
+      background: #f0fdf4; border-left: 4px solid #166534; color: #166534;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .hint-box { background: #eff6ff; border-left: 4px solid #1d4ed8; color: #1d4ed8; }
+    .concept-box { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .formula-box {
+      background: #1e1e1e; color: #f4f4f4; font-family: "Courier New", monospace;
+      text-align: center; font-size: 1.1rem; line-height: 2;
+    }
+    .misconception { background: #fef2f2; border-left: 4px solid #b91c1c; }
+    .quiz-box { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .quiz-box label { display: block; margin: 6px 0; cursor: pointer; font-weight: 400; }
+    .quiz-box button {
+      margin-top: 10px; padding: 8px 18px; border: none; border-radius: 6px;
+      background: var(--primary); color: #fff; cursor: pointer; font-size: 0.95rem;
+    }
+    .quiz-box button:hover { background: var(--primary-light); }
+    .quiz-feedback { margin-top: 10px; font-weight: 600; }
+    .timeline { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    .timeline li, .scientist li, ul.goals li { margin-left: 18px; }
+    .key-point { background: #fffbeb; border-left: 4px solid #92400e; }
+    .scientist { background: var(--card-bg); border: 1px solid #e5e7eb; }
+    ul.goals { margin: 12px 0 12px 22px; }
+    p { margin-bottom: 8px; }
+    footer {
+      max-width: 880px; margin: 24px auto; padding: 16px 20px;
+      color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid #e5e7eb;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.45rem; }
+      .tab-btn { padding: 8px 10px; font-size: 0.9rem; }
+    }
+  </style>
+<!-- gsp-css:start -->
+  <link rel="stylesheet" href="../../assets/css/classroom.css">
+<!-- gsp-css:end -->
+</head>
+<body>
+<!-- gsp-topbar:start -->
+<div class="topbar" role="toolbar" aria-label="lang/classroom">
+  <span id="lang-mount" class="lang-mount"></span>
+  <button type="button" id="classroom-toggle" class="topbar-btn" aria-pressed="false" data-i18n="classroom.toggle">🎓 Classroom</button>
+</div>
+<!-- gsp-topbar:end -->
+  <!-- NAV: 허브로 돌아가기 + 카테고리 배지 -->
+  <nav>
+    <a href="../../index.html" data-i18n="nav.back">&larr; 허브로</a>
+    <span class="cat-badge">🖥️ 양자정보·컴퓨팅 (Quantum Computing)</span>
+  </nav>
+
+  <!-- HEADER: 제목 / 영문명 / 메타(연도·과학자) -->
+  <header>
+    <h1>양자 푸리에 변환 (QFT)</h1>
+    <div class="en">Quantum Fourier Transform</div>
+    <div class="meta">1994 · 코퍼스미스 (Coppersmith) · 난이도 ⭐⭐⭐⭐</div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" aria-label="실험 탭">
+    <button class="tab-btn active" data-tab="interactive" data-i18n="tab.interactive" role="tab" aria-selected="true" aria-controls="interactive" id="tab-interactive">🎮 인터랙티브</button>
+    <button class="tab-btn" data-tab="learning" data-i18n="tab.learning" role="tab" aria-selected="false" aria-controls="learning" id="tab-learning">📚 원리 학습</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tab.history" role="tab" aria-selected="false" aria-controls="history" id="tab-history">📜 역사적 맥락</button>
+  </div>
+
+  <main>
+    <!-- ===== 🎮 인터랙티브 ===== -->
+    <div id="interactive" class="tab-content active" role="tabpanel" aria-labelledby="tab-interactive">
+      <canvas id="canvas" width="640" height="420" role="img"
+        aria-label="양자 푸리에 변환을 보여주는 두 개의 막대그래프. 위쪽은 입력 진폭, 아래쪽은 QFT 출력 진폭입니다. 막대 높이는 확률(진폭의 제곱)을 나타내고, 막대 색은 위상을 나타냅니다. 주기적 입력은 출력에서 몇 개의 봉우리(주파수)로 집중되고, 단일 기저 상태 입력은 출력에서 크기가 모두 같은 균등한 막대로 퍼집니다."></canvas>
+
+      <div class="controls">
+        <div class="control-row">
+          <label>큐비트 수 n 선택 (N = 2ⁿ 점)</label>
+          <div class="btn-row" role="group" aria-label="큐비트 수 선택">
+            <button type="button" class="btn preset active" data-n="3">n = 3 (N=8)</button>
+            <button type="button" class="btn preset" data-n="4">n = 4 (N=16)</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label>입력 모드 선택</label>
+          <div class="btn-row" role="group" aria-label="입력 모드 선택">
+            <button type="button" class="btn preset active" data-mode="basis">단일 기저 상태 |x₀⟩</button>
+            <button type="button" class="btn preset" data-mode="periodic">주기적 입력 (주기 r)</button>
+          </div>
+        </div>
+
+        <div class="control-row" id="basisRow">
+          <label for="x0Slider">기저 상태 위치 x₀: <strong id="x0Val">0</strong></label>
+          <input type="range" id="x0Slider" min="0" max="7" step="1" value="0"
+            aria-label="기저 상태 위치 x0">
+        </div>
+
+        <div class="control-row" id="periodRow" style="display:none;">
+          <label for="rSlider">주기 r: <strong id="rVal">2</strong> (N/r = <strong id="peakSpacing">4</strong> 간격의 봉우리 예상)</label>
+          <input type="range" id="rSlider" min="2" max="4" step="1" value="2"
+            aria-label="입력 주기 r">
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="applyBtn">▶ QFT 적용</button>
+          <button type="button" class="btn secondary" id="resetBtn">⟲ 리셋</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-grid">
+          <div>큐비트 수 n: <strong id="r-n">3</strong></div>
+          <div>점 개수 N: <strong id="r-N">8</strong></div>
+        </div>
+        <div class="result-grid" style="margin-top:8px;">
+          <div>입력 모드: <strong id="r-mode">단일 기저 상태</strong></div>
+          <div>상태: <strong id="r-phase">QFT 적용 전</strong></div>
+        </div>
+        <div class="peak-note" id="peakNote" style="display:none;"></div>
+        <div class="warn-note" id="warnNote" style="display:none;"></div>
+      </div>
+
+      <div class="hint-box">
+        💡 QFT는 입력의 <strong>주기(period)</strong>를 출력의 <strong>봉우리(주파수, peaks)</strong>로 바꿉니다.
+        주기 r의 주기적 입력은 출력에서 k ≈ m·(N/r) 위치에 집중됩니다(쇼어 알고리즘의 핵심).
+        반면 단일 기저 상태 |x₀⟩는 출력에서 크기가 모두 <strong>1/√N</strong>로 균등해지고 위상만 회전합니다(색으로 표시).
+      </div>
+    </div>
+
+    <!-- ===== 📚 원리 학습 ===== -->
+    <div id="learning" class="tab-content" role="tabpanel" aria-labelledby="tab-learning">
+      <h2>양자 푸리에 변환의 원리</h2>
+
+      <div class="concept-box">
+        <h3>고전 이산 푸리에 변환(DFT)과의 관계</h3>
+        <p>
+          양자 푸리에 변환(QFT)은 고전적인 이산 푸리에 변환(DFT)의 양자 버전입니다.
+          N = 2ⁿ개의 진폭으로 이루어진 양자 상태에 대해 정확히 DFT와 같은 수식을 계산하지만,
+          n개의 큐비트 위에서 약 O(n²)개의 게이트만으로 수행할 수 있어 고전 FFT(O(N log N))보다 지수적으로 빠릅니다.
+        </p>
+      </div>
+
+      <div class="concept-box">
+        <h3>정의</h3>
+        <p>
+          입력 진폭 x[j]를 다음과 같이 출력 진폭 y[k]로 변환합니다.
+          (양자 푸리에 변환의 부호 규약: 지수의 부호가 +입니다.)
+        </p>
+        <ul class="goals">
+          <li><strong>단일 기저 상태 |x₀⟩:</strong> 출력의 크기가 모두 1/√N로 <strong>균등</strong>해지고, 위상이 e^(2πi·x₀·k/N)로 선형적으로 회전합니다(위상 램프). 즉 크기는 모두 같고 위상만 돕니다.</li>
+          <li><strong>주기적 입력:</strong> j = s, s+r, s+2r, … 에서만 진폭이 같은 값으로 있고 나머지는 0인 입력은, 출력에서 k ≈ m·(N/r) 위치에 <strong>집중(봉우리)</strong>됩니다. 이것이 쇼어 알고리즘이 주기 r을 찾아내는 원리입니다.</li>
+        </ul>
+      </div>
+
+      <div class="formula-box">
+        y[k] = (1/√N) · Σⱼ x[j] · e^(2πi·j·k/N)<br>
+        j, k = 0, 1, …, N−1,  N = 2ⁿ<br>
+        단일 기저 |x₀⟩ → |y[k]| = 1/√N, 위상 = 2π·x₀·k/N<br>
+        주기 r 입력 → 봉우리 위치 k = m·(N/r)
+      </div>
+
+      <div class="misconception">
+        <h3>흔한 오해</h3>
+        <p>
+          "QFT를 적용하면 곧바로 주기 r을 눈으로 볼 수 있다"는 생각은 <strong>부분적으로만</strong> 맞습니다.
+          QFT는 주기를 봉우리로 바꿔주지만, 실제 양자 컴퓨터에서는 출력을 <strong>측정</strong>해야 하고
+          한 번의 측정으로는 하나의 k만 얻습니다. 그래서 봉우리 위치를 여러 번 표본으로 얻은 뒤
+          연분수(continued fraction) 같은 고전 후처리로 r을 복원합니다. 또한 N/r이 정수가 아니면 봉우리가
+          정확한 정수 위치가 아니라 그 <strong>근처</strong>로 번진다는 점도 흔히 오해합니다.
+        </p>
+      </div>
+
+      <div class="quiz-box">
+        <h3>퀴즈: 확인해 봅시다</h3>
+        <p><strong>N = 8인 점 위에서 주기 r = 2인 주기적 입력에 QFT를 적용하면, 출력은 어느 위치에 봉우리가 생길까요?</strong></p>
+        <form id="quizForm">
+          <label><input type="radio" name="q1" value="a"> 모든 k에 균등하게 (봉우리 없음)</label>
+          <label><input type="radio" name="q1" value="b"> k = 0 과 k = 4 (즉 N/r = 4 간격)</label>
+          <label><input type="radio" name="q1" value="c"> k = 2 한 곳에만</label>
+          <label><input type="radio" name="q1" value="d"> k = 7 한 곳에만</label>
+          <button type="button" id="quizBtn">채점하기</button>
+        </form>
+        <div class="quiz-feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- ===== 📜 역사적 맥락 ===== -->
+    <div id="history" class="tab-content" role="tabpanel" aria-labelledby="tab-history">
+      <h2>역사적 맥락</h2>
+
+      <div class="timeline">
+        <h3>주요 연표</h3>
+        <ul>
+          <li><strong>1965년</strong> — 쿨리(Cooley)와 튜키(Tukey)가 고속 푸리에 변환(FFT) 알고리즘을 재발견·대중화하여 신호처리 혁명을 일으킴.</li>
+          <li><strong>1994년</strong> — 돈 코퍼스미스(Don Coppersmith)가 IBM에서 양자 푸리에 변환을 명시적으로 정식화(내부 기술 보고서). 같은 해 피터 쇼어가 이를 활용한 소인수분해 알고리즘을 발표.</li>
+          <li><strong>1994년</strong> — 쇼어(Shor)의 알고리즘이 QFT를 핵심 부품으로 사용하여, 정수의 소인수분해와 이산로그를 다항 시간에 풀 수 있음을 보임(공개키 암호에 위협).</li>
+          <li><strong>1995~1996년</strong> — 키타예프(Kitaev)의 위상 추정(phase estimation) 정식화로 QFT가 여러 양자 알고리즘의 표준 부품으로 자리 잡음.</li>
+          <li><strong>2001년</strong> — IBM과 스탠퍼드 연구진이 NMR 기반 7-큐비트 시스템에서 쇼어 알고리즘(내부적으로 QFT 사용)으로 15 = 3 × 5 를 시연.</li>
+        </ul>
+      </div>
+
+      <div class="key-point">
+        <h3>왜 중요한가</h3>
+        <p>
+          QFT는 쇼어 알고리즘의 심장입니다. 소인수분해 문제를 "주기 찾기" 문제로 바꾼 뒤,
+          QFT가 그 숨은 주기를 출력의 봉우리(주파수)로 드러내 줍니다.
+          또한 위상 추정, 은닉 부분군 문제(hidden subgroup problem) 등 많은 양자 알고리즘의
+          공통 부품으로 쓰이므로, QFT는 양자 알고리즘 설계의 가장 기본적인 도구 중 하나입니다.
+        </p>
+      </div>
+
+      <div class="scientist">
+        <h3>돈 코퍼스미스 (Don Coppersmith, 1950~)</h3>
+        <p>
+          미국의 수학자·암호학자로 오랫동안 IBM 연구소에서 일했습니다.
+          암호학(DES의 설계 분석, 코퍼스미스 공격)과 알고리즘(빠른 행렬 곱셈) 등 여러 분야에서 업적을 남겼으며,
+          1994년 양자 푸리에 변환을 명시적으로 정식화하여 쇼어 알고리즘을 비롯한 양자 알고리즘 발전의
+          토대를 마련했습니다.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Git Science Park · 과학사 인터랙티브 실험실 — 직접 조작하며 배우는 과학사
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ----- 상태 -----
+      const state = {
+        n: 3,               // 큐비트 수 (3 | 4)
+        N: 8,               // 점 개수 = 2^n
+        mode: 'basis',      // 'basis' | 'periodic'
+        x0: 0,              // 단일 기저 상태 위치
+        r: 2,               // 주기적 입력의 주기
+        input: [],          // 입력 진폭 (복소수 배열: {re, im})
+        output: [],         // QFT 출력 진폭 (복소수 배열: {re, im})
+        applied: false      // QFT 적용 여부
+      };
+
+      // ----- 레이아웃 상수(px) -----
+      const W = 640, H = 420;
+      const PAD_L = 34, PAD_R = 20;
+      // 두 개의 차트: 위(입력) / 아래(출력)
+      const CHART_TOP_Y = 40;     // 입력 차트 위쪽 시작
+      const CHART_H = 140;        // 각 차트 높이
+      const GAP = 60;             // 두 차트 사이 간격
+      const INPUT_BASE_Y = CHART_TOP_Y + CHART_H;              // 입력 막대 바닥선
+      const OUTPUT_BASE_Y = CHART_TOP_Y + CHART_H + GAP + CHART_H; // 출력 막대 바닥선
+
+      // ----- DOM -----
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+
+      const nBtns = document.querySelectorAll('.btn.preset[data-n]');
+      const modeBtns = document.querySelectorAll('.btn.preset[data-mode]');
+      const basisRow = document.getElementById('basisRow');
+      const periodRow = document.getElementById('periodRow');
+      const x0Slider = document.getElementById('x0Slider');
+      const rSlider = document.getElementById('rSlider');
+      const x0Val = document.getElementById('x0Val');
+      const rVal = document.getElementById('rVal');
+      const peakSpacing = document.getElementById('peakSpacing');
+      const applyBtn = document.getElementById('applyBtn');
+      const resetBtn = document.getElementById('resetBtn');
+
+      const rN = document.getElementById('r-n');
+      const rNN = document.getElementById('r-N');
+      const rMode = document.getElementById('r-mode');
+      const rPhase = document.getElementById('r-phase');
+      const peakNote = document.getElementById('peakNote');
+      const warnNote = document.getElementById('warnNote');
+
+      // ----- (1) 탭 전환 (템플릿 코드 그대로) -----
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ----- 헬퍼 -----
+      // 복소수 크기의 제곱 |z|^2
+      function mag2(z) { return z.re * z.re + z.im * z.im; }
+      // 복소수 크기 |z|
+      function mag(z) { return Math.sqrt(mag2(z)); }
+      // 위상(라디안, -pi..pi). 크기가 0에 가까우면 0으로 처리.
+      function phase(z) {
+        if (mag(z) < 1e-9) return 0;
+        return Math.atan2(z.im, z.re);
+      }
+
+      // 위상(라디안) → HSL 색 (0도=빨강 계열 회전)
+      function phaseColor(ph, alpha) {
+        let deg = ph * 180 / Math.PI;   // -180..180
+        if (deg < 0) deg += 360;        // 0..360
+        return 'hsla(' + deg.toFixed(0) + ', 75%, 60%, ' + alpha + ')';
+      }
+
+      // ----- 입력 진폭 만들기 (정규화 포함) -----
+      function buildInput() {
+        const N = state.N;
+        const arr = new Array(N);
+        for (let i = 0; i < N; i++) arr[i] = { re: 0, im: 0 };
+
+        if (state.mode === 'basis') {
+          // 단일 기저 상태 |x0>: 그 위치만 진폭 1
+          const x0 = Math.min(state.x0, N - 1);
+          arr[x0] = { re: 1, im: 0 };
+        } else {
+          // 주기적 입력: j = s, s+r, s+2r, ... 에 동일 진폭
+          const r = state.r;
+          const s = 0; // 시작 오프셋
+          const idxs = [];
+          for (let j = s; j < N; j += r) idxs.push(j);
+          const val = 1 / Math.sqrt(idxs.length);
+          for (let t = 0; t < idxs.length; t++) arr[idxs[t]] = { re: val, im: 0 };
+        }
+        state.input = arr;
+        // 출력은 아직 계산 전 → 0으로
+        state.output = new Array(N);
+        for (let i = 0; i < N; i++) state.output[i] = { re: 0, im: 0 };
+        state.applied = false;
+      }
+
+      // ----- QFT (직접 계산: QFT 부호 규약의 DFT) -----
+      // y[k] = (1/sqrt(N)) * sum_j x[j] * e^{ 2*pi*i * j*k / N }
+      function computeQFT() {
+        const N = state.N;
+        const x = state.input;
+        const out = new Array(N);
+        const invSqrtN = 1 / Math.sqrt(N);
+        for (let k = 0; k < N; k++) {
+          let re = 0, im = 0;
+          for (let j = 0; j < N; j++) {
+            const ang = 2 * Math.PI * j * k / N; // + 부호 규약
+            const c = Math.cos(ang), s = Math.sin(ang);
+            // x[j] * (cos + i sin)
+            re += x[j].re * c - x[j].im * s;
+            im += x[j].re * s + x[j].im * c;
+          }
+          out[k] = { re: re * invSqrtN, im: im * invSqrtN };
+        }
+        state.output = out;
+        state.applied = true;
+      }
+
+      // ----- 하나의 차트 그리기 -----
+      // amps: 복소수 배열, baseY: 바닥선 y, title: 제목, highlightPeaks: bool
+      function drawChart(amps, baseY, title, peakSet) {
+        const N = state.N;
+        const plotW = W - PAD_L - PAD_R;
+        const slot = plotW / N;
+        const barW = Math.max(4, slot * 0.62);
+
+        // 스케일: 최대 |a|^2 기준 (최소값 보장)
+        let maxP = 1e-6;
+        for (let i = 0; i < N; i++) {
+          const p = mag2(amps[i]);
+          if (p > maxP) maxP = p;
+        }
+        const scale = CHART_H / maxP;
+
+        // 바닥선
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(PAD_L - 6, baseY);
+        ctx.lineTo(W - PAD_R + 6, baseY);
+        ctx.stroke();
+
+        // 제목
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(title, PAD_L, baseY - CHART_H - 10);
+
+        for (let i = 0; i < N; i++) {
+          const a = amps[i];
+          const p = mag2(a);
+          const barH = p * scale;
+          const cx = PAD_L + slot * i + slot / 2;
+          const x = cx - barW / 2;
+          const isPeak = peakSet && peakSet.has(i);
+
+          // 막대 색: 위상 색. 크기가 0에 가까우면 옅은 회색.
+          if (mag(a) < 1e-6) {
+            ctx.fillStyle = 'rgba(120,138,145,0.35)';
+          } else {
+            ctx.fillStyle = phaseColor(phase(a), 0.92);
+          }
+          ctx.fillRect(x, baseY - barH, barW, barH);
+
+          // 봉우리 강조 테두리
+          if (isPeak && p > 1e-4) {
+            ctx.strokeStyle = '#bff0fb';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, baseY - barH, barW, barH);
+          }
+
+          // 인덱스 라벨
+          ctx.fillStyle = 'rgba(255,255,255,0.7)';
+          ctx.font = '10px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(String(i), cx, baseY + 12);
+
+          // 위상 각도 라벨 (막대가 있을 때만, N<=16이므로 모두 표시)
+          if (mag(a) > 1e-6) {
+            let deg = phase(a) * 180 / Math.PI;
+            if (deg < 0) deg += 360;
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = '9px system-ui, sans-serif';
+            ctx.fillText(Math.round(deg) + '°', cx, baseY - barH - 4);
+          }
+        }
+      }
+
+      // ----- 예상 봉우리 위치 집합 (주기적 입력일 때) -----
+      function expectedPeakSet() {
+        const set = new Set();
+        if (state.mode === 'periodic') {
+          const N = state.N, r = state.r;
+          // k = m * (N/r), 정수에 가장 가까운 위치
+          for (let m = 0; m < r; m++) {
+            const k = Math.round(m * N / r);
+            set.add(((k % N) + N) % N);
+          }
+        }
+        return set;
+      }
+
+      // ----- 전체 그리기 -----
+      function draw() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#062a33';
+        ctx.fillRect(0, 0, W, H);
+
+        // 입력 차트 (봉우리 강조 없음)
+        drawChart(state.input, INPUT_BASE_Y, '입력 x[j]  (막대높이=|x|², 색=위상)', null);
+
+        // 가운데 화살표 / 라벨
+        ctx.fillStyle = '#bff0fb';
+        ctx.font = 'bold 15px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        const midY = (INPUT_BASE_Y + (OUTPUT_BASE_Y - CHART_H)) / 2 + 4;
+        ctx.fillText('↓  QFT  ↓', W / 2, midY);
+
+        // 출력 차트 (적용 후에만 봉우리 강조)
+        const peakSet = state.applied ? expectedPeakSet() : null;
+        const outTitle = state.applied
+          ? '출력 y[k] = QFT(x)  (막대높이=|y|², 색=위상)'
+          : '출력 y[k]  ( ▶ QFT 적용 을 누르세요 )';
+        drawChart(state.output, OUTPUT_BASE_Y, outTitle, peakSet);
+      }
+
+      // ----- 결과 텍스트 갱신 -----
+      function updateResult() {
+        rN.textContent = String(state.n);
+        rNN.textContent = String(state.N);
+        rMode.textContent = (state.mode === 'basis') ? '단일 기저 상태 |x₀⟩' : ('주기적 입력 (주기 r=' + state.r + ')');
+        rPhase.textContent = state.applied ? 'QFT 적용 완료' : 'QFT 적용 전';
+
+        // 봉우리/설명 노트
+        peakNote.style.display = 'none';
+        warnNote.style.display = 'none';
+
+        if (state.applied) {
+          if (state.mode === 'basis') {
+            // 균등 크기 확인
+            const N = state.N;
+            const target = 1 / Math.sqrt(N);
+            let uniform = true;
+            for (let k = 0; k < N; k++) {
+              if (Math.abs(mag(state.output[k]) - target) > 1e-6) { uniform = false; break; }
+            }
+            peakNote.style.display = 'block';
+            peakNote.textContent = uniform
+              ? ('단일 기저 |x₀=' + state.x0 + '⟩ → 출력 크기가 모두 |y|=1/√N≈' + target.toFixed(3) + '로 균등, 위상만 2π·x₀·k/N 로 회전합니다.')
+              : '출력 크기가 균등해야 합니다.';
+          } else {
+            const N = state.N, r = state.r;
+            const spacing = N / r;
+            const peaks = Array.from(expectedPeakSet()).sort(function (a, b) { return a - b; });
+            peakNote.style.display = 'block';
+            peakNote.textContent = '주기 r=' + r + ' → 출력이 k ≈ m·(N/r) = ' + peaks.join(', ')
+              + ' 위치에 집중(봉우리). N/r = ' + spacing + ' 간격.';
+            if (Math.abs(spacing - Math.round(spacing)) > 1e-9) {
+              warnNote.style.display = 'block';
+              warnNote.textContent = 'N/r = ' + spacing.toFixed(2) + ' 가 정수가 아니어서 봉우리가 정수 위치 근처로 번집니다(누설).';
+            }
+          }
+        }
+      }
+
+      // ----- 슬라이더 범위/표시 갱신 -----
+      function syncControls() {
+        // 슬라이더 최대값
+        x0Slider.max = String(state.N - 1);
+        if (state.x0 > state.N - 1) state.x0 = state.N - 1;
+        x0Slider.value = String(state.x0);
+        x0Val.textContent = String(state.x0);
+
+        rSlider.value = String(state.r);
+        rVal.textContent = String(state.r);
+        peakSpacing.textContent = (state.N / state.r).toString();
+
+        // 모드에 따라 행 표시
+        basisRow.style.display = (state.mode === 'basis') ? 'block' : 'none';
+        periodRow.style.display = (state.mode === 'periodic') ? 'block' : 'none';
+      }
+
+      // ----- 다시 준비 (입력 재생성 + 그리기) -----
+      function refresh() {
+        buildInput();
+        syncControls();
+        updateResult();
+        requestAnimationFrame(draw);
+      }
+
+      // ----- 이벤트: n 선택 -----
+      nBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          nBtns.forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          state.n = parseInt(btn.dataset.n, 10);
+          state.N = Math.pow(2, state.n);
+          refresh();
+        });
+      });
+
+      // ----- 이벤트: 모드 선택 -----
+      modeBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          modeBtns.forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          state.mode = btn.dataset.mode;
+          refresh();
+        });
+      });
+
+      // ----- 이벤트: 슬라이더 -----
+      x0Slider.addEventListener('input', function () {
+        state.x0 = parseInt(x0Slider.value, 10);
+        x0Val.textContent = String(state.x0);
+        refresh();
+      });
+      rSlider.addEventListener('input', function () {
+        state.r = parseInt(rSlider.value, 10);
+        rVal.textContent = String(state.r);
+        peakSpacing.textContent = (state.N / state.r).toString();
+        refresh();
+      });
+
+      // ----- 이벤트: QFT 적용 -----
+      applyBtn.addEventListener('click', function () {
+        computeQFT();
+        updateResult();
+        requestAnimationFrame(draw);
+      });
+
+      // ----- 이벤트: 리셋 -----
+      resetBtn.addEventListener('click', function () {
+        state.n = 3;
+        state.N = 8;
+        state.mode = 'basis';
+        state.x0 = 0;
+        state.r = 2;
+        nBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.n === '3'); });
+        modeBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.mode === 'basis'); });
+        refresh();
+      });
+
+      // ----- 퀴즈 채점 -----
+      const quizBtn = document.getElementById('quizBtn');
+      const quizFeedback = document.getElementById('quizFeedback');
+      if (quizBtn) {
+        quizBtn.addEventListener('click', function () {
+          const sel = document.querySelector('input[name="q1"]:checked');
+          if (!sel) {
+            quizFeedback.textContent = '먼저 보기를 선택해 주세요.';
+            quizFeedback.style.color = '#92400e';
+            return;
+          }
+          if (sel.value === 'b') {
+            quizFeedback.textContent = '정답입니다! 주기 r=2 이면 봉우리 간격은 N/r = 8/2 = 4, 즉 k = 0, 4 에 집중됩니다.';
+            quizFeedback.style.color = '#166534';
+          } else {
+            quizFeedback.textContent = '아쉽네요. QFT는 주기 r을 봉우리 간격 N/r 로 바꿉니다. N=8, r=2 이면 k = 0, 4 입니다. 인터랙티브 탭에서 확인해 보세요.';
+            quizFeedback.style.color = '#b91c1c';
+          }
+        });
+      }
+
+      // ----- 초기화 -----
+      refresh();
+    })();
+  </script>
+<!-- exp-related:start (auto-generated) -->
+  <nav class="exp-related" aria-label="related" style="max-width:880px;margin:28px auto 0;padding:18px 20px;border-top:1px solid rgba(127,127,127,0.25);">
+    <div data-i18n="related.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">🔗 이어서 탐험하기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="../../index.html" data-i18n="related.all" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">← 전체 실험 보기</a>
+      <a href="./08-deutsch-jozsa.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.prev">◀ 이전</span> · 도이치–조자 알고리즘</a>
+      <a href="./10-shor.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);"><span data-i18n="related.next">다음 ▶</span> · 쇼어 알고리즘 (주기 찾기)</a>
+      <a href="../09-quantum-computing/01-bloch-sphere.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 블로흐 구와 큐비트 게이트</a>
+      <a href="../09-quantum-computing/02-quantum-circuit.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 회로 시뮬레이터</a>
+      <a href="../09-quantum-computing/07-error-correction.html" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">🔗 양자 오류정정 (3-큐비트)</a>
+    </div>
+  </nav>
+<!-- exp-related:end -->
+<!-- gsp-learn:start -->
+  <nav class="exp-learn" aria-label="learn more" style="max-width:880px;margin:10px auto 0;padding:0 20px 12px;">
+    <div data-i18n="links.title" style="font-weight:700;color:var(--primary);margin-bottom:10px;">📚 더 알아보기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <a href="https://en.wikipedia.org/wiki/Quantum_Fourier_transform" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📖 Wikipedia (EN)</a>
+      <a href="https://ko.wikipedia.org/w/index.php?search=%EC%96%91%EC%9E%90+%ED%91%B8%EB%A6%AC%EC%97%90+%EB%B3%80%ED%99%98&amp;title=Special%3ASearch" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">📘 위키백과 (KO)</a>
+      <a href="https://www.youtube.com/results?search_query=quantum+fourier+transform+visualization" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--primary);border-radius:999px;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;background:rgba(127,127,127,0.04);">▶️ YouTube</a>
+    </div>
+  </nav>
+<!-- gsp-learn:end -->
+<!-- gsp-scripts:start -->
+<script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/i18n.js"></script>
+<script src="../../assets/js/a11y.js"></script>
+<script src="../../assets/js/classroom.js"></script>
+<script>
+window.GSP_EXP = {"id": 67, "slug": "09-qft", "category": "09-quantum-computing", "icon": "🎼", "title": "양자 푸리에 변환 (QFT)", "titleEn": "Quantum Fourier Transform", "year": "1994", "scientist": "코퍼스미스 (Coppersmith)", "difficulty": 4, "description": "기저 상태의 위상에 주기 정보를 심는 변환 — 쇼어 알고리즘의 핵심 엔진.", "keywords": ["QFT", "푸리에 변환", "위상", "주기", "쇼어", "진폭"], "catName": "양자정보·컴퓨팅", "catIcon": "🖥️"};
+(function(){
+  function mountChrome(){
+    var mount=document.getElementById("lang-mount");
+    if(window.I18n&&window.I18n.mountSwitcher) window.I18n.mountSwitcher(mount);
+    if(window.A11y&&window.A11y.mountToggle){
+      var cb=window.I18n?window.I18n.t("a11y.colorblind"):null;
+      window.A11y.mountToggle(mount, (cb&&cb!=="a11y.colorblind")?cb:"Color-blind palette");
+    }
+  }
+  function boot(){ mountChrome(); if(window.Classroom&&window.Classroom.initExp) window.Classroom.initExp(window.GSP_EXP); }
+  function start(){
+    if(window.I18n&&window.I18n.load){ window.I18n.load().then(boot, boot); }
+    else { boot(); }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
+<!-- gsp-scripts:end -->
+</body>
+</html>
