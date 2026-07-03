@@ -453,7 +453,9 @@
         // 최빈 속도 텍스트
         ctx.fillStyle = '#C53030';
         ctx.font = '12px sans-serif';
-        ctx.fillText('T = ' + state.T + ' K', PLOT.x + 6, PLOT.y + 16);
+        ctx.textAlign = 'right';
+        ctx.fillText('T = ' + state.T + ' K', PLOT.x + PLOT.w - 6, PLOT.y + 16);
+        ctx.textAlign = 'left';
       }
 
       function drawPlot() {
@@ -473,9 +475,10 @@
         ctx.fillText('속력 v →', PLOT.x + plotW - 56, baseY + 16);
         ctx.fillText('비율', PLOT.x + 2, PLOT.y + 20);
 
-        // x축 속도 범위는 질량/온도 무관하게 고정 스케일을 쓰면 비교가 어려우므로
-        // "현재 분포가 잘 보이도록" 충분히 넓은 고정 vMaxAxis 사용.
-        const vMaxAxis = Math.sqrt((2 * K_SIM * 1200) / 2) * 3.2; // 최대 온도/최소 질량 기준
+        // x축은 고정 스케일(온도를 올리면 곡선이 실제로 오른쪽으로 이동하는 것을 보이기 위함).
+        // 기준을 기본 질량(32u)·상한 온도 부근으로 잡아, 기본값(T=300)에서도 곡선이
+        // 그래프를 적절히 채우면서 고온에서 오른쪽으로 퍼지는 변화가 보이도록 한다.
+        const vMaxAxis = Math.sqrt((2 * K_SIM * 1100) / 32) * 2.2;
         const toX = (v) => PLOT.x + (v / vMaxAxis) * plotW;
 
         // 히스토그램(실제 입자 표본에서 집계)
@@ -662,6 +665,7 @@
 <!-- gsp-learn:end -->
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/body-i18n.js"></script>
 <script src="../../assets/js/i18n.js"></script>
 <script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>

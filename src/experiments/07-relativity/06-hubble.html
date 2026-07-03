@@ -537,7 +537,9 @@
         ctx.fillText('보라', barX, barTop - 6);
         ctx.fillText('빨강', barX, barTop + barH + 16);
         ctx.fillStyle = '#facc15';
-        ctx.fillText('z = ' + z.toFixed(3), ox + 8, oy + h - 8);
+        ctx.textAlign = 'right';
+        ctx.fillText('z = ' + z.toFixed(3), ox + w - 8, oy + h - 8);
+        ctx.textAlign = 'left';
       }
 
       // ----- 파장(nm) → RGB 근사 변환 (파장→색) -----
@@ -646,6 +648,7 @@
 <!-- gsp-learn:end -->
 <!-- gsp-scripts:start -->
 <script>window.I18N_BASE="../../assets/i18n/";</script>
+<script src="../../assets/js/body-i18n.js"></script>
 <script src="../../assets/js/i18n.js"></script>
 <script src="../../assets/js/a11y.js"></script>
 <script src="../../assets/js/classroom.js"></script>

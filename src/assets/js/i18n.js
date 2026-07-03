@@ -18,6 +18,7 @@ window.I18n = (function () {
   var CODES = SUPPORTED.map(function (s) { return s[0]; });
   var dict = {}, lang = 'en', dir = 'ltr';
   var descDict = {}; // 실험 설명(slug → 번역문) — assets/i18n/exp/<lang>.json
+  var bodyDict = {}; // 실험 본문(한국어 원문 → 번역문) — assets/i18n/body/<lang>.json
 
   function base() { return window.I18N_BASE || './assets/i18n/'; }
 
@@ -74,7 +75,7 @@ window.I18n = (function () {
         document.documentElement.setAttribute('lang', lang);
         document.documentElement.setAttribute('dir', dir);
         apply(document);
-        return loadDesc().then(function () { return dict; });
+        return loadDesc().then(loadBody).then(applyBody).then(function () { return dict; });
       })
       .catch(function () { /* 정적 서버 아님: 원문 유지 */ return {}; });
   }
@@ -88,6 +89,31 @@ window.I18n = (function () {
   }
   function desc(slug) {
     return (descDict && descDict[slug] != null) ? descDict[slug] : null;
+  }
+
+  // 실험 본문 로케일 로드. body/manifest.json 의 langs 에 있는 언어만 실제 사전을
+  // 가져온다(아직 번역이 없는 언어는 요청 자체를 하지 않아 404가 발생하지 않음).
+  function loadBody() {
+    if (lang === 'ko') { bodyDict = {}; return Promise.resolve(); }
+    return fetch(base() + 'body/manifest.json', { cache: 'no-cache' })
+      .then(function (r) { return r.ok ? r.json() : { langs: [] }; })
+      .then(function (m) {
+        var langs = (m && m.langs) || [];
+        if (langs.indexOf(lang) === -1) { bodyDict = {}; return; }
+        return fetch(base() + 'body/' + lang + '.json', { cache: 'no-cache' })
+          .then(function (r) { return r.ok ? r.json() : {}; })
+          .then(function (j) { bodyDict = j || {}; });
+      })
+      .catch(function () { bodyDict = {}; });
+  }
+  // 실험 페이지 <main> 정적 본문을 번역(BodyI18n 있고 번역 사전 있을 때만).
+  function applyBody() {
+    try {
+      if (lang !== 'ko' && window.BodyI18n && bodyDict) {
+        var main = document.querySelector('main');
+        if (main) window.BodyI18n.apply(main, bodyDict);
+      }
+    } catch (e) {}
   }
 
   function set(code) {
