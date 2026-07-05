@@ -30,7 +30,10 @@ window.BodyI18n = (function () {
     var els = root.querySelectorAll(CONTENT_SEL);
     for (var i = 0; i < els.length; i++) {
       var el = els[i];
-      if (el.id) continue;                 // 동적 값 요소는 통째로 제외
+      // id 있는 요소는 원칙적으로 제외(동적 값). 단, 정적 라벨인 <button> 과
+      // 정적 퀴즈 문항(#quiz-q)은 예외로 번역한다. (판정·결과·서술 등 JS가
+      // 다시 쓰는 요소는 그대로 두어 상호작용 시 언어가 뒤섞이지 않게 한다.)
+      if (el.id && el.tagName !== 'BUTTON' && el.id !== 'quiz-q') continue;
       if (skip(el)) continue;
       // pureInline: 자식이 전부 안전한 인라인 태그이고 id가 없으면 통째 번역
       var pure = true;

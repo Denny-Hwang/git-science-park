@@ -12,6 +12,10 @@ function ok(cond, msg) { if (!cond) { fail++; console.log('FAIL  ' + msg); } els
 async function open(rel) {
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
+  // 한국어로 고정: 이 테스트는 버튼 라벨(예: "1회 반복")을 텍스트로 찾아
+  // 시뮬레이션을 구동한다. 본문 다국어화가 켜지면 라벨이 번역되어 셀렉터가
+  // 어긋나므로, 물리(언어 무관) 회귀 검증은 원문 언어에 고정한다.
+  await p.addInitScript(() => { try { localStorage.setItem('gsp:lang', 'ko'); } catch (e) {} });
   const errs = [];
   p.on('pageerror', (e) => errs.push(e.message.split('\n')[0]));
   p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text().slice(0, 80)); });
