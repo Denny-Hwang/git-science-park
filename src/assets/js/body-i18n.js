@@ -35,11 +35,14 @@ window.BodyI18n = (function () {
       // 다시 쓰는 요소는 그대로 두어 상호작용 시 언어가 뒤섞이지 않게 한다.)
       if (el.id && el.tagName !== 'BUTTON' && el.id !== 'quiz-q') continue;
       if (skip(el)) continue;
-      // pureInline: 자식이 전부 안전한 인라인 태그이고 id가 없으면 통째 번역
+      // pureInline: 자식이 전부 안전한 인라인 태그이고 id가 없으면 통째 번역.
+      // 인라인 태그 "속에" id 요소(동적 값)가 중첩돼 있으면 통째 치환 시 그 요소가
+      // 파괴되므로 제외한다(예: <strong><span id="r-state">…</span></strong>).
       var pure = true;
       var kids = el.children;
       for (var k = 0; k < kids.length; k++) {
-        if (SAFE_INLINE[kids[k].tagName] !== 1 || kids[k].id) { pure = false; break; }
+        if (SAFE_INLINE[kids[k].tagName] !== 1 || kids[k].id ||
+            (kids[k].querySelector && kids[k].querySelector('[id]'))) { pure = false; break; }
       }
       if (pure) {
         var txt = el.textContent;

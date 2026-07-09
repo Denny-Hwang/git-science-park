@@ -23,6 +23,8 @@ window.Classroom = (function () {
     var v = window.I18n ? window.I18n.t(key, vars) : null;
     return (v && v !== key) ? v : fb;
   }
+  // 제목·연도·과학자 등 데이터 문자열을 런타임 조각 사전으로 번역(없으면 원문).
+  function TR(s) { return (window.I18n && window.I18n.tr) ? window.I18n.tr(String(s == null ? '' : s)) : s; }
 
   /* ---------- 미니 DOM 빌더 ---------- */
   function h(tag, attrs, kids) {
@@ -161,7 +163,7 @@ window.Classroom = (function () {
         var row = h('li', { 'class': 'gsp-course-item' }, [
           h('span', { 'class': 'idx', text: String(i + 1) }),
           h('span', { 'class': 'ci-title' }, [
-            h('b', { text: (item.icon ? item.icon + ' ' : '') + item.title }),
+            h('b', { text: (item.icon ? item.icon + ' ' : '') + TR(item.title) }),
             h('small', { text: catIcon(opts, item.category) + ' ' + catName(opts, item.category) })
           ]),
           h('button', { 'class': 'gsp-iconbtn', 'aria-label': 'up', text: '▲',
@@ -213,10 +215,10 @@ window.Classroom = (function () {
         var ready = e.status === 'ready';
         tbody.appendChild(h('tr', { style: ready ? '' : 'opacity:.5' }, [
           h('td', {}, [
-            h('b', { text: (e.icon || catIcon(opts, e.category)) + ' ' + e.title }),
+            h('b', { text: (e.icon || catIcon(opts, e.category)) + ' ' + TR(e.title) }),
             h('div', { 'class': 'gsp-muted', text: catName(opts, e.category) })
           ]),
-          h('td', { 'class': 'gsp-muted', html: esc(e.year || '') + '<br>' + esc(e.scientist || '') }),
+          h('td', { 'class': 'gsp-muted', html: esc(TR(e.year || '')) + '<br>' + esc(TR(e.scientist || '')) }),
           h('td', { text: stars(e.difficulty) }),
           h('td', {}, [ready ? btn : h('span', { 'class': 'gsp-muted', text: '—' })])
         ]));
@@ -306,8 +308,8 @@ window.Classroom = (function () {
     var meta = h('div', { 'class': 'gsp-guide-meta' }, [
       exp.icon ? h('span', { text: exp.icon + ' ' + (exp.titleEn || '') }) : null,
       h('span', { text: (exp.catIcon || '') + ' ' + (exp.catName || exp.category) }),
-      exp.scientist ? h('span', { text: '👤 ' + exp.scientist }) : null,
-      exp.year ? h('span', { text: '📅 ' + exp.year }) : null,
+      exp.scientist ? h('span', { text: '👤 ' + TR(exp.scientist) }) : null,
+      exp.year ? h('span', { text: '📅 ' + TR(exp.year) }) : null,
       h('span', { text: stars(exp.difficulty) })
     ]);
     var kw = (exp.keywords || []).slice(0, 8);
@@ -351,9 +353,9 @@ window.Classroom = (function () {
       ]);
     }
     var sheet = h('div', { 'class': 'gsp-ws-sheet' }, [
-      h('h2', { text: exp.title }),
+      h('h2', { text: TR(exp.title) }),
       h('p', { 'class': 'ws-sub', text: T('classroom.worksheetTitle', '수업 워크시트') + ' · ' +
-        (exp.catName || exp.category) + (exp.scientist ? ' · ' + exp.scientist : '') }),
+        TR(exp.catName || exp.category) + (exp.scientist ? ' · ' + TR(exp.scientist) : '') }),
       h('div', { 'class': 'gsp-ws-fields' }, [
         h('div', { 'class': 'fld', text: T('classroom.name', '이름') + ': ' }),
         h('div', { 'class': 'fld', text: T('classroom.date', '날짜') + ': ' })
