@@ -3,13 +3,13 @@
 **An interactive learning platform for the landmark experiments of science — learn by doing, not by reading.**
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2E4A62)](https://denny-hwang.github.io/git-science-park/)
-[![Experiments](https://img.shields.io/badge/Experiments-65-C53030)](https://denny-hwang.github.io/git-science-park/)
+[![Experiments](https://img.shields.io/badge/Experiments-70-C53030)](https://denny-hwang.github.io/git-science-park/)
 [![Eras](https://img.shields.io/badge/Eras-9-6B46C1)](#-the-9-eras)
 [![Languages](https://img.shields.io/badge/Languages-10-0E7490)](#-internationalization-i18n)
 [![Dependencies](https://img.shields.io/badge/Dependencies-Zero-2B6CB0)](#-tech-stack)
 [![License: MIT](https://img.shields.io/badge/License-MIT-234E52)](LICENSE)
 
-> From Eratosthenes measuring the circumference of the Earth to imaging a black hole and computing with qubits — **65 interactive labs** where you *manipulate* science history instead of just *reading* it.
+> From Eratosthenes measuring the circumference of the Earth to imaging a black hole and computing with qubits — **70 interactive labs** where you *manipulate* science history instead of just *reading* it.
 
 🔗 **Live demo:** <https://denny-hwang.github.io/git-science-park/>
 
@@ -17,7 +17,7 @@
 
 ## 📖 About
 
-**Git Science Park** is a static web platform for learning **65 pivotal experiments** in the history of physics, by manipulating each one directly in the browser.
+**Git Science Park** is a static web platform for learning **70 pivotal experiments** in the history of physics, by manipulating each one directly in the browser.
 
 ### What
 
@@ -37,7 +37,7 @@ Science is not a body of conclusions to memorize — it is the process of **ques
 
 | Feature | Description |
 | --- | --- |
-| 🧫 **65 experiments** | From the birth of measurement to the extremes of modern physics and quantum computing |
+| 🧫 **70 experiments** | From the birth of measurement to the extremes of modern physics and quantum computing |
 | 🕰️ **9 eras** | Ancient → Scientific Revolution → Precision Era → Energy & Field → Atomic → Quantum → Relativity → Modern → Quantum Computing |
 | 🗂️ **3-tab layout** | 🎮 Interactive · 📚 Principles · 📜 History |
 | 🌐 **10 languages** | English (default), Korean, Chinese, Japanese, Spanish, Hindi, Russian, Hebrew, Portuguese, Arabic — with RTL support |
@@ -61,8 +61,8 @@ Science is not a body of conclusions to memorize — it is the process of **ques
 | 🌊 | Quantum Mechanics | 12 | The making of quantum theory |
 | 🌌 | Relativity & Cosmology | 7 | Relativity and the cosmos |
 | 🔬 | Modern Physics | 7 | Exploring the extremes |
-| 🖥️ | Quantum Information & Computing | 7 | Computing with qubits |
-| | **Total** | **65** | |
+| 🖥️ | Quantum Information & Computing | 12 | Computing with qubits |
+| | **Total** | **70** | |
 
 A few examples: 🌍 Eratosthenes, 🍎 Newton's gravitation, 🌈 Newton's prism, 🧲 Faraday induction, ⚛️ Rutherford scattering, 🐱 Schrödinger equation, ☁️ hydrogen orbitals, 🧭 Bloch sphere & qubit gates, 🔎 Grover's search, 🔁 quantum teleportation, 🔐 BB84 key distribution, 🕳️ black-hole imaging (EHT), 🧩 Higgs boson.
 
@@ -156,8 +156,10 @@ npx playwright install --with-deps chromium firefox webkit
 # serve the site, then:
 python3 -m http.server 8000 --directory src &
 
-npm test          # cross-browser QA: tab behavior, 0 console errors, hub checks (Chromium/Firefox/WebKit)
-npm run test:a11y # accessibility audit: WCAG 2 A/AA via axe-core
+npm test                 # cross-browser QA: tab behavior, 0 console errors, hub checks (Chromium/Firefox/WebKit)
+npm run test:a11y        # accessibility audit: WCAG 2 A/AA via axe-core
+npm run test:physics     # physics regression checks on flagship quantum sims
+npm run test:consistency # data/docs/sitemap/i18n consistency gate (no browser needed)
 ```
 
 Both run automatically on every push via `.github/workflows/qa.yml`, alongside GitHub Pages deployment (`.github/workflows/deploy.yml`).
@@ -175,7 +177,9 @@ git-science-park/
 ├── package.json                 # dev/test tooling only (Playwright, axe-core)
 ├── tests/
 │   ├── qa.mjs                   # cross-browser page QA
-│   └── a11y.mjs                 # WCAG AA audit
+│   ├── a11y.mjs                 # WCAG AA audit
+│   ├── physics.mjs              # physics regression checks
+│   └── consistency.mjs          # data/docs/sitemap/i18n consistency gate
 ├── docs/                        # project documentation (Korean)
 │   ├── 01-planning/             # PRD, roadmap, user stories
 │   ├── 02-design/               # architecture, data model, UI
@@ -184,7 +188,7 @@ git-science-park/
 ├── src/                         # deploy root (the static site)
 │   ├── index.html               # hub page
 │   ├── data/
-│   │   └── experiments.json     # metadata for all 65 experiments
+│   │   └── experiments.json     # metadata for all 70 experiments
 │   ├── assets/
 │   │   ├── css/
 │   │   │   ├── exp.css           # shared experiment styles (opt-in)
@@ -238,7 +242,7 @@ See **[CONTRIBUTING.md](CONTRIBUTING.md)** for branch strategy, commit conventio
 | **v1.0** | ✅ Done | 53 experiments · hub · 3-tab layout · responsive · GitHub Pages |
 | **v1.1** | ✅ Done | Physics-correctness review · shared shell · cross-links · hub UX · QA CI |
 | **v2.0** | ✅ Done | 10-language i18n · classroom mode · WCAG AA + color-blind · reduced-motion/perf · cross-browser CI · "Learn more" links |
-| **Quantum expansion** | ✅ Done | New **Quantum Computing** era + more quantum mechanics → **65 experiments** |
+| **Quantum expansion** | ✅ Done | New **Quantum Computing** era + more quantum mechanics → **70 experiments** |
 
 **Next candidates:** translating experiment body content · quiz/assessment mode · worksheet PDF export · further domains (condensed matter, particle physics, beyond physics).
 

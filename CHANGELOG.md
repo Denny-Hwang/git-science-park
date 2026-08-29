@@ -33,7 +33,20 @@
 
 ## [Unreleased]
 
-(다음 작업 대기 중.)
+### Added
+
+- **404 페이지** (`src/404.html`) — GitHub Pages에서 잘못된 주소로 접근 시 허브로 안내하는 자기완결 페이지.
+- **정합성 테스트** (`tests/consistency.mjs`, `npm run test:consistency`) — experiments.json을 기준으로
+  실험 파일 1:1 대응, id/slug 유일성, sitemap 커버리지, index.html·README 표기 개수,
+  i18n 사전(10개 언어) JSON 유효성과 키 동등성을 CI에서 검증. 문서·사이트맵 드리프트 재발 방지.
+
+### Fixed
+
+- **sitemap.xml** — 누락됐던 17개 페이지(양자컴퓨팅 시대 전체 12개 + 양자역학 확장 5개)를 추가해
+  허브 포함 전체 71개 URL을 등재.
+- **실험 개수 표기 불일치** — 실제 데이터(70개 실험 · 9개 시대)와 어긋난 표기를 일괄 정정:
+  `index.html` 메타·OG 설명(53→70)과 기본 통계 필(53/8→70/9), README 배지·본문·시대별 표(65→70, 양자컴퓨팅 7→12),
+  CONTRIBUTING 소개(53→70).
 
 ---
 
