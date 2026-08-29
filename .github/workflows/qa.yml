@@ -26,6 +26,9 @@ jobs:
       - name: Install test tooling
         run: npm install
 
+      - name: Run data/docs consistency checks
+        run: npm run test:consistency
+
       - name: Install browsers (Chromium · Firefox · WebKit)
         run: npx playwright install --with-deps chromium firefox webkit
 

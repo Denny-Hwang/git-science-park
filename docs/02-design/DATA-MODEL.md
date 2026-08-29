@@ -25,8 +25,8 @@ Git Science Park의 모든 실험 메타데이터는 단일 JSON 파일에 정�
 {
   "version": "0.0.1",        // 데이터 스키마/콘텐츠 버전
   "generated": "...",        // 생성 메모 (자유 문자열)
-  "categories": [ ... ],     // 카테고리 정의 배열 (길이 8)
-  "experiments": [ ... ]     // 실험 정의 배열 (길이 53)
+  "categories": [ ... ],     // 카테고리 정의 배열 (길이 9)
+  "experiments": [ ... ]     // 실험 정의 배열 (길이 70)
 }
 ```
 
@@ -36,8 +36,8 @@ Git Science Park의 모든 실험 메타데이터는 단일 JSON 파일에 정�
 |---|---|---|---|
 | `version` | `string` | ✅ | 데이터 파일의 버전. 시맨틱 버저닝 권장(예 `0.0.1`). |
 | `generated` | `string` | ✅ | 생성/갱신 방법을 적는 메모성 문자열. |
-| `categories` | `object[]` | ✅ | 카테고리 정의 배열. 정확히 8개. |
-| `experiments` | `object[]` | ✅ | 실험 정의 배열. 정확히 53개. |
+| `categories` | `object[]` | ✅ | 카테고리 정의 배열. 정확히 9개. |
+| `experiments` | `object[]` | ✅ | 실험 정의 배열. 정확히 70개. |
 
 ### 2.2 `categories[]` 객체
 
@@ -54,7 +54,7 @@ Git Science Park의 모든 실험 메타데이터는 단일 JSON 파일에 정�
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
-| `id` | `number` | ✅ | 전역 고유 실험 번호. 1~53의 정수. 카테고리를 가로질러 연속한다. |
+| `id` | `number` | ✅ | 전역 고유 실험 번호. 1~70의 정수로 전역 유일·연속. 이후 확장에서 새 실험이 기존 번호 뒤에 추가되었으므로 카테고리별 `id` 범위는 연속하지 않을 수 있다. |
 | `slug` | `string` | ✅ | 파일명 stem. `NN-name` 형식(예 `01-eratosthenes`). 카테고리별로 `01`부터 시작하는 2자리 일련번호 + 영문 슬러그. HTML 파일명·링크 경로 구성에 사용. |
 | `category` | `string` | ✅ | 소속 카테고리 `id`(예 `01-ancient`). `categories[].id` 중 하나와 일치해야 한다. |
 | `title` | `string` | ✅ | 한글 제목(예 `에라토스테네스의 지구 둘레 측정`). |
@@ -106,7 +106,7 @@ Git Science Park의 모든 실험 메타데이터는 단일 JSON 파일에 정�
 
 ## 4. 카테고리 정의
 
-총 8개 카테고리. `id`는 폴더명이며, 각 카테고리는 고유한 테마 색상(`color`)을 가진다.
+총 9개 카테고리. `id`는 폴더명이며, 각 카테고리는 고유한 테마 색상(`color`)을 가진다.
 
 | ID | 아이콘 | 이름 | 영문명 | 설명 | 색상 |
 |---|---|---|---|---|---|
@@ -118,28 +118,32 @@ Git Science Park의 모든 실험 메타데이터는 단일 JSON 파일에 정�
 | 06-quantum | 🌊 | 양자역학 | Quantum Mechanics | 양자역학의 형성 | #6B46C1 |
 | 07-relativity | 🌌 | 상대성·우주론 | Relativity & Cosmology | 상대성이론과 우주론 | #1A365D |
 | 08-modern | 🔬 | 현대 물리학 | Modern Physics | 극한의 탐험 | #234E52 |
+| 09-quantum-computing | 🖥️ | 양자정보·컴퓨팅 | Quantum Information & Computing | 큐비트로 계산하다 | #0E7490 |
 
 ### 카테고리별 실험 개수
 
-총 53개 실험이 8개 카테고리에 다음과 같이 분포한다.
+총 70개 실험이 9개 카테고리에 다음과 같이 분포한다. (`id`는 전역적으로 1–70 연속·유일하지만,
+양자 확장에서 새 실험이 54번 이후로 추가되어 06-quantum·09-quantum-computing의 `id` 범위는 연속하지 않는다.)
 
-| 카테고리 | 실험 수 | `id` 범위 |
+| 카테고리 | 실험 수 | `id` |
 |---|---|---|
 | 01-ancient | 4 | 1–4 |
 | 02-scientific-revolution | 7 | 5–11 |
 | 03-precision-era | 5 | 12–16 |
 | 04-energy-field | 7 | 17–23 |
 | 05-atomic | 9 | 24–32 |
-| 06-quantum | 7 | 33–39 |
+| 06-quantum | 12 | 33–39, 54–55, 60–62 |
 | 07-relativity | 7 | 40–46 |
 | 08-modern | 7 | 47–53 |
-| **합계** | **53** | **1–53** |
+| 09-quantum-computing | 12 | 56–59, 63–70 |
+| **합계** | **70** | **1–70** |
 
 ---
 
-## 5. 전체 데이터 (`experiments.json`)
+## 5. 초기 데이터 스냅숏 (역사적 참고)
 
-아래는 `src/data/experiments.json`의 실제 내용 전체다.
+아래는 v1.0 초기 스캐폴드 시점(`version: 0.0.1`, 53개 실험)의 `experiments.json` 스냅숏으로, 역사적 참고용으로 보존한다.
+**현재 데이터의 단일 진실 공급원은 `src/data/experiments.json`이며**(70개 실험 · 9개 카테고리), 정합성은 `tests/consistency.mjs`가 CI에서 검증한다.
 
 ```json
 {
@@ -1229,8 +1233,8 @@ Git Science Park의 모든 실험 메타데이터는 단일 JSON 파일에 정�
 
 `experiments.json`을 편집할 때 다음 불변식(invariant)을 반드시 지켜야 한다. 순수 정적 사이트이므로 런타임 검증이 없다 — 규약 준수가 곧 안정성이다.
 
-- `categories` 배열 길이는 정확히 8이며, `id` 값은 8개 카테고리 폴더명과 일치한다.
-- `experiments` 배열 길이는 정확히 53이며, `id`는 1부터 53까지 빠짐없이 유일하다.
+- `categories` 배열 길이는 정확히 9이며, `id` 값은 9개 카테고리 폴더명과 일치한다.
+- `experiments` 배열 길이는 정확히 70이며, `id`는 1부터 70까지 빠짐없이 유일하다(전역 연속; 카테고리별 범위는 연속하지 않을 수 있다).
 - 모든 `experiments[].category` 값은 `categories[].id` 중 하나를 가리켜야 한다(외래 키 무결성).
 - `slug`는 카테고리 내에서 유일하며 `NN-name` 형식을 따른다. `src/experiments/{category}/{slug}.html` 파일이 실제로 존재해야 해당 실험을 `status: "ready"`로 전환할 수 있다.
 - `difficulty`는 1~5의 정수만 허용한다.
