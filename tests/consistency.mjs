@@ -40,8 +40,12 @@ ok(noFile.length === 0, `every experiment in experiments.json has an HTML file${
 ok(orphan.length === 0, `every experiment HTML file is registered in experiments.json${orphan.length ? ` — orphans: ${orphan.join(', ')}` : ''}`);
 
 // 2) 유일성·참조 유효성
+// id는 1..N의 정수로 전역 유일·연속(빠짐없음) — DATA-MODEL.md 6장의 불변식.
 const ids = exps.map((e) => e.id);
+const badIds = exps.filter((e) => !Number.isInteger(e.id) || e.id < 1 || e.id > exps.length);
+ok(badIds.length === 0, `every experiment id is an integer in 1..${exps.length}${badIds.length ? ` — bad: ${badIds.map((e) => `${e.slug}=${e.id}`).join(', ')}` : ''}`);
 ok(new Set(ids).size === ids.length, 'experiment ids are unique');
+ok([...ids].sort((a, b) => a - b).every((v, i) => v === i + 1), `experiment ids are contiguous 1..${exps.length}`);
 ok(new Set(exps.map((e) => `${e.category}/${e.slug}`)).size === exps.length, '(category, slug) pairs are unique');
 const badCat = exps.filter((e) => !catIds.has(e.category));
 ok(badCat.length === 0, `every experiment references a defined category${badCat.length ? ` — bad: ${badCat.map((e) => e.slug).join(', ')}` : ''}`);
@@ -72,12 +76,30 @@ ok(readme.includes(`**${exps.length} experiments**`), `README highlights table c
 const eraBadge = (readme.match(/badge\/Eras-(\d+)-/) || [])[1];
 ok(Number(eraBadge) === data.categories.length, `README eras badge (${eraBadge}) matches data (${data.categories.length})`);
 
+// 5b) DATA-MODEL.md (규범 스키마 문서) — "정확히 N개/N이며"로 명시된 개수 불변식이
+// 실제 데이터(카테고리·실험 수)와 일치해야 한다.
+const dataModel = readFileSync(path.join(ROOT, 'docs/02-design/DATA-MODEL.md'), 'utf8');
+const dmCounts = [...dataModel.matchAll(/정확히 (\d+)(?:개|이며)/g)].map((m) => Number(m[1]));
+const dmAllowed = new Set([exps.length, data.categories.length]);
+ok(dmCounts.length >= 4 && dmCounts.every((n) => dmAllowed.has(n)),
+  `DATA-MODEL.md count invariants match data (${exps.length} experiments / ${data.categories.length} categories; found: ${dmCounts.join(', ') || 'none'})`);
+
 // 6) i18n 사전 유효성·키 동등성 (UI 사전 10개 언어)
 const i18nDir = path.join(SRC, 'assets/i18n');
 const flat = (obj, prefix = '') => Object.entries(obj).flatMap(([k, v]) =>
   (v && typeof v === 'object') ? flat(v, prefix + k + '.') : [prefix + k]);
 const langs = readdirSync(i18nDir).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5));
-ok(langs.length === 10, `10 UI locale dictionaries present (found ${langs.length}: ${langs.join(', ')})`);
+// i18n.js의 SUPPORTED 목록과 파일명 집합이 정확히 일치해야 한다(개수만 세면
+// 파일 하나가 다른 언어로 바뀌어도 통과해 버리고, 그 언어는 조용히 영어로 폴백한다).
+const i18nJs = readFileSync(path.join(SRC, 'assets/js/i18n.js'), 'utf8');
+const supportedBlock = (i18nJs.match(/SUPPORTED\s*=\s*\[([\s\S]*?)\];/) || [])[1] || '';
+const supported = [...supportedBlock.matchAll(/\['([a-z]{2})'/g)].map((m) => m[1]);
+ok(supported.length > 0 && supported.includes('en'), `i18n.js SUPPORTED parsed (${supported.length} locales, includes en)`);
+const langsSet = new Set(langs);
+const supMissing = supported.filter((l) => !langsSet.has(l));
+const supExtra = langs.filter((l) => !supported.includes(l));
+ok(supMissing.length === 0 && supExtra.length === 0,
+  `UI locale files match i18n.js SUPPORTED exactly (${supported.join(', ')})${supMissing.length ? ` — missing files: ${supMissing.join(', ')}` : ''}${supExtra.length ? ` — unlisted files: ${supExtra.join(', ')}` : ''}`);
 let en = null;
 const parsed = {};
 for (const l of langs) {
@@ -85,6 +107,7 @@ for (const l of langs) {
   catch (e) { ok(false, `i18n ${l}.json parses (${e.message})`); }
 }
 en = parsed.en;
+ok(!!en, 'en.json parsed — parity baseline available');
 if (en) {
   const enKeys = new Set(flat(en));
   for (const l of langs) {
